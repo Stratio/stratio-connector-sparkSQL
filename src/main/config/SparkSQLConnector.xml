@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Connector>
+    <ConnectorName>SparkSQLConnector</ConnectorName>
+    <DataStores>
+        <DataStoreName>hdfs</DataStoreName>
+    </DataStores>
+    <Version>0.1.0</Version>
+    <RequiredProperties>
+        <Property>
+            <PropertyName>DefaultLimit</PropertyName>
+            <Description>It is necessary to indicate de default limit for the queries</Description>
+        </Property>
+    </RequiredProperties>
+    <SupportedOperations>
+        <Property>
+            <PropertyName>Context</PropertyName>
+            <Description>hive or Spark (default hive)</Description>
+        </Property>
+        <Property>
+            <PropertyName>Dialect</PropertyName>
+            <Description>hive or sql (default hive)</Description>
+        </Property>
+
+    </SupportedOperations>
+</Connector>

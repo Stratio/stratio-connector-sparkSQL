@@ -1,2 +1,2 @@
-# statio-connector-sparkSQL
-A crossdata connector to Spark SQL
+Stratio-Connector-Deep
+======================

@@ -1,17 +1,35 @@
-*.class
-*.log
+# Package Files #
+*.jar
+*.war
+*.ear
 
-# sbt specific
-.cache/
-.history/
-.lib/
-dist/*
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+/bin
+/target
+/.settings
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+log/
 target/
-lib_managed/
-src_managed/
-project/boot/
-project/plugins/project/
 
-# Scala-IDE specific
-.scala_dependencies
-.worksheet
+
+.clover
+*.out
+*.log
+*.class
+.orig
+*~
