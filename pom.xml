@@ -17,8 +17,8 @@
     library. -->
 
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <name>SparkSQL Connector</name>
     <groupId>com.stratio.connector</groupId>
@@ -27,31 +27,29 @@
     <description>SparkSQL connector to Crossdata</description>
     <url>http://www.stratio.com</url>
     <packaging>jar</packaging>
-
     <properties>
         <version.connector.commons>0.5.0-SNAPSHOT</version.connector.commons>
-	  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <java.version>1.7.0</java.version>
-    <scala.version>2.10.4</scala.version>
-    <scala.test.version>2.2.1</scala.test.version>
-    <scala.binary.version>2.10</scala.binary.version>
-    <scala.mock.version>3.2.1</scala.mock.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.7.0</java.version>
+        <scala.version>2.10.4</scala.version>
+        <spark.version>1.2.1</spark.version>
+        <scala.test.version>2.2.1</scala.test.version>
+        <scala.binary.version>2.10</scala.binary.version>
+        <scala.mock.version>3.2.1</scala.mock.version>
         <version.crossdata>0.3.0-SNAPSHOT</version.crossdata>
-
     </properties>
-
-
-
     <developers>
         <developer>
             <id>jmgomez</id>
             <name>Jose Manuel Gomez</name>
             <email>jmgomez at stratio dot com</email>
         </developer>
+        <developer>
+            <id>jsantos</id>
+            <name>Javier Santos</name>
+            <email>jsantos at stratio dot com</email>
+        </developer>
     </developers>
-
-
-
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -59,40 +57,57 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
     <scm>
-        <connection>scm:git:git@github.com:Stratio/stratio-connector-sparkSQL.git</connection>
-        <developerConnection>scm:git:git@github.com:Stratio/stratio-connector-sparkSQL.git</developerConnection>
+        <connection>
+            scm:git:git@github.com:Stratio/stratio-connector-sparkSQL.git
+        </connection>
+        <developerConnection>
+            scm:git:git@github.com:Stratio/stratio-connector-sparkSQL.git
+        </developerConnection>
         <url>https://github.com/Stratio/stratio-connector-sparkSQL</url>
     </scm>
-
     <distributionManagement>
         <repository>
             <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2
+            </url>
         </repository>
-
         <snapshotRepository>
             <id>sonatype-nexus-snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
-
     </distributionManagement>
-
     <dependencies>
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-commons</artifactId>
             <version>${version.connector.commons}</version>
         </dependency>
-
         <dependency>
             <groupId>com.stratio.crossdata</groupId>
             <artifactId>crossdata-connector</artifactId>
             <version>${version.crossdata}</version>
         </dependency>
-
-
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.10</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_2.10</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-hive_2.10</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.10</artifactId>
+            <version>2.3.4</version>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -110,22 +125,18 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.7</version>
         </dependency>
-
-    <dependency>
-        <groupId>org.scala-lang</groupId>
-        <artifactId>scala-library</artifactId>
-        <version>${scala.version}</version>
-    </dependency>
-
-
-           <dependency>
-        <groupId>org.scalatest</groupId>
-        <artifactId>scalatest_${scala.binary.version}</artifactId>
-        <version>${scala.test.version}</version>
-        <scope>test</scope>
-    </dependency>
- 
-	<dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_${scala.binary.version}</artifactId>
+            <version>${scala.test.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
             <version>1.5.5</version>
@@ -144,36 +155,30 @@
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
                 <version>2.15.2</version>
+                <executions>
+                    <execution>
+                        <id>scala-compile-first</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <scalaVersion>${scala.version}</scalaVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>scala-test-compile</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <scalaVersion>${scala.version}</scalaVersion>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
-        <plugin>
-            <groupId>org.scala-tools</groupId>
-            <artifactId>maven-scala-plugin</artifactId>
-            <executions>
-                <execution>
-                    <id>scala-compile-first</id>
-                    <phase>process-resources</phase>
-                    <goals>
-                        <goal>add-source</goal>
-                        <goal>compile</goal>
-                    </goals>
-                    <configuration>
-                        <scalaVersion>${scala.version}</scalaVersion>
-                    </configuration>
-                </execution>
-                <execution>
-                    <id>scala-test-compile</id>
-                    <phase>process-test-resources</phase>
-                    <goals>
-                        <goal>testCompile</goal>
-                    </goals>
-                    <configuration>
-                        <scalaVersion>${scala.version}</scalaVersion>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
-
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -235,7 +240,9 @@
                 <groupId>com.stratio.crossdata</groupId>
                 <version>${version.crossdata}</version>
                 <configuration>
-                    <mainClass>com.stratio.connector.deep.connection.DeepConnector</mainClass>
+                    <mainClass>
+                        com.stratio.connector.sparksql.SparkSQLConnector
+                    </mainClass>
                     <jmxPort>7185</jmxPort>
                 </configuration>
             </plugin>

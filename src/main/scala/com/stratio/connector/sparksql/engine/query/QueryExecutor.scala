@@ -1,0 +1,173 @@
+package com.stratio.connector.sparksql.engine.query
+
+import com.stratio.crossdata.common.result.QueryResult
+import com.stratio.connector.commons.timer
+import org.apache.spark.sql.catalyst.types.StructType
+import scala.concurrent.duration._
+import akka.actor.{Props, Actor}
+import com.stratio.connector.sparksql.{Loggable, SparkSQLConnector, SparkSQLContext}
+import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
+import org.apache.spark.sql.{Row, SchemaRDD}
+import QueryEngine.toColumnMetadata
+import QueryExecutor._
+import TypeConverters._
+
+/**
+ * Minimum query execution unit.
+ *
+ * @param sqlContext The SQLContext
+ * @param defaultChunkSize Max row size in a chunk
+ */
+class QueryExecutor(
+  sqlContext: SparkSQLContext,
+  defaultChunkSize: Int,
+  provider: SchemaRDDProvider,
+  asyncStoppable: Boolean = true) extends Actor
+with Loggable {
+
+  import SparkSQLConnector._
+  import QueryManager._
+  import timer._
+
+  type Chunk = (Iterator[Row], Int)
+
+  var currentJob: Option[JobCommand] = None
+
+  var currentSchema: Option[StructType] = None
+
+  var rddChunks: Iterator[Chunk] = List.empty[Chunk].iterator
+
+  val timeoutCountApprox = connectorConfig.getInt(CountApproxTimeout).seconds
+
+  private val me: String = s"[QueryExecutor#${context.self}}]"
+
+  override def receive = {
+
+    case job: JobCommand =>
+      time(s"$me Processing job request : $job") {
+        startNewJob(job)
+      }
+
+    case ProcessNextChunk(queryId) if currentJob.exists(_.queryId == queryId) =>
+      time(s"$me Processing 'ProcessNextChunk' request (query: $queryId") {
+        keepProcessingJob()
+      }
+
+    case Stop(queryId) if currentJob.exists(_.queryId == queryId) =>
+      time(s"$me Stopping request (query: $queryId") {
+        stopCurrentJob()
+      }
+
+  }
+
+  //  Helpers
+
+  /**
+   * Start a new async query job. This will execute the given query
+   * on SparkSQL and the repartition results for handling them in
+   * smaller pieces called chunks. Chunk size should be small enough
+   * in order to fit in driver memory.
+   *
+   * @param job Query to be asynchronously executed.
+   */
+  def startNewJob(job: JobCommand): Unit =
+    time(s"$me Starting job ${job.queryId}") {
+      //  Update current job
+      currentJob = Option(job)
+      //  Create SchemaRDD from query
+      val rdd = provider(job.workflow, sqlContext)
+      //  Update current schema
+      currentSchema = Option(rdd.schema)
+      if (asyncStoppable) {
+        logger.debug(s"$me Processing ${job.queryId} as stoppable...")
+        //  Split RDD into chunks of approx. 'defaultChunkSize' size
+        rdd.countApprox(timeoutCountApprox.toMillis).onComplete { amount =>
+          time(s"$me Defining chunks (RDD size ~ $amount elements)...") {
+            rddChunks = rdd
+              .repartition((amount.high / defaultChunkSize).toInt)
+              .toLocalIterator
+              .grouped(defaultChunkSize)
+              .map(_.iterator)
+              .zipWithIndex
+          }
+        }
+      } else {
+        time(s"$me Processing ${job.queryId} as unstoppable...") {
+          //  Prepare query as an only chunk, omitting stop messages
+          rddChunks = List(rdd.toLocalIterator -> 0).iterator
+        }
+      }
+      //  Begin processing current job
+      keepProcessingJob()
+
+    }
+
+  /**
+   * Process or set as finished current job if there are no chunks left.
+   */
+  def keepProcessingJob(): Unit =
+    for {
+      job <- currentJob
+      schema <- currentSchema
+    } {
+      if (!rddChunks.hasNext) {
+        logger.debug(s"$me Job ${job.queryId} has " +
+          s"no chunks left to process")
+        context.parent ! Finished(job.queryId)
+      }
+      else {
+        logger.debug(s"$me Preparing to process " +
+          s"next chunk of ${job.queryId}")
+        processChunk(rddChunks.next(), rddChunks.hasNext, schema)
+        self ! ProcessNextChunk(job.queryId)
+      }
+    }
+
+  /**
+   * Process the given chunk as query result set.
+   *
+   * @param chunk The chunk to be processed
+   * @param isLast Indicate the way to find out if given chunk is the last.
+   */
+  def processChunk(
+    chunk: => Chunk,
+    isLast: => Boolean,
+    schema: StructType): Unit = {
+    val (rows, idx) = chunk
+    currentJob.foreach{ job =>
+      QueryResult.createQueryResult(
+        toResultSet(rows, schema,toColumnMetadata(job.workflow)),
+        idx,
+        isLast)
+    }
+  }
+
+  /**
+   * Stop processing current asynchronous query job.
+   */
+  def stopCurrentJob(): Unit = {
+    currentJob = None
+    currentSchema = None
+    rddChunks = List().iterator
+  }
+
+}
+
+object QueryExecutor {
+
+  type SchemaRDDProvider = (LogicalWorkflow, SparkSQLContext) => SchemaRDD
+
+  def apply(
+    sqlContext: SparkSQLContext,
+    defaultChunkSize: Int,
+    provider: SchemaRDDProvider,
+    asyncStoppable: Boolean = true): Props =
+    Props(new QueryExecutor(
+      sqlContext,
+      defaultChunkSize,
+      provider,
+      asyncStoppable))
+
+  case class ProcessNextChunk(queryId: QueryManager#QueryId)
+
+}
