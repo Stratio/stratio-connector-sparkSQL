@@ -22,28 +22,8 @@
     <Version>2.4.1</Version>
     <RequiredProperties>
         <Property>
-            <PropertyName>Hosts</PropertyName>
-            <Description>The list of hosts ips (csv). Example: host1,host2,host3</Description>
-        </Property>
-        <Property>
-            <PropertyName>Port</PropertyName>
-            <Description>The list of ports (csv).</Description>
-        </Property>
-        <Property>
-            <PropertyName>Partitions</PropertyName>
-            <Description>Structure of the HDFS </Description>
-        </Property>
-        <Property>
-            <PropertyName>PartitionName</PropertyName>
-            <Description>Name of the File for the Diferents partitions of the table.</Description>
-        </Property>
-        <Property>
-            <PropertyName>Extension</PropertyName>
-            <Description>Extension of the file in HDFS.</Description>
-        </Property>
-        <Property>
-            <PropertyName>FileSeparator</PropertyName>
-            <Description>Character to split the File lines</Description>
+            <PropertyName>path</PropertyName>
+            <Description>Path to Parquet files</Description>
         </Property>
     </RequiredProperties>
 </DataStore>

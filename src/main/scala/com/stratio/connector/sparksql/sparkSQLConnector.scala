@@ -230,7 +230,7 @@ sealed trait Constants {
   val MethodNotSupported: String = "Not supported yet"
   val SparkSQLConnectorJobConstant: String = "SparkSQLConnectorJob"
   val Spark: String = "spark"
-  val ConnectorConfigFile = "SparkSQLConntector.xml"
+  val ConnectorConfigFile = "SparkSQLConnector.xml"
   val ConnectorName = "ConnectorName"
   val DataStoreName = "DataStoreName"
   val SQLContext = "SQLContext"
@@ -240,7 +240,7 @@ sealed trait Constants {
   val ConnectorProvider = "connector.provider"
   val SQLContextType = "connector.sql-context-type"
   val AsyncStoppable = "connector.async-stoppable"
-  val ChunkSize = "akka.query-executors.chunk-size"
+  val ChunkSize = "connector.query-executors.chunk-size"
 
 }
 
@@ -249,7 +249,7 @@ sealed trait Constants {
  */
 trait Loggable {
 
-  implicit val logger = LoggerFactory.getLogger(getClass)
+  implicit lazy val logger = LoggerFactory.getLogger(getClass)
 
 }
 
@@ -276,6 +276,6 @@ trait Configuration {
 
   //  References to 'SparkSQLConnector'
   val connectorConfigFile =
-    XML.loadFile(ConnectorConfigFile)
+    XML.load(getClass.getClassLoader.getResourceAsStream(ConnectorConfigFile))
 
 }
