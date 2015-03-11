@@ -25,8 +25,9 @@ import com.stratio.crossdata.common.metadata.ColumnMetadata
 import org.apache.spark.sql.SchemaRDD
 import akka.actor.ActorRef
 import com.stratio.connector.sparksql.engine.query.QueryManager._
+import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener.{registerTable, qualified, globalOptions}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
-import com.stratio.crossdata.common.logicalplan.{Select, LogicalWorkflow}
+import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
 
 /**
@@ -84,29 +85,68 @@ case class QueryEngine(
 
 object QueryEngine extends Loggable {
 
+  type Query = String
+
   //  Common functions
 
+  /**
+   * Execute some query from given workflow.
+   *
+   * @param workflow Given workflow.
+   * @param sqlContext Targeted SQL context.
+   * @param config Connector cluster configuration.
+   * @param provider The targeted data store.
+   * @return Obtained schema RDD.
+   */
   def executeQuery(
     workflow: LogicalWorkflow,
     sqlContext: SparkSQLContext,
     config: ConnectorClusterConfig,
     provider: Provider): SchemaRDD = {
+    import scala.collection.JavaConversions._
+    //  Register table if it doesn't already exist in catalog...
+    workflow.getInitialSteps.map { case project: Project =>
+      registerTable(
+        qualified(project.getTableName),
+        sqlContext,
+        provider,
+        globalOptions(config))
+    }
     //  Extract raw query from workflow
     val query = workflow.getSqlDirectQuery
     logger.debug(s"Workflow plain query : $query")
     //  Execute actual query
-    sqlContext.sql(query)
+    sqlContext.sql(sparkSQLFormat(query))
   }
 
+  /**
+   * Get columns metadata from workflow.
+   *
+   * @param workflow Given LogicalWorkflow
+   * @return List of ColumnMetadata
+   */
   def toColumnMetadata(workflow: LogicalWorkflow): List[ColumnMetadata] = {
     import scala.collection.JavaConversions._
+    //  Get column selectors from last step (SELECT)
     val (columnTypes, selectors) = workflow.getLastStep match {
       case s: Select => (s.getTypeMap, s.getOutputSelectorOrder)
     }
+    //  Map them into ColumnMetadata
     selectors.map(s =>
       new ColumnMetadata(
         s.getColumnName, Array(),
         columnTypes(s.getColumnName.getName))).toList
+  }
+
+  /**
+   * Escape catalog.table names that involve using dots.
+   *
+   * @param statement Query statement.
+   * @return Escaped query statement
+   */
+  def sparkSQLFormat(statement: Query): Query = {
+    val regexp = "(\\S*)[.](\\S*)".r
+    regexp.replaceAllIn(statement,m => s"""`${m.toString()}`""")
   }
 
 }

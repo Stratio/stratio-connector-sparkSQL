@@ -44,8 +44,7 @@ object SparkSQLMetadataListener extends Loggable {
             qualified(updatedMetadata.getName),
             sqlContext,
             provider,
-            config.getClusterOptions.toMap ++
-              config.getConnectorOptions.toMap)
+            globalOptions(config))
         }
     } {
       case deletedMetadata: TableMetadata =>
@@ -56,15 +55,25 @@ object SparkSQLMetadataListener extends Loggable {
         }
     }
 
-  //  Converts name to canonical format.
-  private def qualified(name: TableName): Seq[String] =
+  /**
+   * Converts name to canonical format.
+   *
+   * @param name Table name.
+   * @return Sequence of split parts from qualified name.
+   */
+  def qualified(name: TableName): Seq[String] =
     name.getQualifiedName.split("\\.")
 
-  /*
+  /**
    * Register a table with its options in sqlContext catalog.
    * If table already exists, it throws a warning.
+   *
+   * @param tableName Table name.
+   * @param sqlContext Targeted SQL context.
+   * @param provider Targeted data source.
+   * @param options Options map.
    */
-  private def registerTable(
+  def registerTable(
     tableName: Seq[String],
     sqlContext: SparkSQLContext,
     provider: Provider,
@@ -74,17 +83,22 @@ object SparkSQLMetadataListener extends Loggable {
         s"but it already exists!")
     else {
       logger.debug(s"Registering table [$tableName]")
-      sqlContext.sql(createTemporaryTable(
-        tableName.mkString("."),
+      val statement = createTemporaryTable(
+        s"""`${tableName.mkString(".")}`""",
         provider,
-        options))
+        options)
+      logger.debug(s"Statement: $statement")
+      sqlContext.sql(statement)
     }
   }
 
-  /*
+  /**
    * Unregister, if exists, given table name.
+   *
+   * @param tableName Table name.
+   * @param sqlContext Targeted SQL context.
    */
-  private def unregisterTable(
+  def unregisterTable(
     tableName: Seq[String],
     sqlContext: SparkSQLContext): Unit = {
     if (!sqlContext.getCatalog.tableExists(tableName))
@@ -95,6 +109,9 @@ object SparkSQLMetadataListener extends Loggable {
       sqlContext.getCatalog.unregisterTable(tableName)
     }
   }
+
+  def globalOptions(config: ConnectorClusterConfig): Map[String, String] =
+    config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
 
   /*
    *  Provides the necessary syntax for creating a temporary table in SparkSQL.
