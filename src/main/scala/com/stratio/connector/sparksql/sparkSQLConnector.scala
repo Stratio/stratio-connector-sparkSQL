@@ -89,6 +89,7 @@ with Loggable {
       clusterConfig = Option(config)
 
       time("Creating SparkContext") {
+        sparkContext.foreach(_.stop())
         sparkContext = Option(initContext(connectorConfig))
       }
 
@@ -259,6 +260,7 @@ sealed trait Constants {
   val SQLContextType = "connector.sql-context-type"
   val AsyncStoppable = "connector.async-stoppable"
   val ChunkSize = "connector.query-executors.chunk-size"
+  val CatalogTableSeparator = "_"
 
 }
 

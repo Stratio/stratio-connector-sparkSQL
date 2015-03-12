@@ -20,7 +20,8 @@ package com.stratio.connector.sparksql.engine.query
 
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.{Loggable, Provider, SparkSQLContext}
-import com.stratio.connector.sparksql.engine.query.TypeConverters._
+import com.stratio.connector.sparksql.SparkSQLConnector.CatalogTableSeparator
+import com.stratio.connector.commons.CrossdataConverters._
 import com.stratio.crossdata.common.metadata.ColumnMetadata
 import org.apache.spark.sql.SchemaRDD
 import akka.actor.ActorRef
@@ -139,14 +140,18 @@ object QueryEngine extends Loggable {
   }
 
   /**
-   * Escape catalog.table names that involve using dots.
+   * Maps catalog.table names that use dots into some other without them.
    *
    * @param statement Query statement.
    * @return Escaped query statement
    */
-  def sparkSQLFormat(statement: Query): Query = {
-    val regexp = "(\\S*)[.](\\S*)".r
-    regexp.replaceAllIn(statement,m => s"""`${m.toString()}`""")
+  def sparkSQLFormat(statement: Query, conflictChar: String = "."): Query = {
+    val regexp = s"(\\w*)[$conflictChar](\\w*)".r
+    val tables = regexp.findAllIn(statement).toList
+      .filterNot(_.startsWith(conflictChar))
+      .distinct
+    (statement /: tables)((statement, table) =>
+      statement.replace(table, table.replace(conflictChar, CatalogTableSeparator)))
   }
 
 }

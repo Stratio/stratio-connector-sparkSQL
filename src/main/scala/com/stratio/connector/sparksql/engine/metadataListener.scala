@@ -21,6 +21,7 @@ package com.stratio.connector.sparksql.engine
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.{Loggable, Provider, SparkSQLContext}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IMetadataListener}
+import com.stratio.connector.sparksql.SparkSQLConnector.CatalogTableSeparator
 import com.stratio.crossdata.common.data.TableName
 import com.stratio.crossdata.common.metadata.{TableMetadata, IMetadata}
 import org.slf4j.Logger
@@ -79,12 +80,15 @@ object SparkSQLMetadataListener extends Loggable {
     provider: Provider,
     options: Map[String, String]): Unit = {
     if (sqlContext.getCatalog.tableExists(tableName))
-      logger.warn(s"Tried to register ${tableName.mkString(".")} table " +
-        s"but it already exists!")
+      logger.warn(s"Tried to register ${
+        tableName.mkString(CatalogTableSeparator)
+      } table but it already exists!")
     else {
       logger.debug(s"Registering table [$tableName]")
       val statement = createTemporaryTable(
-        s"""`${tableName.mkString(".")}`""",
+        s"""${
+          tableName.mkString(CatalogTableSeparator)
+        }""",
         provider,
         options)
       logger.debug(s"Statement: $statement")
@@ -102,10 +106,13 @@ object SparkSQLMetadataListener extends Loggable {
     tableName: Seq[String],
     sqlContext: SparkSQLContext): Unit = {
     if (!sqlContext.getCatalog.tableExists(tableName))
-      logger.warn(s"Tried to unregister ${tableName.mkString(".")} table " +
-        s"but it already exists!")
+      logger.warn(s"Tried to unregister ${
+        tableName.mkString(CatalogTableSeparator)
+      } table but it already exists!")
     else {
-      logger.debug(s"Unregistering table [${tableName.mkString(".")}]")
+      logger.debug(s"Unregistering table [${
+        tableName.mkString(CatalogTableSeparator)
+      }]")
       sqlContext.getCatalog.unregisterTable(tableName)
     }
   }

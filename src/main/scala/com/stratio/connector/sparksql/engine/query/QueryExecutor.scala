@@ -25,10 +25,10 @@ import scala.concurrent.duration._
 import akka.actor.{Props, Actor}
 import com.stratio.connector.sparksql.{Loggable, SparkSQLConnector, SparkSQLContext}
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
+import com.stratio.connector.commons.CrossdataConverters._
 import org.apache.spark.sql.{Row, SchemaRDD}
 import QueryEngine.toColumnMetadata
 import QueryExecutor._
-import TypeConverters._
 
 /**
  * Minimum query execution unit.
