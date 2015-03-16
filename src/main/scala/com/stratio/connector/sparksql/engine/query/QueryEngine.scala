@@ -18,15 +18,15 @@
 
 package com.stratio.connector.sparksql.engine.query
 
+import scala.collection.JavaConversions._
+import akka.actor.ActorRef
+import org.apache.spark.sql.SchemaRDD
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.{Loggable, Provider, SparkSQLContext}
-import com.stratio.connector.sparksql.SparkSQLConnector.CatalogTableSeparator
-import com.stratio.connector.commons.CrossdataConverters._
+import com.stratio.connector.sparksql.CrossdataConverters._
+import com.stratio.crossdata.common.data.TableName
 import com.stratio.crossdata.common.metadata.ColumnMetadata
-import org.apache.spark.sql.SchemaRDD
-import akka.actor.ActorRef
 import com.stratio.connector.sparksql.engine.query.QueryManager._
-import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener.{registerTable, qualified, globalOptions}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
@@ -105,6 +105,7 @@ object QueryEngine extends Loggable {
     config: ConnectorClusterConfig,
     provider: Provider): SchemaRDD = {
     import scala.collection.JavaConversions._
+    import timer._
     //  Register table if it doesn't already exist in catalog...
     workflow.getInitialSteps.map { case project: Project =>
       registerTable(
@@ -114,10 +115,40 @@ object QueryEngine extends Loggable {
         globalOptions(config))
     }
     //  Extract raw query from workflow
-    val query = workflow.getSqlDirectQuery
+    val query = time(s"Getting workflow plain query ...") {
+      workflow.getSqlDirectQuery
+    }
     logger.debug(s"Workflow plain query : $query")
-    //  Execute actual query
-    sqlContext.sql(sparkSQLFormat(query))
+    //  Format query for avoiding conflicts such as 'catalog.table' issue
+    val formattedQuery = time("Formatting query to SparkSQL format") {
+      sparkSQLFormat(query)
+    }
+    logger.debug(s"Workflow SparkSQL formatted query : $query")
+    //  Execute actual query ...
+    /*TODO Adapt Crossdata queries
+
+      FROM
+
+      SELECT highschool.pupils.id,
+      highschool.pupils.name,
+      highschool.pupils.surname,
+      highschool.pupils.age,
+      highschool.pupils.enrolled FROM highschool.pupils
+
+      TO
+
+      SELECT `_2.id`,`_2.name`,`_2.surname`,`_2.age`,`_2.enrolled` FROM pupils
+
+      */
+    val rdd = sqlContext.sql(formattedQuery)
+    logger.debug(rdd.schemaString)
+    logger.debug(s"${rdd.collect().toList}")
+    //  ... and format its structure for adapting it to provider's.
+    time("Formatting RDD for discharding metadata fields") {
+      provider.formatRDD(
+        rdd,
+        sqlContext)
+    }
   }
 
   /**
@@ -147,11 +178,81 @@ object QueryEngine extends Loggable {
    */
   def sparkSQLFormat(statement: Query, conflictChar: String = "."): Query = {
     val regexp = s"(\\w*)[$conflictChar](\\w*)".r
-    val tables = regexp.findAllIn(statement).toList
-      .filterNot(_.startsWith(conflictChar))
-      .distinct
-    (statement /: tables)((statement, table) =>
-      statement.replace(table, table.replace(conflictChar, CatalogTableSeparator)))
+    val (fields, tables) = regexp.findAllIn(statement)
+      .toList.distinct.partition(_.startsWith(conflictChar))
+    val withFormattedTables = (statement /: tables)((statement, table) =>
+      statement.replace(table, table.split("\\.").last))
+    (withFormattedTables /: fields)((statement, field) =>
+      statement.replace(field, s"._2$field"))
   }
 
+  /**
+   * Converts name to canonical format.
+   *
+   * @param name Table name.
+   * @return Sequence of split parts from qualified name.
+   */
+  def qualified(name: TableName): String =
+    name.getName
+
+  /**
+   * Register a table with its options in sqlContext catalog.
+   * If table already exists, it throws a warning.
+   *
+   * @param tableName Table name.
+   * @param sqlContext Targeted SQL context.
+   * @param provider Targeted data source.
+   * @param options Options map.
+   */
+  def registerTable(
+    tableName: String,
+    sqlContext: SparkSQLContext,
+    provider: Provider,
+    options: Map[String, String]): Unit = {
+    if (sqlContext.getCatalog.tableExists(Seq(tableName)))
+      logger.warn(s"Tried to register $tableName table but it already exists!")
+    else {
+      logger.debug(s"Registering table [$tableName]")
+      val statement = createTemporaryTable(
+        tableName,
+        provider,
+        options)
+      logger.debug(s"Statement: $statement")
+      sqlContext.sql(statement)
+    }
+  }
+
+  /**
+   * Unregister, if exists, given table name.
+   *
+   * @param tableName Table name.
+   * @param sqlContext Targeted SQL context.
+   */
+  def unregisterTable(
+    tableName: String,
+    sqlContext: SparkSQLContext): Unit = {
+    val seqName = Seq(tableName)
+    if (!sqlContext.getCatalog.tableExists(seqName))
+      logger.warn(s"Tried to unregister $tableName table but it already exists!")
+    else {
+      logger.debug(s"Unregistering table [$tableName]")
+      sqlContext.getCatalog.unregisterTable(seqName)
+    }
+  }
+
+  def globalOptions(config: ConnectorClusterConfig): Map[String, String] =
+    config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
+
+  /*
+   *  Provides the necessary syntax for creating a temporary table in SparkSQL.
+   */
+  private def createTemporaryTable(
+    table: String,
+    provider: Provider,
+    options: Map[String, String]): String =
+    s"""
+       |CREATE TEMPORARY TABLE $table
+        |USING ${provider.datasource}
+        |OPTIONS (${options.map { case (k, v) => s"$k '$v'"}.mkString(",")})
+       """.stripMargin
 }

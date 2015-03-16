@@ -21,11 +21,9 @@ package com.stratio.connector.sparksql.engine
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.{Loggable, Provider, SparkSQLContext}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IMetadataListener}
-import com.stratio.connector.sparksql.SparkSQLConnector.CatalogTableSeparator
-import com.stratio.crossdata.common.data.TableName
 import com.stratio.crossdata.common.metadata.{TableMetadata, IMetadata}
 import org.slf4j.Logger
-import scala.collection.JavaConversions._
+import com.stratio.connector.sparksql.engine.query.QueryEngine._
 
 /**
  * Hook for receiving metadata update events.
@@ -56,82 +54,7 @@ object SparkSQLMetadataListener extends Loggable {
         }
     }
 
-  /**
-   * Converts name to canonical format.
-   *
-   * @param name Table name.
-   * @return Sequence of split parts from qualified name.
-   */
-  def qualified(name: TableName): Seq[String] =
-    name.getQualifiedName.split("\\.")
 
-  /**
-   * Register a table with its options in sqlContext catalog.
-   * If table already exists, it throws a warning.
-   *
-   * @param tableName Table name.
-   * @param sqlContext Targeted SQL context.
-   * @param provider Targeted data source.
-   * @param options Options map.
-   */
-  def registerTable(
-    tableName: Seq[String],
-    sqlContext: SparkSQLContext,
-    provider: Provider,
-    options: Map[String, String]): Unit = {
-    if (sqlContext.getCatalog.tableExists(tableName))
-      logger.warn(s"Tried to register ${
-        tableName.mkString(CatalogTableSeparator)
-      } table but it already exists!")
-    else {
-      logger.debug(s"Registering table [$tableName]")
-      val statement = createTemporaryTable(
-        s"""${
-          tableName.mkString(CatalogTableSeparator)
-        }""",
-        provider,
-        options)
-      logger.debug(s"Statement: $statement")
-      sqlContext.sql(statement)
-    }
-  }
-
-  /**
-   * Unregister, if exists, given table name.
-   *
-   * @param tableName Table name.
-   * @param sqlContext Targeted SQL context.
-   */
-  def unregisterTable(
-    tableName: Seq[String],
-    sqlContext: SparkSQLContext): Unit = {
-    if (!sqlContext.getCatalog.tableExists(tableName))
-      logger.warn(s"Tried to unregister ${
-        tableName.mkString(CatalogTableSeparator)
-      } table but it already exists!")
-    else {
-      logger.debug(s"Unregistering table [${
-        tableName.mkString(CatalogTableSeparator)
-      }]")
-      sqlContext.getCatalog.unregisterTable(tableName)
-    }
-  }
-
-  def globalOptions(config: ConnectorClusterConfig): Map[String, String] =
-    config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
-
-  /*
-   *  Provides the necessary syntax for creating a temporary table in SparkSQL.
-   */
-  private def createTemporaryTable(
-    table: String,
-    provider: Provider,
-    options: Map[String, String]): String =
-    s"""
-       |CREATE TEMPORARY TABLE $table
-        |USING $provider
-        |OPTIONS (${options.map { case (k, v) => s"$k '$v'"}.mkString(",")})
-       """.stripMargin
 
 }
 

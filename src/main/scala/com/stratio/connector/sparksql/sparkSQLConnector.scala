@@ -55,7 +55,7 @@ with Loggable {
     connectorConfig.getInt(QueryExecutorsAmount)
 
   val provider: Provider =
-    connectorConfig.getString(ConnectorProvider)
+    providers(connectorConfig.getString(ConnectorProvider))
 
   val sqlContextType: String =
     connectorConfig.getString(SQLContextType)
