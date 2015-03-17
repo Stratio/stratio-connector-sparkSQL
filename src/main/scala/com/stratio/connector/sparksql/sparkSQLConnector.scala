@@ -27,7 +27,7 @@ import com.stratio.crossdata.common.exceptions.{InitializationException, Unsuppo
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
 import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.spark.SparkContext
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
 import org.slf4j.LoggerFactory
@@ -160,19 +160,15 @@ with Loggable {
    */
   def initContext(config: Config): SparkContext = {
     import scala.collection.JavaConversions._
-    val sparkMaster = config.getString(SparkMaster)
-    val sparkHome = config.getString(SparkHome)
-    val jars = config.getConfig(Spark)
-      .getStringList(SparkJars)
-    new SparkContext(
-      sparkMaster,
-      SparkSQLConnector.SparkSQLConnectorJobConstant,
-      sparkHome,
-      jars,
-      environment = List(
-        SparkDriverMemory,
-        SparkExecutorMemory,
-        SparkTaskCPUs).map(k => k -> config.getString(k)).toMap)
+    new SparkContext(new SparkConf()
+      .setAppName(SparkSQLConnector.SparkSQLConnectorJobConstant)
+      .setSparkHome(config.getString(SparkHome))
+      .setMaster(config.getString(SparkMaster))
+      .setJars(config.getConfig(Spark).getStringList(SparkJars))
+      .setAll(List(
+      SparkDriverMemory,
+      SparkExecutorMemory,
+      SparkTaskCPUs).map(k => k -> config.getString(k))))
   }
 
   /**

@@ -25,5 +25,11 @@
             <PropertyName>path</PropertyName>
             <Description>Path to Parquet files</Description>
         </Property>
+        <Property>
+            <PropertyName>mergeSchema</PropertyName>
+            <Description>Indicates whether we should merge potentially
+                different (but compatible) schemas stored in
+                all Parquet part-files.</Description>
+        </Property>
     </RequiredProperties>
 </DataStore>

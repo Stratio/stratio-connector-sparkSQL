@@ -20,7 +20,7 @@ package com.stratio.connector.sparksql.engine.query
 
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
-import org.apache.spark.sql.SchemaRDD
+import org.apache.spark.sql.DataFrame
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.{Loggable, Provider, SparkSQLContext}
 import com.stratio.connector.sparksql.CrossdataConverters._
@@ -97,23 +97,24 @@ object QueryEngine extends Loggable {
    * @param sqlContext Targeted SQL context.
    * @param config Connector cluster configuration.
    * @param provider The targeted data store.
-   * @return Obtained schema RDD.
+   * @return Obtained DataFrame.
    */
   def executeQuery(
     workflow: LogicalWorkflow,
     sqlContext: SparkSQLContext,
     config: ConnectorClusterConfig,
-    provider: Provider): SchemaRDD = {
-    import scala.collection.JavaConversions._
+    provider: Provider): DataFrame = {
     import timer._
-    //  Register table if it doesn't already exist in catalog...
+    //  TODO: Review register table if it doesn't already exist in catalog...
+    /*
+    import scala.collection.JavaConversions._
     workflow.getInitialSteps.map { case project: Project =>
       registerTable(
         qualified(project.getTableName),
         sqlContext,
         provider,
         globalOptions(config))
-    }
+    }*/
     //  Extract raw query from workflow
     val query = time(s"Getting workflow plain query ...") {
       workflow.getSqlDirectQuery
@@ -125,24 +126,8 @@ object QueryEngine extends Loggable {
     }
     logger.debug(s"Workflow SparkSQL formatted query : $query")
     //  Execute actual query ...
-    /*TODO Adapt Crossdata queries
-
-      FROM
-
-      SELECT highschool.pupils.id,
-      highschool.pupils.name,
-      highschool.pupils.surname,
-      highschool.pupils.age,
-      highschool.pupils.enrolled FROM highschool.pupils
-
-      TO
-
-      SELECT `_2.id`,`_2.name`,`_2.surname`,`_2.age`,`_2.enrolled` FROM pupils
-
-      */
     val rdd = sqlContext.sql(formattedQuery)
-    logger.debug(rdd.schemaString)
-    logger.debug(s"${rdd.collect().toList}")
+    logger.debug(rdd.schema.treeString)
     //  ... and format its structure for adapting it to provider's.
     time("Formatting RDD for discharding metadata fields") {
       provider.formatRDD(
@@ -177,13 +162,15 @@ object QueryEngine extends Loggable {
    * @return Escaped query statement
    */
   def sparkSQLFormat(statement: Query, conflictChar: String = "."): Query = {
-    val regexp = s"(\\w*)[$conflictChar](\\w*)".r
-    val (fields, tables) = regexp.findAllIn(statement)
-      .toList.distinct.partition(_.startsWith(conflictChar))
-    val withFormattedTables = (statement /: tables)((statement, table) =>
-      statement.replace(table, table.split("\\.").last))
-    (withFormattedTables /: fields)((statement, field) =>
-      statement.replace(field, s"._2$field"))
+    val fieldsRegex = s"(\\w*)[$conflictChar](\\w*)[$conflictChar](\\w*)".r
+    val tableRegex = s"(\\w*)[$conflictChar](\\w*)".r
+    val escapedFieldsRegex = s"(\\w*)[`]".r
+    escapedFieldsRegex.replaceAllIn(
+      tableRegex.replaceAllIn(
+        fieldsRegex.replaceAllIn(
+          statement, m => s"""${m.toString().split("\\.").last}`"""),
+        _.toString().split(s"\\$conflictChar").last),
+      m => s"`_2.${m.toString()}")
   }
 
   /**
@@ -209,7 +196,7 @@ object QueryEngine extends Loggable {
     sqlContext: SparkSQLContext,
     provider: Provider,
     options: Map[String, String]): Unit = {
-    if (sqlContext.getCatalog.tableExists(Seq(tableName)))
+    if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
       logger.warn(s"Tried to register $tableName table but it already exists!")
     else {
       logger.debug(s"Registering table [$tableName]")
@@ -249,9 +236,10 @@ object QueryEngine extends Loggable {
   private def createTemporaryTable(
     table: String,
     provider: Provider,
-    options: Map[String, String]): String =
+    options: Map[String, String],
+    temporary: Boolean = false): String =
     s"""
-       |CREATE TEMPORARY TABLE $table
+       |CREATE ${if (temporary) "TEMPORARY" else ""} TABLE $table
         |USING ${provider.datasource}
         |OPTIONS (${options.map { case (k, v) => s"$k '$v'"}.mkString(",")})
        """.stripMargin

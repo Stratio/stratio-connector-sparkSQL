@@ -20,8 +20,8 @@ package com.stratio.connector.sparksql
 import scala.language.implicitConversions
 import scala.collection.mutable.ArrayBuffer
 import org.apache.spark.sql.catalyst.expressions.GenericRow
-import org.apache.spark.sql.catalyst.types.{ArrayType, DataType, StructType}
-import org.apache.spark.sql.{Row => SparkSQLRow, SchemaRDD}
+import org.apache.spark.sql.types.{ArrayType, DataType, StructType}
+import org.apache.spark.sql.{Row => SparkSQLRow, DataFrame}
 import com.stratio.crossdata.common.metadata.{ColumnMetadata, ColumnType}
 import com.stratio.crossdata.common.data.{Row => XDRow, Cell, ResultSet}
 
@@ -33,14 +33,14 @@ object CrossdataConverters {
 
   /**
    * Compute some SchemaRDD and map it into a Crossdata ResultSet
-   * @param schemaRDD Given Schema RDD
+   * @param dataFrame Given Schema RDD
    * @param metadata Columns metadata
    * @return An equivalent ResultSet
    */
   def toResultSet(
-    schemaRDD: SchemaRDD,
+    dataFrame: DataFrame,
     metadata: List[ColumnMetadata]): ResultSet =
-    toResultSet(schemaRDD.toLocalIterator, schemaRDD.schema, metadata)
+    toResultSet(dataFrame.rdd.toLocalIterator, dataFrame.schema, metadata)
 
   /**
    * Compute some SchemaRDD and map it into a Crossdata ResultSet

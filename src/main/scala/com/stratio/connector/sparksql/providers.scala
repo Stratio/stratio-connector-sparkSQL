@@ -18,7 +18,7 @@
 package com.stratio.connector.sparksql
 
 import com.stratio.connector.sparksql
-import org.apache.spark.sql.SchemaRDD
+import org.apache.spark.sql.DataFrame
 
 /**
  * Router for every single supported provider.
@@ -46,12 +46,12 @@ trait Provider {
   /**
    * Formats an Spark SQL obtained SchemaRDD,
    * adapting it to current provider format.
-   * @param rdd SchemaRDD to be formatted
+   * @param dataFrame DataFrame to be formatted
    * @return
    */
   def formatRDD(
-    rdd: SchemaRDD,
-    sqlContext: SparkSQLContext): SchemaRDD = rdd
+    dataFrame: DataFrame,
+    sqlContext: SparkSQLContext): DataFrame = dataFrame
 
 }
 

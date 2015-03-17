@@ -20,7 +20,7 @@ package com.stratio.connector.sparksql.engine.query
 
 import akka.actor.{Stash, Props, ActorRef, Actor}
 import com.stratio.connector.sparksql.{Loggable, SparkSQLContext, SparkSQLConnector}
-import com.stratio.connector.sparksql.engine.query.QueryExecutor.SchemaRDDProvider
+import com.stratio.connector.sparksql.engine.query.QueryExecutor.DataFrameProvider
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
 import com.stratio.connector.commons.timer
@@ -28,7 +28,7 @@ import com.stratio.connector.commons.timer
 class QueryManager(
   executorsAmount: Int,
   sqlContext: SparkSQLContext,
-  provider: SchemaRDDProvider) extends Actor
+  provider: DataFrameProvider) extends Actor
 with Stash
 with Loggable {
 
@@ -120,7 +120,7 @@ object QueryManager {
   def apply(
     executorsAmount: Int,
     sqlContext: SparkSQLContext,
-    provider: SchemaRDDProvider): Props =
+    provider: DataFrameProvider): Props =
     Props(new QueryManager(executorsAmount, sqlContext, provider))
 
   //  Messages

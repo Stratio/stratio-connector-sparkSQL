@@ -20,13 +20,13 @@ package com.stratio.connector.sparksql.engine.query
 
 import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.connector.commons.timer
-import org.apache.spark.sql.catalyst.types.StructType
+import org.apache.spark.sql.types.StructType
 import scala.concurrent.duration._
 import akka.actor.{Props, Actor}
 import com.stratio.connector.sparksql.{Loggable, SparkSQLConnector, SparkSQLContext}
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
 import com.stratio.connector.sparksql.CrossdataConverters._
-import org.apache.spark.sql.{Row, SchemaRDD}
+import org.apache.spark.sql.{Row, DataFrame}
 import QueryEngine.toColumnMetadata
 import QueryExecutor._
 
@@ -39,7 +39,7 @@ import QueryExecutor._
 class QueryExecutor(
   sqlContext: SparkSQLContext,
   defaultChunkSize: Int,
-  provider: SchemaRDDProvider,
+  provider: DataFrameProvider,
   asyncStoppable: Boolean = true) extends Actor
 with Loggable {
 
@@ -93,16 +93,17 @@ with Loggable {
       //  Update current job
       currentJob = Option(job)
       //  Create SchemaRDD from query
-      val rdd = provider(job.workflow, sqlContext)
+      val dataFrame = provider(job.workflow, sqlContext)
       //  Update current schema
-      currentSchema = Option(rdd.schema)
+      currentSchema = Option(dataFrame.schema)
       if (asyncStoppable) {
         logger.debug(s"$me Processing ${job.queryId} as stoppable...")
         //  Split RDD into chunks of approx. 'defaultChunkSize' size
-        rdd.countApprox(timeoutCountApprox.toMillis).onComplete { amount =>
+        dataFrame.rdd.countApprox(timeoutCountApprox.toMillis).onComplete { amount =>
           time(s"$me Defining chunks (RDD size ~ $amount elements)...") {
-            rddChunks = rdd
+            rddChunks = dataFrame
               .repartition((amount.high / defaultChunkSize).toInt)
+              .rdd
               .toLocalIterator
               .grouped(defaultChunkSize)
               .map(_.iterator)
@@ -112,7 +113,7 @@ with Loggable {
       } else {
         time(s"$me Processing ${job.queryId} as unstoppable...") {
           //  Prepare query as an only chunk, omitting stop messages
-          rddChunks = List(rdd.toLocalIterator -> 0).iterator
+          rddChunks = List(dataFrame.rdd.toLocalIterator -> 0).iterator
         }
       }
       //  Begin processing current job
@@ -173,12 +174,12 @@ with Loggable {
 
 object QueryExecutor {
 
-  type SchemaRDDProvider = (LogicalWorkflow, SparkSQLContext) => SchemaRDD
+  type DataFrameProvider = (LogicalWorkflow, SparkSQLContext) => DataFrame
 
   def apply(
     sqlContext: SparkSQLContext,
     defaultChunkSize: Int,
-    provider: SchemaRDDProvider,
+    provider: DataFrameProvider,
     asyncStoppable: Boolean = true): Props =
     Props(new QueryExecutor(
       sqlContext,
