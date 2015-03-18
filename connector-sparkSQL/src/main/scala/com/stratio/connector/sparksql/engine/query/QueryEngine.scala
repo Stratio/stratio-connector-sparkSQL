@@ -105,16 +105,6 @@ object QueryEngine extends Loggable {
     config: ConnectorClusterConfig,
     provider: Provider): DataFrame = {
     import timer._
-    //  TODO: Review register table if it doesn't already exist in catalog...
-    /*
-    import scala.collection.JavaConversions._
-    workflow.getInitialSteps.map { case project: Project =>
-      registerTable(
-        qualified(project.getTableName),
-        sqlContext,
-        provider,
-        globalOptions(config))
-    }*/
     //  Extract raw query from workflow
     val query = time(s"Getting workflow plain query ...") {
       workflow.getSqlDirectQuery
