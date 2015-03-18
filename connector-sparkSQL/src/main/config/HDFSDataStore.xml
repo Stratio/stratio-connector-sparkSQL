@@ -22,16 +22,16 @@
     <Version>2.4.1</Version>
     <RequiredProperties>
         <Property>
+            <PropertyName>hosts</PropertyName>
+            <Description>The Ip:Port. Host and port for the namenode</Description>
+        </Property>
+        <Property>
+            <PropertyName>user</PropertyName>
+            <Description>The user name</Description>
+        </Property>
+        <Property>
             <PropertyName>path</PropertyName>
-            <Description>Path to Parquet files</Description>
+            <Description>Base path to HDFS root directory</Description>
         </Property>
     </RequiredProperties>
-    <OptionalProperties>
-        <Property>
-            <PropertyName>mergeSchema</PropertyName>
-            <Description>Indicates whether we should merge potentially
-                different (but compatible) schemas stored in
-                all Parquet part-files.</Description>
-        </Property>
-    </OptionalProperties>
 </DataStore>

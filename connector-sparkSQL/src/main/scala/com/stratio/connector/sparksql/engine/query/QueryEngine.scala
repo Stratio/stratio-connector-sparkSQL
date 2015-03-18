@@ -22,7 +22,7 @@ import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
 import com.stratio.connector.commons.timer
-import com.stratio.connector.sparksql.{Loggable, Provider, SparkSQLContext}
+import com.stratio.connector.sparksql.{Metrics, Loggable, Provider, SparkSQLContext}
 import com.stratio.connector.sparksql.CrossdataConverters._
 import com.stratio.crossdata.common.data.TableName
 import com.stratio.crossdata.common.metadata.ColumnMetadata
@@ -43,16 +43,16 @@ case class QueryEngine(
   sqlContext: SparkSQLContext,
   queryManager: ActorRef,
   config: ConnectorClusterConfig,
-  provider: Provider) extends IQueryEngine with Loggable {
+  provider: Provider) extends IQueryEngine with Loggable with Metrics {
 
   import QueryEngine._
   import timer._
 
   override def execute(workflow: LogicalWorkflow): QueryResult = {
-    val rdd = time(s"Executing sync. query\n\t${workflow.toString}") {
+    val rdd = timeFor(s"Executing sync. query\n\t${workflow.toString}") {
       executeQuery(workflow, sqlContext, config, provider)
     }
-    time(s"Processing unique query result...") {
+    timeFor(s"Processing unique query result...") {
       QueryResult.createQueryResult(
         toResultSet(rdd, toColumnMetadata(workflow)), 0, true)
     }
@@ -63,7 +63,7 @@ case class QueryEngine(
     workflow: LogicalWorkflow,
     resultHandler: IResultHandler,
     pageSize: Int): Unit =
-    time(s"Executing paged query [$queryId]\n\t${workflow.toString}") {
+    timeFor(s"Executing paged query [$queryId]\n\t${workflow.toString}") {
       queryManager ! PagedExecute(queryId, workflow, resultHandler, pageSize)
     }
 
@@ -72,19 +72,19 @@ case class QueryEngine(
     queryId: String,
     workflow: LogicalWorkflow,
     resultHandler: IResultHandler): Unit =
-    time(s"Executing async. query [$queryId]\n\t${workflow.toString}") {
+    timeFor(s"Executing async. query [$queryId]\n\t${workflow.toString}") {
       queryManager ! AsyncExecute(queryId, workflow, resultHandler)
     }
 
 
   override def stop(queryId: String): Unit =
-    time(s"Stopping query [$queryId]") {
+    timeFor(s"Stopping query [$queryId]") {
       queryManager ! Stop(queryId)
     }
 
 }
 
-object QueryEngine extends Loggable {
+object QueryEngine extends Loggable with Metrics {
 
   type Query = String
 
@@ -106,12 +106,12 @@ object QueryEngine extends Loggable {
     provider: Provider): DataFrame = {
     import timer._
     //  Extract raw query from workflow
-    val query = time(s"Getting workflow plain query ...") {
+    val query = timeFor(s"Getting workflow plain query ...") {
       workflow.getSqlDirectQuery
     }
     logger.debug(s"Workflow plain query : $query")
     //  Format query for avoiding conflicts such as 'catalog.table' issue
-    val formattedQuery = time("Formatting query to SparkSQL format") {
+    val formattedQuery = timeFor("Formatting query to SparkSQL format") {
       sparkSQLFormat(query)
     }
     logger.debug(s"Workflow SparkSQL formatted query : $query")
@@ -119,7 +119,7 @@ object QueryEngine extends Loggable {
     val rdd = sqlContext.sql(formattedQuery)
     logger.debug(rdd.schema.treeString)
     //  ... and format its structure for adapting it to provider's.
-    time("Formatting RDD for discharding metadata fields") {
+    timeFor("Formatting RDD for discharding metadata fields") {
       provider.formatRDD(
         rdd,
         sqlContext)

@@ -19,12 +19,14 @@
 package com.stratio.connector.sparksql
 
 import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
+import com.codahale.metrics.MetricRegistry
 import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener
 import com.stratio.connector.sparksql.engine.query.{QueryManager, QueryEngine}
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
 import com.stratio.crossdata.common.exceptions.{InitializationException, UnsupportedException}
 import com.stratio.crossdata.common.security.ICredentials
+import com.stratio.crossdata.common.utils.{Metrics => XDMetrics}
 import com.stratio.crossdata.connectors.ConnectorApp
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -35,8 +37,10 @@ import com.stratio.connector.commons.timer
 
 import scala.xml.XML
 
-class SparkSQLConnector(system: ActorRefFactory) extends IConnector
-with Loggable {
+class SparkSQLConnector(
+  system: ActorRefFactory) extends IConnector
+with Loggable
+with Metrics {
 
   import timer._
   import SparkSQLConnector._
@@ -48,6 +52,10 @@ with Loggable {
   private var clusterConfig: Option[ConnectorClusterConfig] = None
 
   private var queryManager: Option[ActorRef] = None
+
+  //  Engines
+
+  var queryEngine: Option[QueryEngine] = None
 
   //  Config parameters
 
@@ -79,25 +87,25 @@ with Loggable {
           s"Property $DataStoreName was not set"))
 
   override def init(configuration: IConfiguration): Unit =
-    time(s"Initializing SparkSQL connector") {}
+    timeFor(s"Initializing SparkSQL connector") {}
 
   override def connect(
     credentials: ICredentials,
     config: ConnectorClusterConfig): Unit =
-    time("Connecting to SparkSQL connector") {
+    timeFor("Connecting to SparkSQL connector") {
 
       clusterConfig = Option(config)
 
-      time("Creating SparkContext") {
+      timeFor("Creating SparkContext") {
         sparkContext.foreach(_.stop())
         sparkContext = Option(initContext(connectorConfig))
       }
 
-      time(s"Creating $sqlContextType from SparkContext") {
+      timeFor(s"Creating $sqlContextType from SparkContext") {
         sqlContext = Option(sqlContextBuilder(sqlContextType, sparkContext.get))
       }
 
-      time("Creating QueryManager") {
+      timeFor("Creating QueryManager") {
         queryManager = Option(
           system.actorOf(
             QueryManager(
@@ -111,7 +119,7 @@ with Loggable {
                   provider))))
       }
 
-      time("Subscribing to metadata updates...") {
+      timeFor("Subscribing to metadata updates...") {
         sqlContext.foreach { sqlCtx =>
           connectorApp.subscribeToMetadataUpdate(
             SparkSQLMetadataListener(
@@ -121,14 +129,18 @@ with Loggable {
         }
       }
 
+      timeFor("Setting query engine instance...") {
+        queryEngine = for {
+          sqlCtx <- sqlContext
+          qm <- queryManager
+          conf <- clusterConfig
+        } yield new QueryEngine(sqlCtx, qm, conf, provider)
+      }
+
     }
 
   override def getQueryEngine: IQueryEngine =
-    (for {
-      sqlCtx <- sqlContext
-      qm <- queryManager
-      conf <- clusterConfig
-    } yield new QueryEngine(sqlCtx, qm, conf, provider)).getOrElse {
+    queryEngine.getOrElse {
       throw new IllegalStateException("SparkSQL connector is not connected")
     }
 
@@ -136,12 +148,12 @@ with Loggable {
     clusterConfig.exists(_.getName == name)
 
   override def close(name: ClusterName): Unit =
-    time("Closing connection to $name cluster") {
+    timeFor("Closing connection to $name cluster") {
       clusterConfig = None
     }
 
   override def shutdown(): Unit =
-    time("Shutting down connector...") {
+    timeFor("Shutting down connector...") {
       sqlContext = None
       logger.debug("Disposing QueryManager")
       queryManager.foreach(_ ! Kill)
@@ -203,29 +215,32 @@ with Loggable {
 object SparkSQLConnector extends App
 with Constants
 with Configuration
-with Loggable {
+with Loggable
+with Metrics {
 
   import timer._
 
   val system =
-    time(s"Initializing '$ActorSystemName' actor system...") {
+    timeFor(s"Initializing '$ActorSystemName' actor system...") {
       ActorSystem(ActorSystemName)
     }
 
+  val connectorApp =
+    timeFor("Creating Connector App. ...") {
+      new ConnectorApp
+    }
+
   val sparkSQLConnector =
-    time(s"Building SparkSQLConnector...") {
+    timeFor(s"Building SparkSQLConnector...") {
       new SparkSQLConnector(system)
     }
 
-  val connectorApp =
-    time("Starting up connector...") {
-      val ca = new ConnectorApp
-      ca.startup(sparkSQLConnector)
-      ca
-    }
+  timeFor("Starting up connector...") {
+    connectorApp.startup(sparkSQLConnector)
+  }
 
   system.registerOnTermination {
-    time("Termination detected. Shutting down actor system...") {
+    timeFor("Termination detected. Shutting down actor system...") {
       sparkSQLConnector.shutdown()
     }
   }
@@ -257,6 +272,15 @@ sealed trait Constants {
   val AsyncStoppable = "connector.async-stoppable"
   val ChunkSize = "connector.query-executors.chunk-size"
   val CatalogTableSeparator = "_"
+
+}
+
+/**
+ * It provides an implicit metric registry.
+ */
+trait Metrics {
+
+  implicit lazy val metrics: MetricRegistry = XDMetrics.getRegistry
 
 }
 

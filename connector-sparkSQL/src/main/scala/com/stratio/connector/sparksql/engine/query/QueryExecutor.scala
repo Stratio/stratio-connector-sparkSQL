@@ -23,7 +23,7 @@ import com.stratio.connector.commons.timer
 import org.apache.spark.sql.types.StructType
 import scala.concurrent.duration._
 import akka.actor.{Props, Actor}
-import com.stratio.connector.sparksql.{Loggable, SparkSQLConnector, SparkSQLContext}
+import com.stratio.connector.sparksql.{Metrics, Loggable, SparkSQLConnector, SparkSQLContext}
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
 import com.stratio.connector.sparksql.CrossdataConverters._
 import org.apache.spark.sql.{Row, DataFrame}
@@ -35,13 +35,16 @@ import QueryExecutor._
  *
  * @param sqlContext The SQLContext
  * @param defaultChunkSize Max row size in a chunk
+ * @param provider SparkSQL Data source provider
+ * @param asyncStoppable Whether its tasks can be stopped or not
  */
 class QueryExecutor(
   sqlContext: SparkSQLContext,
   defaultChunkSize: Int,
   provider: DataFrameProvider,
   asyncStoppable: Boolean = true) extends Actor
-with Loggable {
+with Loggable
+with Metrics {
 
   import SparkSQLConnector._
   import QueryManager._
@@ -62,17 +65,17 @@ with Loggable {
   override def receive = {
 
     case job: JobCommand =>
-      time(s"$me Processing job request : $job") {
+      timeFor(s"$me Processing job request : $job") {
         startNewJob(job)
       }
 
     case ProcessNextChunk(queryId) if currentJob.exists(_.queryId == queryId) =>
-      time(s"$me Processing 'ProcessNextChunk' request (query: $queryId") {
+      timeFor(s"$me Processing 'ProcessNextChunk' request (query: $queryId") {
         keepProcessingJob()
       }
 
     case Stop(queryId) if currentJob.exists(_.queryId == queryId) =>
-      time(s"$me Stopping request (query: $queryId") {
+      timeFor(s"$me Stopping request (query: $queryId") {
         stopCurrentJob()
       }
 
@@ -89,7 +92,7 @@ with Loggable {
    * @param job Query to be asynchronously executed.
    */
   def startNewJob(job: JobCommand): Unit =
-    time(s"$me Starting job ${job.queryId}") {
+    timeFor(s"$me Starting job ${job.queryId}") {
       //  Update current job
       currentJob = Option(job)
       //  Create SchemaRDD from query
@@ -100,7 +103,7 @@ with Loggable {
         logger.debug(s"$me Processing ${job.queryId} as stoppable...")
         //  Split RDD into chunks of approx. 'defaultChunkSize' size
         dataFrame.rdd.countApprox(timeoutCountApprox.toMillis).onComplete { amount =>
-          time(s"$me Defining chunks (RDD size ~ $amount elements)...") {
+          timeFor(s"$me Defining chunks (RDD size ~ $amount elements)...") {
             rddChunks = dataFrame
               .repartition((amount.high / defaultChunkSize).toInt)
               .rdd
@@ -111,7 +114,7 @@ with Loggable {
           }
         }
       } else {
-        time(s"$me Processing ${job.queryId} as unstoppable...") {
+        timeFor(s"$me Processing ${job.queryId} as unstoppable...") {
           //  Prepare query as an only chunk, omitting stop messages
           rddChunks = List(dataFrame.rdd.toLocalIterator -> 0).iterator
         }
@@ -153,9 +156,9 @@ with Loggable {
     isLast: => Boolean,
     schema: StructType): Unit = {
     val (rows, idx) = chunk
-    currentJob.foreach{ job =>
+    currentJob.foreach { job =>
       QueryResult.createQueryResult(
-        toResultSet(rows, schema,toColumnMetadata(job.workflow)),
+        toResultSet(rows, schema, toColumnMetadata(job.workflow)),
         idx,
         isLast)
     }

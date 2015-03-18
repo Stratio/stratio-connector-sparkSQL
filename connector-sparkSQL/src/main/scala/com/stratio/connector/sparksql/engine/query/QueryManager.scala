@@ -19,7 +19,7 @@
 package com.stratio.connector.sparksql.engine.query
 
 import akka.actor.{Stash, Props, ActorRef, Actor}
-import com.stratio.connector.sparksql.{Loggable, SparkSQLContext, SparkSQLConnector}
+import com.stratio.connector.sparksql.{Metrics, Loggable, SparkSQLContext, SparkSQLConnector}
 import com.stratio.connector.sparksql.engine.query.QueryExecutor.DataFrameProvider
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
@@ -30,7 +30,8 @@ class QueryManager(
   sqlContext: SparkSQLContext,
   provider: DataFrameProvider) extends Actor
 with Stash
-with Loggable {
+with Loggable
+with Metrics {
 
   import SparkSQLConnector._
   import QueryManager._
@@ -46,7 +47,7 @@ with Loggable {
   var pendingQueries: PendingQueriesMap = Map()
 
   var freeExecutors: Set[QueryExecutorRef] = {
-    time(s"Creating query executors pool $executorsAmount-sized") {
+    timeFor(s"Creating query executors pool $executorsAmount-sized") {
       (1 to executorsAmount).map(_ =>
         context.actorOf(QueryExecutor(
           sqlContext,
@@ -59,18 +60,18 @@ with Loggable {
   override def receive: Receive = {
 
     case job: JobCommand =>
-      time(s"[QueryManager] Processing job request : $job") {
+      timeFor(s"[QueryManager] Processing job request : $job") {
         if (busy) stash()
         else assignJob(job)
       }
 
     case Stop(queryId) =>
-      time(s"[QueryManager] Stopping query $queryId") {
+      timeFor(s"[QueryManager] Stopping query $queryId") {
         finish(queryId, stopActor = true)
       }
 
     case Finished(queryId) =>
-      time(s"[QueryManager] Setting query $queryId as finished") {
+      timeFor(s"[QueryManager] Setting query $queryId as finished") {
         finish(queryId)
       }
 
