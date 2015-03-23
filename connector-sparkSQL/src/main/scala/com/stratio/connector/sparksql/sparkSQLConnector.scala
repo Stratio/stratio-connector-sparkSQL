@@ -20,7 +20,6 @@ package com.stratio.connector.sparksql
 
 import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
 import com.codahale.metrics.MetricRegistry
-import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener
 import com.stratio.connector.sparksql.engine.query.{QueryManager, QueryEngine}
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
@@ -117,16 +116,6 @@ with Metrics {
                   sqlContext,
                   config,
                   provider))))
-      }
-
-      timeFor("Subscribing to metadata updates...") {
-        sqlContext.foreach { sqlCtx =>
-          connectorApp.subscribeToMetadataUpdate(
-            SparkSQLMetadataListener(
-              sqlCtx,
-              sparkSQLConnector.provider,
-              config))
-        }
       }
 
       timeFor("Setting query engine instance...") {
