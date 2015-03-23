@@ -19,8 +19,8 @@
     <artifactId>stratio-connector-sparksql-doc</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <url>http://www.stratio.com</url>
-    <name>SparkSQL connector documentation</name>
-    <description>The SparkSQL connector documentation</description>
+    <name>Stratio SparkSQL connector documentation</name>
+    <description>Stratio SparkSQL connector documentation</description>
     <parent>
         <groupId>com.stratio.connector</groupId>
         <artifactId>stratio-connector-sparksql</artifactId>

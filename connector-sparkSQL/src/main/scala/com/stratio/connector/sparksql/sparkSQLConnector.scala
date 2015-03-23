@@ -33,6 +33,7 @@ import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
 import org.slf4j.LoggerFactory
 import com.stratio.connector.commons.timer
+import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener
 
 import scala.xml.XML
 
@@ -116,6 +117,16 @@ with Metrics {
                   sqlContext,
                   config,
                   provider))))
+      }
+
+      timeFor("Subscribing to metadata updates...") {
+        sqlContext.foreach { sqlCtx =>
+          connectorApp.subscribeToMetadataUpdate(
+            SparkSQLMetadataListener(
+              sqlCtx,
+              sparkSQLConnector.provider,
+              config))
+        }
       }
 
       timeFor("Setting query engine instance...") {

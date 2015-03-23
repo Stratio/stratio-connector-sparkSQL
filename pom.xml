@@ -16,12 +16,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.stratio.connector</groupId>
-    <artifactId>stratio-connector-sparksql</artifactId>
+    <artifactId>stratio-connector-sparksql-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <url>http://www.stratio.com</url>
-    <name>SparkSQL Connector parent</name>
+    <name>Stratio SparkSQL connector parent</name>
     <packaging>pom</packaging>
-    <description>SparkSQL connector to Crossdata</description>
+    <description>Stratio SparkSQL connector parent</description>
     <properties>
         <version.crossdata>0.3.0-SNAPSHOT</version.crossdata>
         <scala.version>2.10.4</scala.version>
@@ -37,12 +37,12 @@
     </licenses>
     <scm>
         <connection>
-            scm:git:git@github.com:Stratio/stratio-connector-commons.git
+            scm:git:git@github.com:Stratio/stratio-connector-sparkSQL.git
         </connection>
         <developerConnection>
             scm:git@github.com:Stratio/stratio-connector-sparkSQL.git
         </developerConnection>
-        <url>https://github.com/Stratio/sstratio-connector-sparkSQL</url>
+        <url>https://github.com/Stratio/stratio-connector-sparkSQL</url>
     </scm>
     <developers>
         <developer>
@@ -116,37 +116,6 @@
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.1.201405082137</version>
-                <executions>
-                    <execution>
-                        <id>UT</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                        <configuration>
-                            <destFile>${project.build.directory}/jacocoUT.exec
-                            </destFile>
-                            <propertyName>jacoco-UT-argline</propertyName>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>IT</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                        <configuration>
-                            <destFile>${project.build.directory}/jacocoIT.exec
-                            </destFile>
-                            <propertyName>jacoco-IT-argline</propertyName>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
