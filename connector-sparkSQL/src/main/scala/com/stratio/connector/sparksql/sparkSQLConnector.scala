@@ -190,9 +190,6 @@ with Metrics {
 
   //  Unsupported methods
 
-  override def getSqlEngine: ISqlEngine =
-    throw new UnsupportedException(SparkSQLConnector.MethodNotSupported)
-
   override def getStorageEngine: IStorageEngine =
     throw new UnsupportedException(SparkSQLConnector.MethodNotSupported)
 
