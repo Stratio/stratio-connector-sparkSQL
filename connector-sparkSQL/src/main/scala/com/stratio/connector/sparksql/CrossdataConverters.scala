@@ -68,10 +68,11 @@ object CrossdataConverters {
   def toCrossDataRow(row: SparkSQLRow, schema: StructType): XDRow = {
     val fields = schema.fields
     val xdRow = new XDRow()
-    fields.zipWithIndex.map {
-      case (field, idx) => xdRow.addCell(
-        field.name,
-        new Cell(toCellValue(row(idx), field.dataType)))
+    fields.zipWithIndex.foreach {
+      case (field, idx) =>
+        xdRow.addCell(
+          field.name,
+          new Cell(toCellValue(row(idx), field.dataType)))
     }
     xdRow
   }

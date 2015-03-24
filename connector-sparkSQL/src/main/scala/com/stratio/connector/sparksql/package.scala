@@ -16,12 +16,99 @@
  * under the License.
  */
 
-package com.stratio.connector
+package com.stratio.connector.sparksql
 
+import com.codahale.metrics.MetricRegistry
+import com.stratio.crossdata.common.exceptions.InitializationException
+import com.stratio.crossdata.common.utils.{Metrics => XDMetrics}
+import com.typesafe.config.{ConfigFactory, Config}
 import org.apache.spark.sql.SQLContext
+import org.slf4j.LoggerFactory
+import scala.xml.XML
 
-package object sparksql {
+object `package`{
 
-  type SparkSQLContext = SQLContext with WithCatalog
+  type SparkSQLContext = SQLContext with Catalog
+
+}
+
+private[sparksql] trait Constants {
+  val ActorSystemName = "SparkSQLConnectorSystem"
+  val ConfigurationFileConstant = "connector-application.conf"
+  val SparkMaster: String = "spark.master"
+  val SparkHome: String = "spark.home"
+  val SparkDriverMemory = "spark.driver.memory"
+  val SparkExecutorMemory = "spark.executor.memory"
+  val SparkTaskCPUs = "spark.task.cpus"
+  val SparkJars: String = "jars"
+  val MethodNotSupported: String = "Not supported yet"
+  val SparkSQLConnectorJobConstant: String = "SparkSQLConnectorJob"
+  val Spark: String = "spark"
+  val ConnectorConfigFile = "SparkSQLConnector.xml"
+  val ConnectorName = "ConnectorName"
+  val DataStoreName = "DataStoreName"
+  val SQLContext = "SQLContext"
+  val HIVEContext = "HiveContext"
+  val CountApproxTimeout = "connector.count-approx-timeout"
+  val QueryExecutorsAmount = "connector.query-executors.size"
+  val ConnectorProvider = "connector.provider"
+  val SQLContextType = "connector.sql-context-type"
+  val AsyncStoppable = "connector.async-stoppable"
+  val ChunkSize = "connector.query-executors.chunk-size"
+  val CatalogTableSeparator = "_"
+}
+
+/**
+ * Provides an accessor to SQLContext catalog.
+ */
+trait Catalog {
+  _: SQLContext =>
+
+  def getCatalog = catalog
+
+}
+
+/**
+ * It provides an implicit metric registry.
+ */
+trait Metrics {
+
+  implicit lazy val metrics: MetricRegistry = XDMetrics.getRegistry
+
+}
+
+/**
+ * It provides a simple pretty logger.
+ */
+trait Loggable {
+
+  implicit lazy val logger = LoggerFactory.getLogger(getClass)
+
+}
+
+/**
+ * Configuration stuff related to SparkSQLConnector.
+ */
+trait Configuration {
+  _: Loggable =>
+
+  import SparkSQLConnector._
+
+  //  References to 'connector-application'
+  val connectorConfig: Config = {
+    val input = Option(getClass.getClassLoader.getResourceAsStream(
+      SparkSQLConnector.ConfigurationFileConstant))
+    input.fold {
+      val message = s"Sorry, unable to find [${
+        SparkSQLConnector.ConfigurationFileConstant
+      }]"
+      logger.error(message)
+      throw new InitializationException(message)
+    }(_ => ConfigFactory.load(SparkSQLConnector.ConfigurationFileConstant))
+  }
+
+  //  References to 'SparkSQLConnector'
+  val connectorConfigFile =
+    XML.load(getClass.getClassLoader.getResourceAsStream(ConnectorConfigFile))
 
 }

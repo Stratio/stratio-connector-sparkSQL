@@ -19,23 +19,19 @@
 package com.stratio.connector.sparksql
 
 import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
-import com.codahale.metrics.MetricRegistry
 import com.stratio.connector.sparksql.engine.query.{QueryManager, QueryEngine}
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
-import com.stratio.crossdata.common.exceptions.{InitializationException, UnsupportedException}
+import com.stratio.crossdata.common.exceptions.UnsupportedException
 import com.stratio.crossdata.common.security.ICredentials
-import com.stratio.crossdata.common.utils.{Metrics => XDMetrics}
 import com.stratio.crossdata.connectors.ConnectorApp
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
-import org.slf4j.LoggerFactory
+
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener
-
-import scala.xml.XML
 
 class SparkSQLConnector(
   system: ActorRefFactory) extends IConnector
@@ -195,8 +191,8 @@ with Metrics {
     contextType: String,
     sc: SparkContext): SparkSQLContext =
     contextType match {
-      case HIVEContext => new HiveContext(sc) with WithCatalog
-      case _ => new SQLContext(sc) with WithCatalog
+      case HIVEContext => new HiveContext(sc) with Catalog
+      case _ => new SQLContext(sc) with Catalog
     }
 
   //  Unsupported methods
@@ -241,78 +237,5 @@ with Metrics {
       sparkSQLConnector.shutdown()
     }
   }
-
-}
-
-sealed trait Constants {
-
-  val ActorSystemName = "SparkSQLConnectorSystem"
-  val ConfigurationFileConstant = "connector-application.conf"
-  val SparkMaster: String = "spark.master"
-  val SparkHome: String = "spark.home"
-  val SparkDriverMemory = "spark.driver.memory"
-  val SparkExecutorMemory = "spark.executor.memory"
-  val SparkTaskCPUs = "spark.task.cpus"
-  val SparkJars: String = "jars"
-  val MethodNotSupported: String = "Not supported yet"
-  val SparkSQLConnectorJobConstant: String = "SparkSQLConnectorJob"
-  val Spark: String = "spark"
-  val ConnectorConfigFile = "SparkSQLConnector.xml"
-  val ConnectorName = "ConnectorName"
-  val DataStoreName = "DataStoreName"
-  val SQLContext = "SQLContext"
-  val HIVEContext = "HiveContext"
-  val CountApproxTimeout = "connector.count-approx-timeout"
-  val QueryExecutorsAmount = "connector.query-executors.size"
-  val ConnectorProvider = "connector.provider"
-  val SQLContextType = "connector.sql-context-type"
-  val AsyncStoppable = "connector.async-stoppable"
-  val ChunkSize = "connector.query-executors.chunk-size"
-  val CatalogTableSeparator = "_"
-
-}
-
-/**
- * It provides an implicit metric registry.
- */
-trait Metrics {
-
-  implicit lazy val metrics: MetricRegistry = XDMetrics.getRegistry
-
-}
-
-/**
- * It provides a simple pretty logger.
- */
-trait Loggable {
-
-  implicit lazy val logger = LoggerFactory.getLogger(getClass)
-
-}
-
-/**
- * Configuration stuff related to SparkSQLConnector.
- */
-trait Configuration {
-  _: Loggable =>
-
-  import SparkSQLConnector._
-
-  //  References to 'connector-application'
-  val connectorConfig: Config = {
-    val input = Option(getClass.getClassLoader.getResourceAsStream(
-      SparkSQLConnector.ConfigurationFileConstant))
-    input.fold {
-      val message = s"Sorry, unable to find [${
-        SparkSQLConnector.ConfigurationFileConstant
-      }]"
-      logger.error(message)
-      throw new InitializationException(message)
-    }(_ => ConfigFactory.load(SparkSQLConnector.ConfigurationFileConstant))
-  }
-
-  //  References to 'SparkSQLConnector'
-  val connectorConfigFile =
-    XML.load(getClass.getClassLoader.getResourceAsStream(ConnectorConfigFile))
 
 }

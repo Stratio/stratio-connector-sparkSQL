@@ -28,7 +28,7 @@ import com.stratio.crossdata.common.data.TableName
 import com.stratio.crossdata.common.metadata.ColumnMetadata
 import com.stratio.connector.sparksql.engine.query.QueryManager._
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
-import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
+import com.stratio.crossdata.common.logicalplan.{Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
 
 /**
