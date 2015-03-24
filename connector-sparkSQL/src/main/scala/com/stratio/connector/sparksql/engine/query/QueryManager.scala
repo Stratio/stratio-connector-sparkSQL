@@ -51,9 +51,9 @@ with Metrics {
       (1 to executorsAmount).map(_ =>
         context.actorOf(QueryExecutor(
           sqlContext,
-          connectorConfig.getInt(ChunkSize),
+          connectorConfig.get.getInt(ChunkSize),
           provider,
-          connectorConfig.getBoolean(AsyncStoppable)))).toSet
+          connectorConfig.get.getBoolean(AsyncStoppable)))).toSet
     }
   }
 

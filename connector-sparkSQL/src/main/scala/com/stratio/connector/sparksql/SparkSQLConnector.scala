@@ -22,7 +22,7 @@ import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
 import com.stratio.connector.sparksql.engine.query.{QueryManager, QueryEngine}
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
-import com.stratio.crossdata.common.exceptions.UnsupportedException
+import com.stratio.crossdata.common.exceptions.{InitializationException, UnsupportedException}
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
 import com.typesafe.config.Config
@@ -56,18 +56,19 @@ with Metrics {
   //  Config parameters
 
   val queryExecutors: Int =
-    connectorConfig.getInt(QueryExecutorsAmount)
+    connectorConfig.get.getInt(QueryExecutorsAmount)
 
   val provider: Provider =
-    providers(connectorConfig.getString(ConnectorProvider))
+    providers(connectorConfig.get.getString(ConnectorProvider)).getOrElse(
+      throw new InitializationException("Given provider is not valid"))
 
   val sqlContextType: String =
-    connectorConfig.getString(SQLContextType)
+    connectorConfig.get.getString(SQLContextType)
 
   //  IConnector implemented methods
 
   override def getConnectorName: String =
-    connectorConfigFile.child
+    connectorConfigFile.get.child
       .find(_.label == ConnectorName)
       .map(_.text)
       .getOrElse(
@@ -75,7 +76,7 @@ with Metrics {
           s"Property $ConnectorName was not set"))
 
   override def getDatastoreName: Array[String] =
-    connectorConfigFile.child
+    connectorConfigFile.get.child
       .find(_.label == DataStoreName)
       .map(_.child.map(_.text).toArray)
       .getOrElse(
@@ -94,7 +95,7 @@ with Metrics {
 
       timeFor("Creating SparkContext") {
         sparkContext.foreach(_.stop())
-        sparkContext = Option(initContext(connectorConfig))
+        sparkContext = Option(initContext(connectorConfig.get))
       }
 
       timeFor(s"Creating $sqlContextType from SparkContext") {

@@ -58,7 +58,7 @@ with Metrics {
 
   var rddChunks: Iterator[Chunk] = List.empty[Chunk].iterator
 
-  val timeoutCountApprox = connectorConfig.getInt(CountApproxTimeout).seconds
+  val timeoutCountApprox = connectorConfig.get.getInt(CountApproxTimeout).seconds
 
   private val me: String = s"[QueryExecutor#${context.self}}]"
 
