@@ -19,6 +19,7 @@
 package com.stratio.connector.sparksql
 
 import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
+import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.engine.query.{QueryManager, QueryEngine}
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
@@ -41,17 +42,39 @@ with Metrics {
   import timer._
   import SparkSQLConnector._
 
-  private var sparkContext: Option[SparkContext] = None
+  val connectionHandler = new ConnectionHandler
 
-  private var sqlContext: Option[SparkSQLContext] = None
+  lazy val sparkContext: SparkContext =
+    timeFor("Creating SparkContext") {
+      initContext(connectorConfig.get)
+    }
 
-  private var clusterConfig: Option[ConnectorClusterConfig] = None
+  lazy val sqlContext: SparkSQLContext =
+    timeFor(s"Creating $sqlContextType from SparkContext") {
+      sqlContextBuilder(sqlContextType, sparkContext)
+    }
 
-  private var queryManager: Option[ActorRef] = None
+  lazy val queryManager: ActorRef =
+    timeFor("Creating QueryManager") {
+      system.actorOf(
+        QueryManager(
+          queryExecutors,
+          sqlContext,
+          connectionHandler,
+          (workflow, connectionHandler, sqlContext) =>
+            QueryEngine.executeQuery(
+              workflow,
+              sqlContext,
+              connectionHandler,
+              provider)))
+    }
 
   //  Engines
 
-  var queryEngine: Option[QueryEngine] = None
+  lazy val queryEngine: QueryEngine =
+    timeFor("Setting query engine instance...") {
+      new QueryEngine(sqlContext, queryManager, connectionHandler, provider)
+    }
 
   //  Config parameters
 
@@ -84,80 +107,41 @@ with Metrics {
           s"Property $DataStoreName was not set"))
 
   override def init(configuration: IConfiguration): Unit =
-    timeFor(s"Initializing SparkSQL connector") {}
+    timeFor(s"Initializing SparkSQL connector") {
+      timeFor("Subscribing to metadata updates...") {
+        connectorApp.subscribeToMetadataUpdate(
+          SparkSQLMetadataListener(
+            sqlContext,
+            sparkSQLConnector.provider,
+            connectionHandler))
+      }
+    }
 
   override def connect(
     credentials: ICredentials,
     config: ConnectorClusterConfig): Unit =
     timeFor("Connecting to SparkSQL connector") {
-
-      clusterConfig = Option(config)
-
-      timeFor("Creating SparkContext") {
-        sparkContext.foreach(_.stop())
-        sparkContext = Option(initContext(connectorConfig.get))
-      }
-
-      timeFor(s"Creating $sqlContextType from SparkContext") {
-        sqlContext = Option(sqlContextBuilder(sqlContextType, sparkContext.get))
-      }
-
-      timeFor("Creating QueryManager") {
-        queryManager = Option(
-          system.actorOf(
-            QueryManager(
-              queryExecutors,
-              sqlContext.get,
-              (workflow, sqlContext) =>
-                QueryEngine.executeQuery(
-                  workflow,
-                  sqlContext,
-                  config,
-                  provider))))
-      }
-
-      timeFor("Subscribing to metadata updates...") {
-        sqlContext.foreach { sqlCtx =>
-          connectorApp.subscribeToMetadataUpdate(
-            SparkSQLMetadataListener(
-              sqlCtx,
-              sparkSQLConnector.provider,
-              config))
-        }
-      }
-
-      timeFor("Setting query engine instance...") {
-        queryEngine = for {
-          sqlCtx <- sqlContext
-          qm <- queryManager
-          conf <- clusterConfig
-        } yield new QueryEngine(sqlCtx, qm, conf, provider)
-      }
-
+      connectionHandler.createConnection(config, Option(credentials))
     }
 
   override def getQueryEngine: IQueryEngine =
-    queryEngine.getOrElse {
-      throw new IllegalStateException("SparkSQL connector is not connected")
-    }
+    queryEngine
 
   override def isConnected(name: ClusterName): Boolean =
-    clusterConfig.exists(_.getName == name)
+    connectionHandler.isConnected(name.getName)
 
   override def close(name: ClusterName): Unit =
-    timeFor("Closing connection to $name cluster") {
-      clusterConfig = None
+    timeFor(s"Closing connection to $name cluster") {
+      connectionHandler.closeConnection(name.getName)
     }
 
   override def shutdown(): Unit =
     timeFor("Shutting down connector...") {
-      sqlContext = None
       logger.debug("Disposing QueryManager")
-      queryManager.foreach(_ ! Kill)
-      queryManager = None
+      queryManager ! Kill
       logger.debug("Disposing SparkContext")
-      sparkContext.foreach(_.stop())
-      logger.debug("Connector was shutted down.")
+      sparkContext.stop()
+      logger.debug("Connector was shut down.")
     }
 
   //  Helpers

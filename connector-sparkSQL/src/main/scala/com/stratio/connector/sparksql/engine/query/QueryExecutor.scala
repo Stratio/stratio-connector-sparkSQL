@@ -18,6 +18,7 @@
 
 package com.stratio.connector.sparksql.engine.query
 
+import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.connector.commons.timer
 import org.apache.spark.sql.types.StructType
@@ -42,6 +43,7 @@ class QueryExecutor(
   sqlContext: SparkSQLContext,
   defaultChunkSize: Int,
   provider: DataFrameProvider,
+  connectionHandler: ConnectionHandler,
   asyncStoppable: Boolean = true) extends Actor
 with Loggable
 with Metrics {
@@ -96,7 +98,7 @@ with Metrics {
       //  Update current job
       currentJob = Option(job)
       //  Create SchemaRDD from query
-      val dataFrame = provider(job.workflow, sqlContext)
+      val dataFrame = provider(job.workflow, connectionHandler, sqlContext)
       //  Update current schema
       currentSchema = Option(dataFrame.schema)
       if (asyncStoppable) {
@@ -177,17 +179,19 @@ with Metrics {
 
 object QueryExecutor {
 
-  type DataFrameProvider = (LogicalWorkflow, SparkSQLContext) => DataFrame
+  type DataFrameProvider = (LogicalWorkflow, ConnectionHandler, SparkSQLContext) => DataFrame
 
   def apply(
     sqlContext: SparkSQLContext,
     defaultChunkSize: Int,
     provider: DataFrameProvider,
+    connectionHandler: ConnectionHandler,
     asyncStoppable: Boolean = true): Props =
     Props(new QueryExecutor(
       sqlContext,
       defaultChunkSize,
       provider,
+      connectionHandler,
       asyncStoppable))
 
   case class ProcessNextChunk(queryId: QueryManager#QueryId)

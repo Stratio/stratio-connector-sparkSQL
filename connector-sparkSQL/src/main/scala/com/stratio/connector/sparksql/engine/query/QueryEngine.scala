@@ -18,17 +18,19 @@
 
 package com.stratio.connector.sparksql.engine.query
 
+import com.stratio.connector.sparksql.connection.ConnectionHandler
+
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.{Metrics, Loggable, Provider, SparkSQLContext}
 import com.stratio.connector.sparksql.CrossdataConverters._
-import com.stratio.crossdata.common.data.TableName
+import com.stratio.crossdata.common.data.{ClusterName, TableName}
 import com.stratio.crossdata.common.metadata.ColumnMetadata
 import com.stratio.connector.sparksql.engine.query.QueryManager._
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
-import com.stratio.crossdata.common.logicalplan.{Select, LogicalWorkflow}
+import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
 
 /**
@@ -36,13 +38,13 @@ import com.stratio.crossdata.common.result.QueryResult
  *
  * @param sqlContext SparkSQLContext instance.
  * @param queryManager Reference to asynchronous job executors manager.
- * @param config ConnectorClusterConfig instance.
+ * @param connectionHandler ConnectorClusterConfig instance.
  * @param provider DataSource provider.
  */
 case class QueryEngine(
   sqlContext: SparkSQLContext,
   queryManager: ActorRef,
-  config: ConnectorClusterConfig,
+  connectionHandler: ConnectionHandler,
   provider: Provider) extends IQueryEngine with Loggable with Metrics {
 
   import QueryEngine._
@@ -50,7 +52,7 @@ case class QueryEngine(
 
   override def execute(workflow: LogicalWorkflow): QueryResult = {
     val rdd = timeFor(s"Executing sync. query\n\t${workflow.toString}") {
-      executeQuery(workflow, sqlContext, config, provider)
+      executeQuery(workflow, sqlContext, connectionHandler, provider)
     }
     timeFor(s"Processing unique query result...") {
       QueryResult.createQueryResult(
@@ -95,34 +97,35 @@ object QueryEngine extends Loggable with Metrics {
    *
    * @param workflow Given workflow.
    * @param sqlContext Targeted SQL context.
-   * @param config Connector cluster configuration.
    * @param provider The targeted data store.
    * @return Obtained DataFrame.
    */
   def executeQuery(
     workflow: LogicalWorkflow,
     sqlContext: SparkSQLContext,
-    config: ConnectorClusterConfig,
+    connectionHandler: ConnectionHandler,
     provider: Provider): DataFrame = {
     import timer._
-    //  Extract raw query from workflow
-    val query = timeFor(s"Getting workflow plain query ...") {
-      workflow.getSqlDirectQuery
-    }
-    logger.debug(s"Workflow plain query : $query")
-    //  Format query for avoiding conflicts such as 'catalog.table' issue
-    val formattedQuery = timeFor("Formatting query to SparkSQL format") {
-      sparkSQLFormat(query)
-    }
-    logger.debug(s"Workflow SparkSQL formatted query : $query")
-    //  Execute actual query ...
-    val rdd = sqlContext.sql(formattedQuery)
-    logger.debug(rdd.schema.treeString)
-    //  ... and format its structure for adapting it to provider's.
-    timeFor("Formatting RDD for discharding metadata fields") {
-      provider.formatRDD(
-        rdd,
-        sqlContext)
+    withClusters(connectionHandler, workflow) {
+      //  Extract raw query from workflow
+      val query = timeFor(s"Getting workflow plain query ...") {
+        workflow.getSqlDirectQuery
+      }
+      logger.debug(s"Workflow plain query : $query")
+      //  Format query for avoiding conflicts such as 'catalog.table' issue
+      val formattedQuery = timeFor("Formatting query to SparkSQL format") {
+        sparkSQLFormat(query)
+      }
+      logger.debug(s"Workflow SparkSQL formatted query : $query")
+      //  Execute actual query ...
+      val rdd = sqlContext.sql(formattedQuery)
+      logger.debug(rdd.schema.treeString)
+      //  ... and format its structure for adapting it to provider's.
+      timeFor("Formatting RDD for discharding metadata fields") {
+        provider.formatRDD(
+          rdd,
+          sqlContext)
+      }
     }
   }
 
@@ -190,7 +193,7 @@ object QueryEngine extends Loggable with Metrics {
       logger.warn(s"Tried to register $tableName table but it already exists!")
     else {
       logger.debug(s"Registering table [$tableName]")
-      val statement = createTemporaryTable(
+      val statement = createTable(
         tableName,
         provider,
         options)
@@ -221,9 +224,9 @@ object QueryEngine extends Loggable with Metrics {
     config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
 
   /*
-   *  Provides the necessary syntax for creating a temporary table in SparkSQL.
+   *  Provides the necessary syntax for creating a table in SparkSQL.
    */
-  private def createTemporaryTable(
+  private def createTable(
     table: String,
     provider: Provider,
     options: Map[String, String],
@@ -231,6 +234,23 @@ object QueryEngine extends Loggable with Metrics {
     s"""
        |CREATE ${if (temporary) "TEMPORARY" else ""} TABLE $table
         |USING ${provider.datasource}
-        |OPTIONS (${options.map { case (k, v) => s"$k '$v'"}.mkString(",")})
+        |OPTIONS (${options.map { case (k, v) => s"$k '$v'" }.mkString(",")})
        """.stripMargin
+
+  def withClusters[T](
+    connectionHandler: ConnectionHandler,
+    clusters: Iterable[ClusterName])(f: => T): T = {
+    clusters.foreach(cluster => connectionHandler.startJob(cluster.getName))
+    val result = f
+    clusters.foreach(cluster => connectionHandler.endJob(cluster.getName))
+    result
+  }
+
+  def withClusters[T](
+    connectionHandler: ConnectionHandler,
+    workflow: LogicalWorkflow)(f: => T): T = {
+    withClusters(connectionHandler, workflow.getInitialSteps.map {
+      case project: Project => project.getClusterName
+    })(f)
+  }
 }

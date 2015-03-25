@@ -19,6 +19,7 @@
 package com.stratio.connector.sparksql.engine
 
 import com.stratio.connector.commons.timer
+import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.{Metrics, Loggable, Provider, SparkSQLContext}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IMetadataListener}
 import com.stratio.crossdata.common.metadata.{TableMetadata, IMetadata}
@@ -28,22 +29,26 @@ import com.stratio.connector.sparksql.engine.query.QueryEngine._
 /**
  * Hook for receiving metadata update events.
  */
-object SparkSQLMetadataListener extends Loggable with Metrics{
+object SparkSQLMetadataListener extends Loggable with Metrics {
 
   import timer._
 
   def apply(
     sqlContext: SparkSQLContext,
     provider: Provider,
-    config: ConnectorClusterConfig): IMetadataListener =
+    connectionHandler: ConnectionHandler): IMetadataListener =
     MetadataListener {
       case updatedMetadata: TableMetadata =>
         timeFor(s"Received updated table metadata [$updatedMetadata]") {
-          registerTable(
-            qualified(updatedMetadata.getName),
-            sqlContext,
-            provider,
-            globalOptions(config))
+          connectionHandler
+            .getConnection(updatedMetadata.getClusterRef.getName)
+            .foreach { connection =>
+            registerTable(
+              qualified(updatedMetadata.getName),
+              sqlContext,
+              provider,
+              globalOptions(connection.config))
+          }
         }
     } {
       case deletedMetadata: TableMetadata =>
@@ -53,7 +58,6 @@ object SparkSQLMetadataListener extends Loggable with Metrics{
             sqlContext)
         }
     }
-
 
 
 }
