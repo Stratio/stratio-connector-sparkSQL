@@ -22,16 +22,25 @@
     <Version>2.4.1</Version>
     <RequiredProperties>
         <Property>
-            <PropertyName>hosts</PropertyName>
-            <Description>The Ip:Port. Host and port for the namenode</Description>
+            <PropertyName>highavailability</PropertyName>
+            <Description>True if HFDS is configured with high availability. In this case the connection configuration is in the config files. False if it is not configured with high availability, in this case the host property must be set</Description>
         </Property>
+
         <Property>
             <PropertyName>user</PropertyName>
             <Description>The user name</Description>
         </Property>
+
         <Property>
             <PropertyName>path</PropertyName>
             <Description>Base path to HDFS root directory</Description>
         </Property>
     </RequiredProperties>
+
+    <OptionalProperties>
+        <Property>
+            <PropertyName>hosts</PropertyName>
+            <Description>The Ip:Port. Host and port for the namenode. Mandatory if highavailability is set to false.</Description>
+        </Property>
+    </OptionalProperties>
 </DataStore>

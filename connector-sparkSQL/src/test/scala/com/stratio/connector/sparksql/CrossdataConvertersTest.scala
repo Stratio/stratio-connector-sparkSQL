@@ -15,13 +15,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.stratio.connector.sparksql.connection
+package com.stratio.connector.sparksql
 
-import com.stratio.crossdata.common.connector.ConnectorClusterConfig
-import com.stratio.crossdata.common.security.ICredentials
+import org.scalatest.{FlatSpec, Matchers}
 
-case class Connection(
-  config: ConnectorClusterConfig,
-  credentials: Option[ICredentials] = None,
-  busy: Boolean = false,
-  lastUseDate: Long = System.currentTimeMillis())
+class CrossdataConvertersTest extends FlatSpec
+with Matchers{
+
+  behavior of "CrossdataConverters"
+
+  it should "convert a Dataframe into a ResultSet" in {
+    ()
+  }
+
+}

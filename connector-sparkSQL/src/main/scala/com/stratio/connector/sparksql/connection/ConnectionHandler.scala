@@ -79,7 +79,7 @@ class ConnectionHandler extends Loggable {
   def endJob(connectionId: ConnectionId): Unit = {
     withConnections{
       connections.get(connectionId).foreach{connection =>
-        connections += (connectionId -> connection.copy(busy=true))
+        connections += (connectionId -> connection.copy(busy=false))
         logger.info(s"A new job has finished in cluster [$connectionId]")
       }
     }
