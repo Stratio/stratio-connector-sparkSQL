@@ -24,9 +24,10 @@ import com.stratio.crossdata.common.utils.{Metrics => XDMetrics}
 import com.typesafe.config.{ConfigFactory, Config}
 import org.apache.spark.sql.SQLContext
 import org.slf4j.LoggerFactory
-import scala.xml.XML
+import scala.util.Try
+import scala.xml.{Elem, XML}
 
-object `package`{
+object `package` {
 
   type SparkSQLContext = SQLContext with Catalog
 
@@ -95,20 +96,21 @@ trait Configuration {
   import SparkSQLConnector._
 
   //  References to 'connector-application'
-  val connectorConfig: Config = {
+  val connectorConfig: Try[Config] = {
     val input = Option(getClass.getClassLoader.getResourceAsStream(
       SparkSQLConnector.ConfigurationFileConstant))
-    input.fold {
+    Try(input.fold {
       val message = s"Sorry, unable to find [${
         SparkSQLConnector.ConfigurationFileConstant
       }]"
       logger.error(message)
       throw new InitializationException(message)
-    }(_ => ConfigFactory.load(SparkSQLConnector.ConfigurationFileConstant))
+    }(_ => ConfigFactory.load(SparkSQLConnector.ConfigurationFileConstant)))
   }
 
   //  References to 'SparkSQLConnector'
-  val connectorConfigFile =
-    XML.load(getClass.getClassLoader.getResourceAsStream(ConnectorConfigFile))
+  val connectorConfigFile: Try[Elem] =
+    Try(XML.load(
+      getClass.getClassLoader.getResourceAsStream(ConnectorConfigFile)))
 
 }

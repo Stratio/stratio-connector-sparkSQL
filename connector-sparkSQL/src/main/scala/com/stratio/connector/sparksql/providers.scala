@@ -27,8 +27,9 @@ object providers {
 
   val Parquet = "parquet"
 
-  def apply(providerName: String): Provider = providerName match {
-    case _ => sparksql.Parquet
+  def apply(providerName: String): Option[Provider] = providerName match {
+    case Parquet => Some(sparksql.Parquet)
+    case _ => None
   }
 
 }
@@ -47,7 +48,7 @@ trait Provider {
    * Formats an Spark SQL obtained SchemaRDD,
    * adapting it to current provider format.
    * @param dataFrame DataFrame to be formatted
-   * @return
+   * @return Formatted DataFrame
    */
   def formatRDD(
     dataFrame: DataFrame,
@@ -55,7 +56,7 @@ trait Provider {
 
 }
 
-case object Parquet extends Provider with Loggable {
+case object Parquet extends Provider {
 
   val datasource = "org.apache.spark.sql.parquet"
 
