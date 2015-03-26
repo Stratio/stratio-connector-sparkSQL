@@ -30,7 +30,7 @@ import com.typesafe.config.Config
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
-
+import com.stratio.connector.commons.{Loggable,Metrics}
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener
 

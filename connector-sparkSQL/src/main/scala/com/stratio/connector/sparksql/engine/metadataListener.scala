@@ -20,9 +20,11 @@ package com.stratio.connector.sparksql.engine
 
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.connection.ConnectionHandler
-import com.stratio.connector.sparksql.{Metrics, Loggable, Provider, SparkSQLContext}
-import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IMetadataListener}
-import com.stratio.crossdata.common.metadata.{TableMetadata, IMetadata}
+import com.stratio.connector.sparksql.{Provider, SparkSQLContext}
+import com.stratio.crossdata.common.connector.IMetadataListener
+import com.stratio.connector.commons.{Loggable, Metrics}
+import com.stratio.crossdata.common.data.Name
+import com.stratio.crossdata.common.metadata.{UpdatableMetadata, TableMetadata}
 import org.slf4j.Logger
 import com.stratio.connector.sparksql.engine.query.QueryEngine._
 
@@ -51,10 +53,10 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
           }
         }
     } {
-      case deletedMetadata: TableMetadata =>
+      case deletedMetadata: Name =>
         timeFor(s"Received deleted table metadata [$deletedMetadata]") {
           unregisterTable(
-            qualified(deletedMetadata.getName),
+            deletedMetadata.getQualifiedName,
             sqlContext)
         }
     }
@@ -74,21 +76,23 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
  */
 object MetadataListener {
 
-  type Callback = PartialFunction[IMetadata, Unit]
+  type Callback[T] = PartialFunction[T, Unit]
 
   def apply(
-    onUpdate: Callback)(
-    onDelete: Callback)(
+    onUpdate: Callback[UpdatableMetadata])(
+    onDelete: Callback[Name])(
     implicit logger: Logger): IMetadataListener =
     new IMetadataListener {
-      def deleteMetadata(iMetadata: IMetadata): Unit =
-        onUpdate.orElse(DoNothing("on delete"))(iMetadata)
 
-      def updateMetadata(iMetadata: IMetadata): Unit =
-        onDelete.orElse(DoNothing("on update"))(iMetadata)
+      override def updateMetadata(uMetadata: UpdatableMetadata): Unit =
+        onUpdate.orElse(DoNothing[UpdatableMetadata]("on delete"))(uMetadata)
+
+      override def deleteMetadata(uName: Name): Unit =
+        onDelete.orElse(DoNothing[Name]("on update"))(uName)
+
     }
 
-  private def DoNothing(when: String)(implicit logger: Logger): Callback = {
+  private def DoNothing[T](when: String)(implicit logger: Logger): Callback[T] = {
     case metadata => logger.debug(s"Event $metadata not recognised $when")
   }
 

@@ -18,12 +18,10 @@
 
 package com.stratio.connector.sparksql
 
-import com.codahale.metrics.MetricRegistry
 import com.stratio.crossdata.common.exceptions.InitializationException
-import com.stratio.crossdata.common.utils.{Metrics => XDMetrics}
+import com.stratio.connector.commons.Loggable
 import com.typesafe.config.{ConfigFactory, Config}
 import org.apache.spark.sql.SQLContext
-import org.slf4j.LoggerFactory
 import scala.util.Try
 import scala.xml.{Elem, XML}
 
@@ -66,24 +64,6 @@ trait Catalog {
   _: SQLContext =>
 
   def getCatalog = catalog
-
-}
-
-/**
- * It provides an implicit metric registry.
- */
-trait Metrics {
-
-  implicit lazy val metrics: MetricRegistry = XDMetrics.getRegistry
-
-}
-
-/**
- * It provides a simple pretty logger.
- */
-trait Loggable {
-
-  implicit lazy val logger = LoggerFactory.getLogger(getClass)
 
 }
 

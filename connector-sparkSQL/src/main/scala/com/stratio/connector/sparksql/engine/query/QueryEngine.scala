@@ -24,7 +24,8 @@ import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
 import com.stratio.connector.commons.timer
-import com.stratio.connector.sparksql.{Metrics, Loggable, Provider, SparkSQLContext}
+import com.stratio.connector.commons.{Loggable, Metrics}
+import com.stratio.connector.sparksql.{Provider, SparkSQLContext}
 import com.stratio.connector.sparksql.CrossdataConverters._
 import com.stratio.crossdata.common.data.{ClusterName, TableName}
 import com.stratio.crossdata.common.metadata.ColumnMetadata

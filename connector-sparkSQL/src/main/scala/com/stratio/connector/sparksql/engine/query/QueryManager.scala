@@ -20,7 +20,8 @@ package com.stratio.connector.sparksql.engine.query
 
 import akka.actor.{Stash, Props, ActorRef, Actor}
 import com.stratio.connector.sparksql.connection.ConnectionHandler
-import com.stratio.connector.sparksql.{Metrics, Loggable, SparkSQLContext, SparkSQLConnector}
+import com.stratio.connector.commons.{Loggable, Metrics}
+import com.stratio.connector.sparksql.{SparkSQLContext, SparkSQLConnector}
 import com.stratio.connector.sparksql.engine.query.QueryExecutor.DataFrameProvider
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow

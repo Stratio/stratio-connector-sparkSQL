@@ -17,7 +17,7 @@
  */
 package com.stratio.connector.sparksql.connection
 
-import com.stratio.connector.sparksql.Loggable
+import com.stratio.connector.commons.Loggable
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
 
