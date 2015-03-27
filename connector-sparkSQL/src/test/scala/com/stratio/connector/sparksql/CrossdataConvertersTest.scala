@@ -24,8 +24,8 @@ with Matchers{
 
   behavior of "CrossdataConverters"
 
-  it should "convert a Dataframe into a ResultSet" in {
-    ()
+  it should "convert any value in a SparkSQLRow into a Crossdata cell value" in {
+    ()//val valuesToTest = Map((Byte.MaxValue) ->
   }
 
 }

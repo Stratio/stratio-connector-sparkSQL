@@ -156,15 +156,11 @@ object QueryEngine extends Loggable with Metrics {
    * @return Escaped query statement
    */
   def sparkSQLFormat(statement: Query, conflictChar: String = "."): Query = {
-    val fieldsRegex = s"(\\w*)[$conflictChar](\\w*)[$conflictChar](\\w*)".r
     val tableRegex = s"(\\w*)[$conflictChar](\\w*)".r
-    val escapedFieldsRegex = s"(\\w*)[`]".r
-    escapedFieldsRegex.replaceAllIn(
-      tableRegex.replaceAllIn(
-        fieldsRegex.replaceAllIn(
-          statement, m => s"""${m.toString().split("\\.").last}`"""),
-        _.toString().split(s"\\$conflictChar").last),
-      m => s"`_2.${m.toString()}")
+    val catalog = tableRegex.findAllIn(statement)
+      .filterNot(_.startsWith( """."""))
+      .toList.head.split("\\.").head
+    statement.replace(s"$catalog.", "")
   }
 
   /**
