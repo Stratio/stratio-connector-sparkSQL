@@ -19,6 +19,7 @@
 package com.stratio.connector.sparksql.engine.query
 
 import com.stratio.connector.sparksql.connection.ConnectionHandler
+import com.stratio.crossdata.common.statements.structures.Selector
 
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
@@ -137,16 +138,19 @@ object QueryEngine extends Loggable with Metrics {
    * @return List of ColumnMetadata
    */
   def toColumnMetadata(workflow: LogicalWorkflow): List[ColumnMetadata] = {
-    import scala.collection.JavaConversions._
     //  Get column selectors from last step (SELECT)
-    val (columnTypes, selectors) = workflow.getLastStep match {
-      case s: Select => (s.getTypeMap, s.getOutputSelectorOrder)
+    val (columnTypes: ColumnTypeMap, selectors: List[Selector]) = workflow.getLastStep match {
+      case s: Select => s.getTypeMap.toMap -> s.getOutputSelectorOrder.toList
+      case _ =>
+        logger.warn(s"No LastStep found in [${workflow.getSqlDirectQuery}]. " +
+          s"ColumnMetadata will be empty...")
+        Map() -> List()
     }
     //  Map them into ColumnMetadata
     selectors.map(s =>
       new ColumnMetadata(
         s.getColumnName, Array(),
-        columnTypes(s.getColumnName.getName))).toList
+        columnTypes(s.getColumnName.getName)))
   }
 
   /**

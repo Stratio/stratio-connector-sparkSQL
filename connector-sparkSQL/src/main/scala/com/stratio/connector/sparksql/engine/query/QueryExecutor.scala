@@ -107,9 +107,12 @@ with Metrics {
         //  Split RDD into chunks of approx. 'defaultChunkSize' size
         dataFrame.rdd.countApprox(timeoutCountApprox.toMillis).onComplete { amount =>
           timeFor(s"$me Defining chunks (RDD size ~ $amount elements)...") {
-            rddChunks = dataFrame
-              .repartition((amount.high / defaultChunkSize).toInt)
-              .rdd
+            val repartitioned = dataFrame
+              .repartition((amount.high / defaultChunkSize).toInt + {
+              if (amount.high % defaultChunkSize == 0) 0 else 1
+            }).rdd
+            logger.debug(s"Dataframe split into ${repartitioned.partitions.length} partitions")
+            rddChunks = repartitioned
               .toLocalIterator
               .grouped(defaultChunkSize)
               .map(_.iterator)
