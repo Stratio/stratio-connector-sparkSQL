@@ -24,7 +24,7 @@ import com.stratio.connector.commons.timer
 import org.apache.spark.sql.types.StructType
 import scala.concurrent.duration._
 import akka.actor.{Props, Actor}
-import com.stratio.connector.commons.{Loggable,Metrics}
+import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.connector.sparksql.{SparkSQLConnector, SparkSQLContext}
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
 import com.stratio.connector.sparksql.CrossdataConverters._
@@ -160,10 +160,11 @@ with Metrics {
     schema: StructType): Unit = {
     val (rows, idx) = chunk
     currentJob.foreach { job =>
-      QueryResult.createQueryResult(
-        toResultSet(rows, schema, toColumnMetadata(job.workflow)),
-        idx,
-        isLast)
+      job.resultHandler.processResult(
+        QueryResult.createQueryResult(
+          toResultSet(rows, schema, toColumnMetadata(job.workflow)),
+          idx,
+          isLast))
     }
   }
 

@@ -17,16 +17,14 @@
  */
 package com.stratio.connector.sparksql.connection
 
+import com.stratio.connector.sparksql.UnitTest
+
 import scala.language.implicitConversions
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.data.ClusterName
-import org.scalatest.{Matchers, FlatSpec}
 
-class ConnectionHandlerTest extends FlatSpec
-with Matchers
+class ConnectionHandlerTest extends UnitTest("ConnectionHandler")
 with ConnectionHandlerSampleValues {
-
-  behavior of "ConnectionHandler"
 
   it should "add a new connection" in {
     val ch = new ConnectionHandler
