@@ -16,6 +16,8 @@
         <operation>SELECT_OPERATOR</operation>
         <operation>SELECT_INNER_JOIN</operation>
         <operation>SELECT_INNER_JOIN_PARTIALS_RESULTS</operation>
+        <operation>SELECT_LIMIT</operation>
+        <operation>SELECT_FUNCTIONS</operation>
         <operation>FILTER_PK_EQ</operation>
         <operation>FILTER_PK_GT</operation>
         <operation>FILTER_PK_LT</operation>
@@ -39,4 +41,36 @@
         <operation>SELECT_GROUP_BY</operation>
         <operation>SELECT_ORDER_BY</operation>
     </SupportedOperations>
+    <Functions>
+        <Function>
+            <FunctionName>sum</FunctionName>
+            <Signature>sum(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Sum</Description>
+        </Function>
+        <Function>
+            <FunctionName>avg</FunctionName>
+            <Signature>avg(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Average</Description>
+        </Function>
+        <Function>
+            <FunctionName>max</FunctionName>
+            <Signature>max(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Maximum</Description>
+        </Function>
+        <Function>
+            <FunctionName>min</FunctionName>
+            <Signature>min(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Minimum</Description>
+        </Function>
+        <Function>
+            <FunctionName>count</FunctionName>
+            <Signature>count(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Count</Description>
+        </Function>
+    </Functions>
 </Connector>
