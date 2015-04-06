@@ -17,6 +17,8 @@
  */
 package com.stratio.connector.sparksql
 
+import com.stratio.connector.commons.Loggable
+
 import scala.language.implicitConversions
 import scala.collection.mutable.ArrayBuffer
 import org.apache.spark.sql.catalyst.expressions.GenericRow
@@ -25,7 +27,7 @@ import org.apache.spark.sql.{Row => SparkSQLRow, DataFrame}
 import com.stratio.crossdata.common.metadata.{ColumnMetadata, ColumnType}
 import com.stratio.crossdata.common.data.{Row => XDRow, Cell, ResultSet}
 
-object CrossdataConverters {
+object CrossdataConverters extends Loggable{
 
   import scala.collection.JavaConversions._
 
@@ -55,7 +57,9 @@ object CrossdataConverters {
     metadata: List[ColumnMetadata]): ResultSet = {
     val resultSet = new ResultSet
     resultSet.setColumnMetadata(metadata)
+    logger.debug(s"Generating result set...")
     rows.foreach(row => resultSet.add(toCrossDataRow(row, schema)))
+    logger.info(s"Result set size : ${resultSet.size()}")
     resultSet
   }
 

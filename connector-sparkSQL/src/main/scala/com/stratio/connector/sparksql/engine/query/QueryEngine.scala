@@ -117,7 +117,7 @@ object QueryEngine extends Loggable with Metrics {
       val formattedQuery = timeFor("Formatting query to SparkSQL format") {
         sparkSQLFormat(query)
       }
-      logger.debug(s"Workflow SparkSQL formatted query : $query")
+      logger.info(s"Workflow SparkSQL formatted query : $formattedQuery")
       //  Execute actual query ...
       val rdd = sqlContext.sql(formattedQuery)
       logger.debug(rdd.schema.treeString)
