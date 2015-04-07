@@ -138,7 +138,8 @@ object QueryEngine extends Loggable with Metrics {
    * @return List of ColumnMetadata
    */
   def toColumnMetadata(workflow: LogicalWorkflow): List[ColumnMetadata] = {
-    //  Get column selectors from last step (SELECT)
+    import scala.collection.JavaConversions._
+    logger.debug(s"Getting column selectors from last step (SELECT)")
     val (columnTypes: ColumnTypeMap, selectors: List[Selector]) = workflow.getLastStep match {
       case s: Select => s.getTypeMap.toMap -> s.getOutputSelectorOrder.toList
       case _ =>
@@ -146,11 +147,16 @@ object QueryEngine extends Loggable with Metrics {
           s"ColumnMetadata will be empty...")
         Map() -> List()
     }
+    logger.debug(s"ColumnTypes : $columnTypes\nSelectors : $selectors")
     //  Map them into ColumnMetadata
-    selectors.map(s =>
+    selectors.map(s => {
+      val columnName = s.getColumnName
+      Option(s.getAlias).foreach(columnName.setAlias)
       new ColumnMetadata(
-        s.getColumnName, Array(),
-        columnTypes(s.getColumnName.getName)))
+        columnName,
+        Array(),
+        columnTypes.getOrElse(s.getColumnName.getName,columnTypes(s.getAlias)))
+    }).toList
   }
 
   /**

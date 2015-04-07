@@ -56,6 +56,7 @@ object CrossdataConverters extends Loggable{
     schema: StructType,
     metadata: List[ColumnMetadata]): ResultSet = {
     val resultSet = new ResultSet
+    logger.debug(s"Metadata : $metadata")
     resultSet.setColumnMetadata(metadata)
     logger.debug(s"Generating result set...")
     rows.foreach(row => resultSet.add(toCrossDataRow(row, schema)))
