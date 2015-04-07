@@ -13,6 +13,7 @@
     </RequiredProperties>
     <SupportedOperations>
         <operation>PROJECT</operation>
+        <operation>PAGINATION</operation>
         <operation>SELECT_OPERATOR</operation>
         <operation>SELECT_INNER_JOIN</operation>
         <operation>SELECT_INNER_JOIN_PARTIALS_RESULTS</operation>

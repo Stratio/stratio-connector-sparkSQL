@@ -67,8 +67,13 @@ with Metrics {
 
   override def receive = {
 
-    case job: JobCommand =>
-      timeFor(s"$me Processing job request : $job") {
+    case job @ PagedExecute(_,_,_,pageSize) =>
+      timeFor(s"$me Processing paged job request : $job") {
+        startNewJob(job,pageSize)
+      }
+
+    case job: AsyncExecute =>
+      timeFor(s"$me Processing async. job request : $job") {
         startNewJob(job)
       }
 
@@ -94,7 +99,7 @@ with Metrics {
    *
    * @param job Query to be asynchronously executed.
    */
-  def startNewJob(job: JobCommand): Unit =
+  def startNewJob(job: JobCommand, pageSize: Int = defaultChunkSize): Unit =
     timeFor(s"$me Starting job ${job.queryId}") {
       //  Update current job
       currentJob = Option(job)
@@ -108,13 +113,13 @@ with Metrics {
         dataFrame.rdd.countApprox(timeoutCountApprox.toMillis).onComplete { amount =>
           timeFor(s"$me Defining chunks (RDD size ~ $amount elements)...") {
             val repartitioned = dataFrame
-              .repartition((amount.high / defaultChunkSize).toInt + {
-              if (amount.high % defaultChunkSize == 0) 0 else 1
+              .repartition((amount.high / pageSize).toInt + {
+              if (amount.high % pageSize == 0) 0 else 1
             }).rdd
             logger.debug(s"Dataframe split into ${repartitioned.partitions.length} partitions")
             rddChunks = repartitioned
               .toLocalIterator
-              .grouped(defaultChunkSize)
+              .grouped(pageSize)
               .map(_.iterator)
               .zipWithIndex
           }
@@ -146,7 +151,9 @@ with Metrics {
       else {
         logger.debug(s"$me Preparing to process " +
           s"next chunk of ${job.queryId}")
-        processChunk(rddChunks.next(), rddChunks.hasNext, schema)
+        val chunk = rddChunks.next()
+        val isLast = !rddChunks.hasNext
+        processChunk(chunk, isLast, schema)
         self ! ProcessNextChunk(job.queryId)
       }
     }
@@ -163,11 +170,14 @@ with Metrics {
     schema: StructType): Unit = {
     val (rows, idx) = chunk
     currentJob.foreach { job =>
-      job.resultHandler.processResult(
-        QueryResult.createQueryResult(
+      job.resultHandler.processResult {
+        val result = QueryResult.createQueryResult(
           toResultSet(rows, schema, toColumnMetadata(job.workflow)),
           idx,
-          isLast))
+          isLast)
+        result.setQueryId(job.queryId)
+        result
+      }
     }
   }
 
