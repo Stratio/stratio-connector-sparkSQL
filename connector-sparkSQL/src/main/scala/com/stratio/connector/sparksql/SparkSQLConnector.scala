@@ -45,17 +45,17 @@ with Metrics {
   val connectionHandler = new ConnectionHandler
 
   lazy val sparkContext: SparkContext =
-    timeFor("Creating SparkContext") {
+    timeFor("SparkContext created.") {
       initContext(connectorConfig.get)
     }
 
   lazy val sqlContext: SparkSQLContext =
-    timeFor(s"Creating $sqlContextType from SparkContext") {
+    timeFor(s"$sqlContextType created from SparkContext.") {
       sqlContextBuilder(sqlContextType, sparkContext)
     }
 
   lazy val queryManager: ActorRef =
-    timeFor("Creating QueryManager") {
+    timeFor("QueryManager created.") {
       system.actorOf(
         QueryManager(
           queryExecutors,
@@ -72,7 +72,7 @@ with Metrics {
   //  Engines
 
   lazy val queryEngine: QueryEngine =
-    timeFor("Setting query engine instance...") {
+    timeFor("Query engine instance is up.") {
       new QueryEngine(sqlContext, queryManager, connectionHandler, provider)
     }
 
@@ -107,8 +107,8 @@ with Metrics {
           s"Property $DataStoreName was not set"))
 
   override def init(configuration: IConfiguration): Unit =
-    timeFor(s"Initializing SparkSQL connector") {
-      timeFor("Subscribing to metadata updates...") {
+    timeFor(s"SparkSQL connector initialized.") {
+      timeFor("Subscribed to metadata updates.") {
         connectorApp.subscribeToMetadataUpdate(
           SparkSQLMetadataListener(
             sqlContext,
@@ -120,7 +120,7 @@ with Metrics {
   override def connect(
     credentials: ICredentials,
     config: ConnectorClusterConfig): Unit =
-    timeFor("Connecting to SparkSQL connector") {
+    timeFor("Connected to SparkSQL connector") {
       connectionHandler.createConnection(config, Option(credentials))
     }
 
@@ -131,17 +131,16 @@ with Metrics {
     connectionHandler.isConnected(name.getName)
 
   override def close(name: ClusterName): Unit =
-    timeFor(s"Closing connection to $name cluster") {
+    timeFor(s"Connection to $name cluster was closed") {
       connectionHandler.closeConnection(name.getName)
     }
 
   override def shutdown(): Unit =
-    timeFor("Shutting down connector...") {
+    timeFor("Connector has been shut down...") {
       logger.debug("Disposing QueryManager")
       queryManager ! Kill
       logger.debug("Disposing SparkContext")
       sparkContext.stop()
-      logger.debug("Connector was shut down.")
     }
 
   //  Helpers
@@ -199,21 +198,21 @@ with Metrics {
   import timer._
 
   val system =
-    timeFor(s"Initializing '$ActorSystemName' actor system...") {
+    timeFor(s"'$ActorSystemName' actor system has been initialized.") {
       ActorSystem(ActorSystemName)
     }
 
   val connectorApp =
-    timeFor("Creating Connector App. ...") {
+    timeFor("Connector App has been created.") {
       new ConnectorApp
     }
 
   val sparkSQLConnector =
-    timeFor(s"Building SparkSQLConnector...") {
+    timeFor(s"SparkSQLConnector built.") {
       new SparkSQLConnector(system)
     }
 
-  timeFor("Starting up connector...") {
+  timeFor("Connector has been started...") {
     connectorApp.startup(sparkSQLConnector)
   }
 

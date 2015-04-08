@@ -68,22 +68,22 @@ with Metrics {
   override def receive = {
 
     case job @ PagedExecute(_,_,_,pageSize) =>
-      timeFor(s"$me Processing paged job request : $job") {
+      timeFor(s"$me Processed paged job request : $job") {
         startNewJob(job,pageSize)
       }
 
     case job: AsyncExecute =>
-      timeFor(s"$me Processing async. job request : $job") {
+      timeFor(s"$me Processed async. job request : $job") {
         startNewJob(job)
       }
 
     case ProcessNextChunk(queryId) if currentJob.exists(_.queryId == queryId) =>
-      timeFor(s"$me Processing 'ProcessNextChunk' request (query: $queryId") {
+      timeFor(s"$me Processed 'ProcessNextChunk' request (query: $queryId") {
         keepProcessingJob()
       }
 
     case Stop(queryId) if currentJob.exists(_.queryId == queryId) =>
-      timeFor(s"$me Stopping request (query: $queryId") {
+      timeFor(s"$me Stopped request (query: $queryId") {
         stopCurrentJob()
       }
 
@@ -100,7 +100,7 @@ with Metrics {
    * @param job Query to be asynchronously executed.
    */
   def startNewJob(job: JobCommand, pageSize: Int = defaultChunkSize): Unit =
-    timeFor(s"$me Starting job ${job.queryId}") {
+    timeFor(s"$me Job ${job.queryId} is started") {
       //  Update current job
       currentJob = Option(job)
       //  Create SchemaRDD from query
@@ -111,7 +111,7 @@ with Metrics {
         logger.debug(s"$me Processing ${job.queryId} as stoppable...")
         //  Split RDD into chunks of approx. 'defaultChunkSize' size
         dataFrame.rdd.countApprox(timeoutCountApprox.toMillis).onComplete { amount =>
-          timeFor(s"$me Defining chunks (RDD size ~ $amount elements)...") {
+          timeFor(s"$me Defined chunks (RDD size ~ $amount elements)...") {
             val repartitioned = dataFrame
               .repartition((amount.high / pageSize).toInt + {
               if (amount.high % pageSize == 0) 0 else 1
@@ -125,7 +125,7 @@ with Metrics {
           }
         }
       } else {
-        timeFor(s"$me Processing ${job.queryId} as unstoppable...") {
+        timeFor(s"$me Processed ${job.queryId} as unstoppable...") {
           //  Prepare query as an only chunk, omitting stop messages
           rddChunks = List(dataFrame.rdd.toLocalIterator -> 0).iterator
         }

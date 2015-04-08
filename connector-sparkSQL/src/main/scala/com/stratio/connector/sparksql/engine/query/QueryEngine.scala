@@ -53,10 +53,10 @@ case class QueryEngine(
   import timer._
 
   override def execute(workflow: LogicalWorkflow): QueryResult = {
-    val rdd = timeFor(s"Executing sync. query\n\t${workflow.toString}") {
+    val rdd = timeFor(s"Sync. query executed:\n\t${workflow.toString}") {
       executeQuery(workflow, sqlContext, connectionHandler, provider)
     }
-    timeFor(s"Processing unique query result...") {
+    timeFor(s"Unique query result processed.") {
       QueryResult.createQueryResult(
         toResultSet(rdd, toColumnMetadata(workflow)), 0, true)
     }
@@ -67,7 +67,7 @@ case class QueryEngine(
     workflow: LogicalWorkflow,
     resultHandler: IResultHandler,
     pageSize: Int): Unit =
-    timeFor(s"Executing paged query [$queryId]\n\t${workflow.toString}") {
+    timeFor(s"Paged query [$queryId] executed.\n\t${workflow.toString}") {
       queryManager ! PagedExecute(queryId, workflow, resultHandler, pageSize)
     }
 
@@ -76,13 +76,13 @@ case class QueryEngine(
     queryId: String,
     workflow: LogicalWorkflow,
     resultHandler: IResultHandler): Unit =
-    timeFor(s"Executing async. query [$queryId]\n\t${workflow.toString}") {
+    timeFor(s"Async. query [$queryId] executed.\n\t${workflow.toString}") {
       queryManager ! AsyncExecute(queryId, workflow, resultHandler)
     }
 
 
   override def stop(queryId: String): Unit =
-    timeFor(s"Stopping query [$queryId]") {
+    timeFor(s"Query [$queryId] stopped.") {
       queryManager ! Stop(queryId)
     }
 
@@ -110,20 +110,20 @@ object QueryEngine extends Loggable with Metrics {
     import timer._
     withClusters(connectionHandler, workflow) {
       //  Extract raw query from workflow
-      val query = timeFor(s"Getting workflow plain query ...") {
+      val query = timeFor(s"Got workflow plain query.") {
         workflow.getSqlDirectQuery
       }
       logger.debug(s"Workflow plain query : $query")
       //  Format query for avoiding conflicts such as 'catalog.table' issue
-      val formattedQuery = timeFor("Formatting query to SparkSQL format") {
+      val formattedQuery = timeFor("Query formatted to SparkSQL format") {
         sparkSQLFormat(query)
       }
-      logger.info(s"Workflow SparkSQL formatted query : $formattedQuery")
+      logger.info(s"SparkSQL query : $formattedQuery")
       //  Execute actual query ...
       val rdd = sqlContext.sql(formattedQuery)
       logger.debug(rdd.schema.treeString)
       //  ... and format its structure for adapting it to provider's.
-      timeFor("Formatting RDD for discharding metadata fields") {
+      timeFor("RDD formatted to provider format.") {
         provider.formatRDD(
           rdd,
           sqlContext)
@@ -156,7 +156,7 @@ object QueryEngine extends Loggable with Metrics {
         columnName,
         Array(),
         columnTypes.getOrElse(s.getColumnName.getName,columnTypes(s.getAlias)))
-    }).toList
+    })
   }
 
   /**
@@ -222,7 +222,7 @@ object QueryEngine extends Loggable with Metrics {
     if (!sqlContext.getCatalog.tableExists(seqName))
       logger.warn(s"Tried to unregister $tableName table but it already exists!")
     else {
-      logger.debug(s"Unregistering table [$tableName]")
+      logger.debug(s"Un-registering table [$tableName]")
       sqlContext.getCatalog.unregisterTable(seqName)
     }
   }
@@ -244,6 +244,16 @@ object QueryEngine extends Loggable with Metrics {
         |OPTIONS (${options.map { case (k, v) => s"$k '$v'" }.mkString(",")})
        """.stripMargin
 
+  /**
+   * Execute some statements assuring that current job will be started
+   * at connectionHandler, besides it will be stopped as well at the end.
+   *
+   * @param connectionHandler ConnectionHandler of this connector.
+   * @param clusters Involved clusters.
+   * @param f Action to be executed.
+   * @tparam T Action returning type.
+   * @return Action result type.
+   */
   def withClusters[T](
     connectionHandler: ConnectionHandler,
     clusters: Iterable[ClusterName])(f: => T): T = {
