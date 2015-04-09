@@ -15,12 +15,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.stratio.connector.sparksql
+package com.stratio.connector.sparksql.engine.query
 
-class CrossdataConvertersTest extends Test("CrossdataConverters"){
+import com.stratio.connector.sparksql.Test
 
-  it should "convert any value in a SparkSQLRow into a Crossdata cell value" in {
-    ()//val valuesToTest = Map((Byte.MaxValue) ->
+class QueryEngineTest extends Test("QueryEngine") {
+
+  it should "" in {
+    ()
   }
 
 }

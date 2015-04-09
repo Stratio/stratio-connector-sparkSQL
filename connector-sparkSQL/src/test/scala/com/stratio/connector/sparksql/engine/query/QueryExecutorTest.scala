@@ -1,10 +1,27 @@
+/*
+ * Licensed to STRATIO (C) under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  The STRATIO (C) licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.stratio.connector.sparksql.engine.query
 
 import akka.actor.{Actor, ActorRef, Props}
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.engine.query.QueryExecutor.DataFrameProvider
 import com.stratio.connector.sparksql.engine.query.QueryManager.{Finished, AsyncExecute}
-import com.stratio.connector.sparksql.{Parquet, Catalog, UnitTest}
+import com.stratio.connector.sparksql.{Parquet, Catalog, Test}
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.exceptions.ExecutionException
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
@@ -15,7 +32,7 @@ import org.apache.spark.sql.{SaveMode, DataFrame, SQLContext}
 import scala.collection.JavaConversions._
 import com.stratio.crossdata.common.data.{Row => XDRow}
 
-class QueryExecutorTest extends UnitTest("QueryExecutor") with Serializable {test =>
+class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
   //  Prepare workspace properties
 
@@ -63,6 +80,32 @@ class QueryExecutorTest extends UnitTest("QueryExecutor") with Serializable {tes
   it should "execute an async stopable job with same-sized chunks" in {
 
     val defaultChunkSize = amount / 3
+
+    val lw = new LogicalWorkflow(List())
+    lw.setSqlDirectQuery(query)
+    val executor = system.actorOf(Props(new Actor {
+      val slave = context.actorOf(Props(new QueryExecutor(
+        sqlContext,
+        defaultChunkSize,
+        provider,
+        connectionHandler,
+        asyncStoppable = true)))
+      slave ! AsyncExecute(
+        queryId,
+        lw,
+        resultHandler(self))
+      def receive = {
+        case msg => test.self forward msg
+      }
+    }))
+    receiveN(amount).forall(_.isInstanceOf[XDRow])
+    expectMsg(Finished(queryId))
+
+  }
+
+  it should "execute an async stopable job with distinct-sized chunks" in {
+
+    val defaultChunkSize = amount / 4
 
     val lw = new LogicalWorkflow(List())
     lw.setSqlDirectQuery(query)

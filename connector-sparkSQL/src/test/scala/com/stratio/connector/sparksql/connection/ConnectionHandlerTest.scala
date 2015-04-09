@@ -17,13 +17,13 @@
  */
 package com.stratio.connector.sparksql.connection
 
-import com.stratio.connector.sparksql.UnitTest
+import com.stratio.connector.sparksql.Test
 
 import scala.language.implicitConversions
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.data.ClusterName
 
-class ConnectionHandlerTest extends UnitTest("ConnectionHandler")
+class ConnectionHandlerTest extends Test("ConnectionHandler")
 with ConnectionHandlerSampleValues {
 
   it should "add a new connection" in {
