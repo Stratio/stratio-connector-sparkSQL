@@ -15,7 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.stratio.connector.sparksql
 
 import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}

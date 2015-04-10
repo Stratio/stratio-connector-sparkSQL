@@ -70,7 +70,8 @@ Now to start/stop the connector:
     > service stratio-connector-sparksql start
     > service stratio-connector-sparksql stop
 
-How to use SparkSQL Connector ————————-
+How to use SparkSQL Connector
+-----------------------------
 
 A complete tutorial is available [here][]. The basic commands are described below.
 

@@ -17,12 +17,114 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
-import com.stratio.connector.sparksql.Test
+import akka.testkit.TestProbe
+import com.stratio.connector.sparksql.`package`.SparkSQLContext
+import com.stratio.connector.sparksql.connection.ConnectionHandler
+import com.stratio.connector.sparksql.engine.query.QueryManager.{Stop, PagedExecute, AsyncExecute}
+import com.stratio.connector.sparksql.{Provider, Test}
+import com.stratio.crossdata.common.connector.IResultHandler
+import com.stratio.crossdata.common.data.{ColumnName, TableName, ClusterName}
+import com.stratio.crossdata.common.logicalplan.{Select, LogicalStep, LogicalWorkflow}
+import com.stratio.crossdata.common.metadata.{DataType, ColumnType, Operations, ColumnMetadata}
+import com.stratio.crossdata.common.statements.structures.{AsteriskSelector, Selector}
 
 class QueryEngineTest extends Test("QueryEngine") {
 
-  it should "" in {
-    ()
+  import scala.collection.JavaConversions._
+
+  val sqlContext = None.orNull[SparkSQLContext]
+  val workflow = new LogicalWorkflow(List())
+  val resultHandler = None.orNull[IResultHandler]
+  val connectionHandler = None.orNull[ConnectionHandler]
+  val provider = new Provider {
+    val datasource = "my-provider"
+  }
+
+  it should "execute async. queries" in {
+    val queryManager = TestProbe()
+    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler, provider)
+    qe.asyncExecute("q1", workflow, resultHandler)
+    queryManager.expectMsg(AsyncExecute("q1", workflow, resultHandler))
+  }
+
+  it should "execute paged queries" in {
+    val pageSize = 0
+    val queryManager = TestProbe()
+    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler, provider)
+    qe.pagedExecute("q1", workflow, resultHandler, pageSize)
+    queryManager.expectMsg(PagedExecute("q1", workflow, resultHandler, pageSize))
+  }
+
+  it should "stop in-progress queries" in {
+    val queryManager = TestProbe()
+    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler, provider)
+    qe.stop("q1")
+    queryManager.expectMsg(Stop("q1"))
+  }
+
+  it should "get metadata from workflow (with no last step in workflow)" in {
+    val wf = new LogicalWorkflow(List())
+    QueryEngine.toColumnMetadata(wf) should equal(List.empty[ColumnMetadata])
+  }
+
+  it should "get metadata from workflow" in {
+    val selector = {
+      val s = new AsteriskSelector(new TableName("catalog", "table"))
+      s.setAlias("field1")
+      s
+    }
+    val lastStep: LogicalStep = new Select(
+      Set[Operations](),
+      Map[Selector, String](
+        selector -> "field1"),
+      Map[String, ColumnType](
+        "field1" -> new ColumnType(DataType.TEXT)),
+      Map[Selector, ColumnType]()
+    )
+    val wf = new LogicalWorkflow(List(), lastStep, 0)
+    val metadata = QueryEngine.toColumnMetadata(wf)
+    val expectedMetadata = List(
+      new ColumnMetadata(
+      {
+        val name = new ColumnName("catalog", "table", "field1")
+        name.setAlias("field1")
+        name
+      },
+      Array[AnyRef](),
+      new ColumnType(DataType.TEXT)))
+    metadata.head.getColumnType should equal(expectedMetadata.head.getColumnType)
+    metadata.head.getName should equal(expectedMetadata.head.getName)
+    metadata.head.getParameters should equal(expectedMetadata.head.getParameters)
+  }
+
+  it should "format Crossdata query for adapting it to SparkSQL format" in {
+    val crossdataQuery =
+      s"""
+         |SELECT catalog.table.field1, catalog.table.field2
+         |FROM catalog.table;""".stripMargin
+    val sparkSQLQuery =
+      s"""
+         |SELECT table.field1, table.field2
+         |FROM table;""".stripMargin
+    QueryEngine.sparkSQLFormat(crossdataQuery) should equal(sparkSQLQuery)
+  }
+
+  it should "begin and end a job in connectionHandler when using 'withClusters'" in {
+    val ch = new ConnectionHandler {
+      type EnableAction = (ConnectionId, Boolean)
+      var execution: List[EnableAction] = List()
+
+      override def startJob(connectionId: ConnectionId): Unit = {
+        execution = (connectionId -> true) +: execution
+      }
+
+      override def endJob(connectionId: ConnectionId): Unit = {
+        execution = (connectionId -> false) +: execution
+      }
+    }
+    val cluster = "Cluster1"
+    QueryEngine.withClusters(ch, List(new ClusterName(cluster)))(())
+    ch.execution.reverse should equal(List(cluster -> true, cluster -> false))
   }
 
 }

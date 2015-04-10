@@ -17,10 +17,49 @@
  */
 package com.stratio.connector.sparksql
 
-class CrossdataConvertersTest extends Test("CrossdataConverters"){
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
+import org.apache.spark.sql.types._
+
+class CrossdataConvertersTest extends Test("CrossdataConverters") {
 
   it should "convert any value in a SparkSQLRow into a Crossdata cell value" in {
-    ()//val valuesToTest = Map((Byte.MaxValue) ->
+
+    type InputValue = (Any, DataType)
+    type OutputValue = Any
+    type ExpectedValues = Map[InputValue, OutputValue]
+
+    val expected = Map(
+      ("hi", StringType) -> "hi",
+      (Int.MaxValue, IntegerType) -> Int.MaxValue,
+      (true, BooleanType) -> true,
+      ({
+        val array = new ArrayBuffer[Int]
+        array += Int.MaxValue
+        array
+      }, ArrayType(IntegerType,containsNull = false)) -> {
+        val list: java.util.List[Int] = List(Int.MaxValue)
+        list
+      },
+      ({
+        val array = new ArrayBuffer[ArrayBuffer[Int]]
+        array += {
+          val array = new ArrayBuffer[Int]
+          array += Int.MaxValue
+          array
+          }
+        array
+      }, ArrayType(ArrayType(IntegerType,containsNull = false),containsNull = false)) -> {
+        val innerList: java.util.List[Int] = List(Int.MaxValue)
+        val list: java.util.List[java.util.List[Int]] = List(innerList)
+        list
+      })
+
+    expected.forall {
+      case ((input, tpe), output) =>
+        CrossdataConverters.toCellValue(input, tpe) == output
+    }
+
   }
 
 }

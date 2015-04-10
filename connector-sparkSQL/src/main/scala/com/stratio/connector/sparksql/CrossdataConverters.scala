@@ -18,7 +18,6 @@
 package com.stratio.connector.sparksql
 
 import com.stratio.connector.commons.Loggable
-
 import scala.language.implicitConversions
 import scala.collection.mutable.ArrayBuffer
 import org.apache.spark.sql.catalyst.expressions.GenericRow
