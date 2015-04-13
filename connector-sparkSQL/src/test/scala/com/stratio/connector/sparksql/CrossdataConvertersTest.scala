@@ -17,6 +17,8 @@
  */
 package com.stratio.connector.sparksql
 
+import org.apache.spark.sql.catalyst.expressions.GenericRow
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import org.apache.spark.sql.types._
@@ -53,13 +55,35 @@ class CrossdataConvertersTest extends Test("CrossdataConverters") {
         val innerList: java.util.List[Int] = List(Int.MaxValue)
         val list: java.util.List[java.util.List[Int]] = List(innerList)
         list
+      },
+      ( {
+        new GenericRow(Array[Any](1, true, "hi", {
+          val array = new ArrayBuffer[Int]
+          array += Int.MaxValue
+          array
+        }))
+      }, new StructType(Array(
+        new StructField("field1", IntegerType),
+        new StructField("field2", BooleanType),
+        new StructField("field3", StringType),
+        new StructField("field4", ArrayType(IntegerType))))) -> {
+        val map: java.util.Map[String, Any] = Map[String, Any](
+          "field1" -> 1,
+          "field2" -> true,
+          "field3" -> "hi",
+          "field4" -> {
+            val list: java.util.List[Int] = List(Int.MaxValue)
+            list
+          })
+        map
       })
 
-    expected.forall {
+    expected.foreach {
       case ((input, tpe), output) =>
-        CrossdataConverters.toCellValue(input, tpe) == output
+        CrossdataConverters.toCellValue(input, tpe) should equal(output)
     }
 
   }
 
 }
+
