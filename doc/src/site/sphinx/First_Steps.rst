@@ -171,6 +171,11 @@ Having assured that, we must execute the next command.
 
       > REGISTER TABLE metastore.students ON CLUSTER hdfsCluster (id int PRIMARY KEY, name text, age int, enrolled boolean);
 
+In case table wasn't previously registered in Hive metastore, we can register it by adding associated Datasource prameters.
+::
+
+      > REGISTER TABLE metastore.students ON CLUSTER hdfsCluster (id int PRIMARY KEY, name text, age int, enrolled boolean) WITH {'path' : 'my-table-path'};
+
 And the output must show something like:
 
 ::
