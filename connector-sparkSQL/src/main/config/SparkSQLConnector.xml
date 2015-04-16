@@ -49,32 +49,44 @@
         <Function>
             <FunctionName>sum</FunctionName>
             <Signature>sum(Tuple[Any*]):Tuple[Any]</Signature>
-            <FunctionType>simple</FunctionType>
+            <FunctionType>aggregation</FunctionType>
             <Description>Sum</Description>
         </Function>
         <Function>
             <FunctionName>avg</FunctionName>
             <Signature>avg(Tuple[Any*]):Tuple[Any]</Signature>
-            <FunctionType>simple</FunctionType>
+            <FunctionType>aggregation</FunctionType>
             <Description>Average</Description>
         </Function>
         <Function>
             <FunctionName>max</FunctionName>
             <Signature>max(Tuple[Any*]):Tuple[Any]</Signature>
-            <FunctionType>simple</FunctionType>
+            <FunctionType>aggregation</FunctionType>
             <Description>Maximum</Description>
         </Function>
         <Function>
             <FunctionName>min</FunctionName>
             <Signature>min(Tuple[Any*]):Tuple[Any]</Signature>
-            <FunctionType>simple</FunctionType>
+            <FunctionType>aggregation</FunctionType>
             <Description>Minimum</Description>
         </Function>
         <Function>
             <FunctionName>count</FunctionName>
             <Signature>count(Tuple[Any*]):Tuple[Any]</Signature>
-            <FunctionType>simple</FunctionType>
+            <FunctionType>aggregation</FunctionType>
             <Description>Count</Description>
+        </Function>
+        <Function>
+            <FunctionName>substr</FunctionName>
+            <Signature>substr(Tuple[Text,Int,Int]):Tuple[Text]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the substring or slice of the byte array of A starting from start position till the end of string A</Description>
+        </Function>
+        <Function>
+            <FunctionName>substring</FunctionName>
+            <Signature>substring(Tuple[Text,Int,Int]):Tuple[Text]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the substring or slice of the byte array of A starting from start position till the end of string A</Description>
         </Function>
     </Functions>
 </Connector>
