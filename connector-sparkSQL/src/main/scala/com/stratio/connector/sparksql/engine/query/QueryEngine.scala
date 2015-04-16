@@ -18,6 +18,7 @@
 package com.stratio.connector.sparksql.engine.query
 
 import com.stratio.connector.sparksql.connection.ConnectionHandler
+import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.statements.structures.Selector
 
 import scala.collection.JavaConversions._
@@ -25,7 +26,7 @@ import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
 import com.stratio.connector.commons.timer
 import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.connector.sparksql.{Provider, SparkSQLContext}
+import com.stratio.connector.sparksql.SparkSQLContext
 import com.stratio.connector.sparksql.CrossdataConverters._
 import com.stratio.crossdata.common.data.{ClusterName, TableName}
 import com.stratio.crossdata.common.metadata.ColumnMetadata
@@ -40,20 +41,20 @@ import com.stratio.crossdata.common.result.QueryResult
  * @param sqlContext SparkSQLContext instance.
  * @param queryManager Reference to asynchronous job executors manager.
  * @param connectionHandler ConnectorClusterConfig instance.
- * @param provider DataSource provider.
  */
 case class QueryEngine(
   sqlContext: SparkSQLContext,
   queryManager: ActorRef,
-  connectionHandler: ConnectionHandler,
-  provider: Provider) extends IQueryEngine with Loggable with Metrics {
+  connectionHandler: ConnectionHandler) extends IQueryEngine
+with Loggable
+with Metrics {
 
   import QueryEngine._
   import timer._
 
   override def execute(workflow: LogicalWorkflow): QueryResult = {
     val rdd = timeFor(s"Sync. query executed:\n\t${workflow.toString}") {
-      executeQuery(workflow, sqlContext, connectionHandler, provider)
+      executeQuery(workflow, sqlContext, connectionHandler)
     }
     timeFor(s"Unique query result processed.") {
       QueryResult.createQueryResult(
@@ -98,14 +99,12 @@ object QueryEngine extends Loggable with Metrics {
    *
    * @param workflow Given workflow.
    * @param sqlContext Targeted SQL context.
-   * @param provider The targeted data store.
    * @return Obtained DataFrame.
    */
   def executeQuery(
     workflow: LogicalWorkflow,
     sqlContext: SparkSQLContext,
-    connectionHandler: ConnectionHandler,
-    provider: Provider): DataFrame = {
+    connectionHandler: ConnectionHandler): DataFrame = {
     import timer._
     withClusters(connectionHandler, workflow) {
       //  Extract raw query from workflow
@@ -121,12 +120,8 @@ object QueryEngine extends Loggable with Metrics {
       //  Execute actual query ...
       val rdd = sqlContext.sql(formattedQuery)
       logger.debug(rdd.schema.treeString)
-      //  ... and format its structure for adapting it to provider's.
-      timeFor("RDD formatted to provider format.") {
-        provider.formatRDD(
-          rdd,
-          sqlContext)
-      }
+      //Return obtained RDD
+      rdd
     }
   }
 
