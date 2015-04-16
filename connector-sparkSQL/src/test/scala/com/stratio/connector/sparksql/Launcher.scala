@@ -44,8 +44,10 @@ with Metrics {
 
 def executeQuery( query : String,sparkSQLConnector: SparkSQLConnector): Unit ={
 
-  if (!query.startsWith("#") && query.size !=0) {
+  if (!query.contains("#") && query.size !=0) {
+    (1 to 4).foreach(_ => println((1 to 200).map(_ => "*").mkString("")))
     println(s"New query ---------------------------------------->$query")
+    (1 to 4).foreach(_ => println((1 to 200).map(_ => "*").mkString("")))
     val workFlow = new LogicalWorkflow(Collections.emptyList())
     workFlow.setSqlDirectQuery(query)
     val mod = 10000000;
