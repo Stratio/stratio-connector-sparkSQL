@@ -120,7 +120,7 @@ with Metrics {
     credentials: ICredentials,
     config: ConnectorClusterConfig): Unit =
     timeFor("Connected to SparkSQL connector") {
-      connectionHandler.createConnection(config, Option(credentials))
+      connectionHandler.createConnection(config, sqlContext, Option(credentials))
     }
 
   override def getQueryEngine: IQueryEngine =

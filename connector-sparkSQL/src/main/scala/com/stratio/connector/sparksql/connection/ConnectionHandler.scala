@@ -18,10 +18,14 @@
 package com.stratio.connector.sparksql.connection
 
 import com.stratio.connector.commons.Loggable
+import com.stratio.connector.sparksql.{Constants, Catalog}
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
+import org.apache.spark.sql.SQLContext
+import scala.collection.JavaConversions._
 
-class ConnectionHandler extends Loggable {
+
+class ConnectionHandler extends Loggable with Constants{
 
   type ConnectionId = String
 
@@ -32,8 +36,9 @@ class ConnectionHandler extends Loggable {
   }
 
   def createConnection(
-  config: ConnectorClusterConfig,
-  credentials: Option[ICredentials] = None): Option[ConnectionId] = {
+    config: ConnectorClusterConfig,
+    sqlContext: SQLContext,
+    credentials: Option[ICredentials] = None): Option[ConnectionId] = {
     val connectionId = config.getName.getName
     withConnections {
       if (connections.isDefinedAt(connectionId)) {
@@ -43,6 +48,23 @@ class ConnectionHandler extends Loggable {
       else {
         connections += (connectionId -> Connection(config, credentials))
         logger.info(s"Connected to [$connectionId]")
+        /* Datastax CSQL Configuration */
+        if (config.getDataStoreName.getName  ==  "cassandra"){
+          import org.apache.spark.sql.cassandra._
+          import com.datastax.spark.connector.cql.CassandraConnectorConf
+          val conf= sqlContext.sparkContext.getConf
+          val clusterOptions = config.getClusterOptions.toMap
+          val clusterName = config.getName.getName
+          val cassConfig = Map(
+            CassandraConnectionHostProperty -> clusterOptions("hosts"),
+            CassandraConnectionNativePortProperty ->
+              clusterOptions.getOrElse("nativePort", "9042"),
+            CassandraConnectionRpcPortProperty ->
+              clusterOptions.getOrElse("rpcPort", "9160"))
+          sqlContext.addClusterLevelCassandraConnConf(
+            config.getName.getName,
+            CassandraConnectorConf(conf.setAll(cassConfig)))
+        }
         Some(connectionId)
       }
     }
