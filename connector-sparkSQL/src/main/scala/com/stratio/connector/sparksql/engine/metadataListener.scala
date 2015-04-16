@@ -19,14 +19,16 @@ package com.stratio.connector.sparksql.engine
 
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.connection.ConnectionHandler
-import com.stratio.connector.sparksql.providers.Parquet
+import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.SparkSQLContext
 import com.stratio.crossdata.common.connector.IMetadataListener
 import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.crossdata.common.data.Name
 import com.stratio.crossdata.common.metadata.{UpdatableMetadata, TableMetadata}
+import com.stratio.crossdata.common.statements.structures.{Selector, StringSelector}
 import org.slf4j.Logger
 import com.stratio.connector.sparksql.engine.query.QueryEngine._
+import scala.collection.JavaConversions._
 
 /**
  * Hook for receiving metadata update events.
@@ -41,16 +43,16 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
     MetadataListener {
       case updatedMetadata: TableMetadata =>
         timeFor(s"Received updated table metadata [$updatedMetadata]") {
-          //TODO get provider from Metadata event.
-          connectionHandler
-            .getConnection(updatedMetadata.getClusterRef.getName)
-            .foreach { connection =>
-            registerTable(
-              qualified(updatedMetadata.getName),
-              sqlContext,
-              Parquet,
-              globalOptions(connection.config))
-          }
+          for {
+            connection <- connectionHandler.getConnection(updatedMetadata.getClusterRef.getName)
+            provider <- providers.apply(connection.config.getDataStoreName.getName)
+          } registerTable(
+            qualified(updatedMetadata.getName),
+            sqlContext,
+            provider,
+            globalOptions(connection.config) ++ updatedMetadata.getOptions.toMap.map{
+              case (k,v) => k.getStringValue -> v.getStringValue
+            })
         }
       case other: UpdatableMetadata =>
         logger.debug(s"'$other'[${other.getClass}] has no callbacks associated...")
