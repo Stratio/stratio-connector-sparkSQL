@@ -1,0 +1,4 @@
+SELECT *  FROM tpc30.stock  LIMIT 100
+
+
+SELECT s_w_id,count(*) FROM tpc30.stock where s_quantity>85 and s_quantity<=115 group by s_w_id

@@ -111,7 +111,7 @@ with Metrics {
         connectorApp.subscribeToMetadataUpdate(
           SparkSQLMetadataListener(
             sqlContext,
-            sparkSQLConnector.provider,
+            provider,
             connectionHandler))
       }
     }
