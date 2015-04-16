@@ -21,7 +21,8 @@ import akka.testkit.TestProbe
 import com.stratio.connector.sparksql.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.engine.query.QueryManager.{Stop, PagedExecute, AsyncExecute}
-import com.stratio.connector.sparksql.{Provider, Test}
+import com.stratio.connector.sparksql.Test
+import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.data.{ColumnName, TableName, ClusterName}
 import com.stratio.crossdata.common.logicalplan.{Select, LogicalStep, LogicalWorkflow}
@@ -42,7 +43,7 @@ class QueryEngineTest extends Test("QueryEngine") {
 
   it should "execute async. queries" in {
     val queryManager = TestProbe()
-    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler, provider)
+    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler)
     qe.asyncExecute("q1", workflow, resultHandler)
     queryManager.expectMsg(AsyncExecute("q1", workflow, resultHandler))
   }
@@ -50,14 +51,14 @@ class QueryEngineTest extends Test("QueryEngine") {
   it should "execute paged queries" in {
     val pageSize = 0
     val queryManager = TestProbe()
-    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler, provider)
+    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler)
     qe.pagedExecute("q1", workflow, resultHandler, pageSize)
     queryManager.expectMsg(PagedExecute("q1", workflow, resultHandler, pageSize))
   }
 
   it should "stop in-progress queries" in {
     val queryManager = TestProbe()
-    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler, provider)
+    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler)
     qe.stop("q1")
     queryManager.expectMsg(Stop("q1"))
   }

@@ -21,7 +21,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.engine.query.QueryExecutor.DataFrameProvider
 import com.stratio.connector.sparksql.engine.query.QueryManager.{Finished, AsyncExecute}
-import com.stratio.connector.sparksql.{Parquet, Catalog, Test}
+import com.stratio.connector.sparksql.{Catalog, Test}
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.exceptions.ExecutionException
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
@@ -49,8 +49,7 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
   QueryEngine.executeQuery(
         workflow,
         sqlContext,
-        connectionHandler,
-        Parquet)
+        connectionHandler)
 
   //  Populate table ...
 
