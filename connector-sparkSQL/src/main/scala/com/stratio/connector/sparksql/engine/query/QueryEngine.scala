@@ -149,7 +149,7 @@ object QueryEngine extends Loggable with Metrics {
       new ColumnMetadata(
         columnName,
         Array(),
-        columnTypes.getOrElse(s.getColumnName.getName,columnTypes(s.getAlias)))
+        columnTypes.getOrElse(s.getColumnName.getName, columnTypes(s.getAlias)))
     })
   }
 
@@ -160,11 +160,24 @@ object QueryEngine extends Loggable with Metrics {
    * @return Escaped query statement
    */
   def sparkSQLFormat(statement: Query, conflictChar: String = "."): Query = {
+
+    //  Remove catalog name
+
     val tableRegex = s"(\\w*)[$conflictChar](\\w*)".r
     val catalog = tableRegex.findAllIn(statement)
       .filterNot(_.startsWith( """."""))
       .toList.head.split("\\.").head
-    statement.replace(s"$catalog.", "")
+    val withoutCatalog = statement.replace(s"$catalog.", "")
+
+    //  Substitute COUNT(fields*) for COUNT(field1) or COUNT(*)
+
+    val countRegex = s"COUNT[(](.*)[)]".r
+    val countFiltered = countRegex.replaceAllIn(withoutCatalog, s => {
+      val fields = s.toString().drop(6).dropRight(1).split(",").toList
+      s"""COUNT(${if (fields.size > 1) "*" else fields.head})"""
+    })
+
+    countFiltered
   }
 
   /**
