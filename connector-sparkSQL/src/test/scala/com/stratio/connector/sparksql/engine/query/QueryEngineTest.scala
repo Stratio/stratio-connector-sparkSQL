@@ -124,8 +124,9 @@ class QueryEngineTest extends Test("QueryEngine") {
   it should "format Crossdata query for adapting it to SparkSQL format" in {
 
     queryTranslation.foreach{
-      case(k,v)=>  QueryEngine.sparkSQLFormat(k.stripMargin) should equal(v.stripMargin)
+      case(k,v)=>  QueryEngine.sparkSQLFormat(k.stripMargin,List("tpcc","catalog")) should equal(v.stripMargin)
     }
+
 
 
   }
