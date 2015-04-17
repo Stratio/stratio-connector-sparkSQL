@@ -166,8 +166,6 @@ object QueryEngine extends Loggable with Metrics {
     val formatted = (statement /: catalogs){
       case (s,catalog) => s.replaceAll(s"$catalog.","")
     }
-    println(s">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $catalogs")
-    println(s">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $formatted")
     formatted
   }
 
