@@ -1,15 +1,15 @@
-#SELECT *  FROM tpc30.stock  LIMIT 100
+# tpc | SELECT *  FROM tpc30.stock  LIMIT 100
 
 
 #Q0 No funciona
-# SELECT substr(c_state,1,1) AS country, count(*) AS numcust, sum(c_balance) AS totacctbal FROM ( SELECT avg(sub.c_balance) AS balance FROM tpcc.customer sub WHERE sub.c_balance > 0.00 AND substr(sub.c_phone,1,1) IN ['1','2','3','4','5','6','7'])  INNER JOIN tpcc.customer ON c_balance > y.balance  WHERE substr(c_phone,1,1) IN ['1','2','3','4','5','6','7'] GROUP BY substring(c_state,1,1) ORDER BY country
+# tpcc | SELECT substr(c_state,1,1) AS country, count(*) AS numcust, sum(c_balance) AS totacctbal FROM ( SELECT avg(sub.c_balance) AS balance FROM tpcc.customer sub WHERE sub.c_balance > 0.00 AND substr(sub.c_phone,1,1) IN ['1','2','3','4','5','6','7'])  INNER JOIN tpcc.customer ON c_balance > y.balance  WHERE substr(c_phone,1,1) IN ['1','2','3','4','5','6','7'] GROUP BY substring(c_state,1,1) ORDER BY country
 
 #Q1
 
-#select OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun,avg(OL.ol_amount) as average from (select d_id,d_w_id, avg(ol_amount) as AVG_Amoun  from district D, order_line OL_A where D.d_id=OL_A.ol_d_id and D.d_w_id=OL_A.ol_w_id and d_id=3 and d_w_id=241 group by d_id,d_w_id ) A, order_line OL where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241 group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc
+# select OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun,avg(OL.ol_amount) as average from (select d_id,d_w_id, avg(ol_amount) as AVG_Amoun  from district D, order_line OL_A where D.d_id=OL_A.ol_d_id and D.d_w_id=OL_A.ol_w_id and d_id=3 and d_w_id=241 group by d_id,d_w_id ) A, order_line OL where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241 group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc
 
 # Esta es la original
- select OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun,avg(OL.ol_amount) as average from (select d_id,d_w_id, avg(ol_amount) as AVG_Amoun  from district D, tpcc.order_line OL_A where D.d_id=OL_A.ol_d_id and D.d_w_id=OL_A.ol_w_id and d_id=3 and d_w_id=241 group by d_id,d_w_id ) A, tpcc.order_line OL where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241 group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc
+ tpcc |  select OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun,avg(OL.ol_amount) as average from (select d_id,d_w_id, avg(ol_amount) as AVG_Amoun  from district D, tpcc.order_line OL_A where D.d_id=OL_A.ol_d_id and D.d_w_id=OL_A.ol_w_id and d_id=3 and d_w_id=241 group by d_id,d_w_id ) A, tpcc.order_line OL where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241 group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc
 
 
 #Q3 Parquet does not support timestamp. See HIVE-6384
