@@ -98,16 +98,36 @@ class QueryEngineTest extends Test("QueryEngine") {
     metadata.head.getParameters should equal(expectedMetadata.head.getParameters)
   }
 
+
+  val queryTranslation = Map(s"""
+                    |SELECT catalog.table.field1, catalog.table.field2
+                    |FROM catalog.table;""" ->
+                  s"""
+                      |SELECT table.field1, table.field2
+                      |FROM table;""",
+    s"""
+       |select OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun,avg(OL.ol_amount) as average
+       |from (select d_id,d_w_id, avg(ol_amount) as AVG_Amoun
+       |from district D, tpcc.order_line OL_A
+       |where D.d_id=OL_A.ol_d_id and D.d_w_id=OL_A.ol_w_id and d_id=3 and d_w_id=241 group by d_id,d_w_id ) A, tpcc.order_line OL
+       |where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241
+       |group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc""" ->
+      s"""
+         |select OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun,avg(OL.ol_amount) as average
+         |from (select d_id,d_w_id, avg(ol_amount) as AVG_Amoun
+         |from district D, order_line OL_A
+         |where D.d_id=OL_A.ol_d_id and D.d_w_id=OL_A.ol_w_id and d_id=3 and d_w_id=241 group by d_id,d_w_id ) A, order_line OL
+         |where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241
+         |group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc"""
+  )
+
   it should "format Crossdata query for adapting it to SparkSQL format" in {
-    val crossdataQuery =
-      s"""
-         |SELECT catalog.table.field1, catalog.table.field2
-         |FROM catalog.table;""".stripMargin
-    val sparkSQLQuery =
-      s"""
-         |SELECT table.field1, table.field2
-         |FROM table;""".stripMargin
-    QueryEngine.sparkSQLFormat(crossdataQuery) should equal(sparkSQLQuery)
+
+    queryTranslation.foreach{
+      case(k,v)=>  QueryEngine.sparkSQLFormat(k.stripMargin) should equal(v.stripMargin)
+    }
+
+
   }
 
   it should "begin and end a job in connectionHandler when using 'withClusters'" in {
