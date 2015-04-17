@@ -171,7 +171,7 @@ object QueryEngine extends Loggable with Metrics {
     }
     //  Substitute COUNT(fields*) for COUNT(field1) or COUNT(*)
 
-    val countRegex = s"COUNT[(](.*)[)]".r
+    val countRegex = s"[Cc][Oo][Uu][Nn][Tt][(](.*)[)]".r
     val countFiltered = countRegex.replaceAllIn(withoutCatalog, s => {
       val fields = s.toString().drop(6).dropRight(1).split(",").toList
       s"""COUNT(${if (fields.size > 1) "*" else fields.head})"""
