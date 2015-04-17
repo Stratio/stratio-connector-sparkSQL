@@ -258,7 +258,7 @@
                         com.stratio.connector.sparksql.SparkSQLConnector
                     </mainClass>
                     <jmxPort>7185</jmxPort>
-                    <javaOpts>-XX:MaxPermSize=2G</javaOpts>
+                    <javaOpts>-XX:MaxPermSize=512M</javaOpts>
                 </configuration>
             </plugin>
             <plugin>
