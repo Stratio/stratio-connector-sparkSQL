@@ -34,7 +34,8 @@ import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener
 
 class SparkSQLConnector(
-  system: ActorRefFactory) extends IConnector
+  system: ActorRefFactory,
+  connectorApp: Option[ConnectorApp] = None) extends IConnector
 with Loggable
 with Metrics {
 
@@ -64,25 +65,20 @@ with Metrics {
             QueryEngine.executeQuery(
               workflow,
               sqlContext,
-              connectionHandler,
-              provider)))
+              connectionHandler)))
     }
 
   //  Engines
 
   lazy val queryEngine: QueryEngine =
     timeFor("Query engine instance is up.") {
-      new QueryEngine(sqlContext, queryManager, connectionHandler, provider)
+      new QueryEngine(sqlContext, queryManager, connectionHandler)
     }
 
   //  Config parameters
 
   val queryExecutors: Int =
     connectorConfig.get.getInt(QueryExecutorsAmount)
-
-  val provider: Provider =
-    providers(connectorConfig.get.getString(ConnectorProvider)).getOrElse(
-      throw new InitializationException("Given provider is not valid"))
 
   val sqlContextType: String =
     connectorConfig.get.getString(SQLContextType)
@@ -108,11 +104,10 @@ with Metrics {
   override def init(configuration: IConfiguration): Unit =
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("Subscribed to metadata updates.") {
-        connectorApp.subscribeToMetadataUpdate(
+        connectorApp.foreach(_.subscribeToMetadataUpdate(
           SparkSQLMetadataListener(
             sqlContext,
-            sparkSQLConnector.provider,
-            connectionHandler))
+            connectionHandler)))
       }
     }
 
@@ -208,7 +203,7 @@ with Metrics {
 
   val sparkSQLConnector =
     timeFor(s"SparkSQLConnector built.") {
-      new SparkSQLConnector(system)
+      new SparkSQLConnector(system,Some(connectorApp))
     }
 
   timeFor("Connector has been started...") {
