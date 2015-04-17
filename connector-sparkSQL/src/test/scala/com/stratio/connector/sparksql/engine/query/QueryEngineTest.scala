@@ -107,7 +107,7 @@ class QueryEngineTest extends Test("QueryEngine") {
       s"""
          |SELECT table.field1, table.field2
          |FROM table;""".stripMargin
-    QueryEngine.sparkSQLFormat(crossdataQuery) should equal(sparkSQLQuery)
+    QueryEngine.sparkSQLFormat(crossdataQuery,List("catalog")) should equal(sparkSQLQuery)
   }
 
   it should "begin and end a job in connectionHandler when using 'withClusters'" in {

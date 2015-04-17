@@ -114,7 +114,7 @@ object QueryEngine extends Loggable with Metrics {
       logger.debug(s"Workflow plain query : $query")
       //  Format query for avoiding conflicts such as 'catalog.table' issue
       val formattedQuery = timeFor("Query formatted to SparkSQL format") {
-        sparkSQLFormat(query)
+        sparkSQLFormat(query,catalogsFromWorkflow(workflow))
       }
       logger.info(s"SparkSQL query : $formattedQuery")
       //  Execute actual query ...
@@ -159,12 +159,16 @@ object QueryEngine extends Loggable with Metrics {
    * @param statement Query statement.
    * @return Escaped query statement
    */
-  def sparkSQLFormat(statement: Query, conflictChar: String = "."): Query = {
-    val tableRegex = s"(\\w*)[$conflictChar](\\w*)".r
-    val catalog = tableRegex.findAllIn(statement)
-      .filterNot(_.startsWith( """."""))
-      .toList.head.split("\\.").head
-    statement.replace(s"$catalog.", "")
+  def sparkSQLFormat(
+    statement: Query,
+    catalogs: Iterable[String],
+    conflictChar: String = "."): Query = {
+    val formatted = (statement /: catalogs){
+      case (s,catalog) => s.replaceAll(s"$catalog.","")
+    }
+    println(s">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $catalogs")
+    println(s">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $formatted")
+    formatted
   }
 
   /**
@@ -264,4 +268,11 @@ object QueryEngine extends Loggable with Metrics {
       case project: Project => project.getClusterName
     })(f)
   }
+
+  def catalogsFromWorkflow(lw: LogicalWorkflow): Iterable[String] = {
+    lw.getInitialSteps.map {
+      case project: Project => project.getCatalogName
+    }
+  }
+
 }
