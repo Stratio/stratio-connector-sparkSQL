@@ -3,6 +3,7 @@
     <ConnectorName>SparkSQLConnector</ConnectorName>
     <DataStores>
         <DataStoreName>hdfs</DataStoreName>
+        <DataStoreName>cassandra</DataStoreName>
     </DataStores>
     <Version>0.1.0</Version>
     <RequiredProperties>

@@ -6,9 +6,11 @@ package com.stratio.connector.sparksql.providers
 object `package`{
 
   val ParquetProvider = "hdfs"
+  val CassandraProvider = "cassandra"
 
   def apply(providerName: String): Option[Provider] = providerName match {
     case ParquetProvider => Some(Parquet)
+    case CassandraProvider => Some(Cassandra)
     case _ => None
   }
 
