@@ -114,7 +114,7 @@ object QueryEngine extends Loggable with Metrics {
       logger.debug(s"Workflow plain query : $query")
       //  Format query for avoiding conflicts such as 'catalog.table' issue
       val formattedQuery = timeFor("Query formatted to SparkSQL format") {
-        sparkSQLFormat(query)
+        sparkSQLFormat(query,catalogsFromWorkflow(workflow))
       }
       logger.info(s"SparkSQL query : $formattedQuery")
       //  Execute actual query ...
@@ -149,7 +149,7 @@ object QueryEngine extends Loggable with Metrics {
       new ColumnMetadata(
         columnName,
         Array(),
-        columnTypes.getOrElse(s.getColumnName.getName, columnTypes(s.getAlias)))
+        columnTypes.getOrElse(s.getColumnName.getName,columnTypes(s.getAlias)))
     })
   }
 
@@ -159,19 +159,19 @@ object QueryEngine extends Loggable with Metrics {
    * @param statement Query statement.
    * @return Escaped query statement
    */
-  def sparkSQLFormat(statement: Query, conflictChar: String = "."): Query = {
+  def sparkSQLFormat(
+    statement: Query,
+    catalogs: Iterable[String],
+    conflictChar: String = "."): Query = {
 
     //  Remove catalog name
 
-    val tableRegex = s"(\\w*)[$conflictChar](\\w*)".r
-    val catalog = tableRegex.findAllIn(statement)
-      .filterNot(_.startsWith( """."""))
-      .toList.head.split("\\.").head
-    val withoutCatalog = statement.replace(s"$catalog.", "")
-
+    val withoutCatalog = (statement /: catalogs){
+      case (s,catalog) => s.replaceAll(s"$catalog.","")
+    }
     //  Substitute COUNT(fields*) for COUNT(field1) or COUNT(*)
 
-    val countRegex = s"COUNT[(](.*)[)]".r
+    val countRegex = s"[Cc][Oo][Uu][Nn][Tt][(](.*)[)]".r
     val countFiltered = countRegex.replaceAllIn(withoutCatalog, s => {
       val fields = s.toString().drop(6).dropRight(1).split(",").toList
       s"""COUNT(${if (fields.size > 1) "*" else fields.head})"""
@@ -277,4 +277,11 @@ object QueryEngine extends Loggable with Metrics {
       case project: Project => project.getClusterName
     })(f)
   }
+
+  def catalogsFromWorkflow(lw: LogicalWorkflow): Iterable[String] = {
+    lw.getInitialSteps.map {
+      case project: Project => project.getCatalogName
+    }
+  }
+
 }
