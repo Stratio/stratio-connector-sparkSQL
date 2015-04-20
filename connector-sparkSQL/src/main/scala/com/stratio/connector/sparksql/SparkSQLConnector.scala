@@ -146,6 +146,9 @@ with Metrics {
    */
   def initContext(config: Config): SparkContext = {
     import scala.collection.JavaConversions._
+
+
+
     new SparkContext(new SparkConf()
       .setAppName(SparkSQLConnector.SparkSQLConnectorJobConstant)
       .setSparkHome(config.getString(SparkHome))
@@ -154,7 +157,7 @@ with Metrics {
       .setAll(List(
       SparkDriverMemory,
       SparkExecutorMemory,
-      SparkTaskCPUs).map(k => k -> config.getString(k))))
+      SparkCoresMax).filter(config.hasPath).map(k => k -> config.getString(k))))
   }
 
   /**

@@ -37,7 +37,9 @@ private[sparksql] trait Constants {
   val SparkHome: String = "spark.home"
   val SparkDriverMemory = "spark.driver.memory"
   val SparkExecutorMemory = "spark.executor.memory"
-  val SparkTaskCPUs = "spark.task.cpus"
+  val SparkCoresMax = "spark.cores.max"
+  
+  val A = "spark.task.cpu"
   val SparkJars: String = "jars"
   val MethodNotSupported: String = "Not supported yet"
   val SparkSQLConnectorJobConstant: String = "SparkSQLConnectorJob"
