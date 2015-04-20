@@ -40,10 +40,14 @@
         <operation>FILTER_INDEXED_LET</operation>
         <operation>FILTER_INDEXED_DISTINCT</operation>
         <operation>FILTER_INDEXED_MATCH</operation>
+        <operation>FILTER_FUNCTION_IN</operation>
         <operation>FILTER_NON_INDEXED_LIKE</operation>
+        <operation>FILTER_NON_INDEXED_IN</operation>
         <operation>PARTIAL_RESULTS</operation>
         <operation>SELECT_GROUP_BY</operation>
         <operation>SELECT_ORDER_BY</operation>
+        <operation>SELECT_LEFT_OUTER_JOIN</operation>
+        <operation>FILTER_NON_INDEXED_BETWEEN</operation>
     </SupportedOperations>
     <Functions>
         <Function>
