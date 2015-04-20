@@ -7,12 +7,13 @@ package com.stratio.connector.sparksql
 import java.net.URL
 import java.util.Collections
 import com.stratio.connector.commons._
-
+import scala.collection.JavaConversions._
 import akka.actor.{ActorSystem, ActorRefFactory}
 import com.stratio.connector.sparksql.SparkSQLConnector._
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
-import com.stratio.crossdata.common.data.ClusterName
-import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
+import com.stratio.crossdata.common.data.{TableName, ClusterName}
+import com.stratio.crossdata.common.logicalplan.{Project, LogicalWorkflow}
+import com.stratio.crossdata.common.metadata.Operations
 import com.stratio.crossdata.connectors.ConnectorApp
 
 import scala.io.Source
@@ -42,14 +43,30 @@ with Metrics {
 
 
 
-def executeQuery( query : String,sparkSQLConnector: SparkSQLConnector): Unit ={
+def executeQuery( command : String,sparkSQLConnector: SparkSQLConnector): Unit ={
 
-  if (!query.contains("#") && query.size !=0) {
+  if (!command.contains("#") && command.size !=0) {
     (1 to 4).foreach(_ => println((1 to 200).map(_ => "*").mkString("")))
-    println(s"New query ---------------------------------------->$query")
+    println(s"New query ---------------------------------------->$command")
     (1 to 4).foreach(_ => println((1 to 200).map(_ => "*").mkString("")))
-    val workFlow = new LogicalWorkflow(Collections.emptyList())
-    workFlow.setSqlDirectQuery(query)
+
+
+    val (catalog::sql::Nil)  = command.split("\\|").toList
+
+
+
+    val workFlow = new LogicalWorkflow(List(
+      new Project(
+        Set[Operations](),
+        new TableName(catalog.trim,"table"),
+        new ClusterName("cluster1"))
+    )
+    )
+    
+    
+
+    
+    workFlow.setSqlDirectQuery(sql)
     val mod = 10000000;
     (1 to 1).toList.map(_.toString).map(x => new Thread(
       new Runnable {
