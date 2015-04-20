@@ -169,15 +169,8 @@ object QueryEngine extends Loggable with Metrics {
     val withoutCatalog = (statement /: catalogs){
       case (s,catalog) => s.replaceAll(s"$catalog.","")
     }
-    //  Substitute COUNT(fields*) for COUNT(field1) or COUNT(*)
 
-    val countRegex = s"[Cc][Oo][Uu][Nn][Tt][(](.*)[)]".r
-    val countFiltered = countRegex.replaceAllIn(withoutCatalog, s => {
-      val fields = s.toString().drop(6).dropRight(1).split(",").toList
-      s"""COUNT(${if (fields.size > 1) "*" else fields.head})"""
-    })
-
-    countFiltered
+    withoutCatalog
   }
 
   /**
