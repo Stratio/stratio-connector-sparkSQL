@@ -163,10 +163,21 @@ object QueryEngine extends Loggable with Metrics {
     statement: Query,
     catalogs: Iterable[String],
     conflictChar: String = "."): Query = {
-    val formatted = (statement /: catalogs){
+
+    //  Remove catalog name
+
+    val withoutCatalog = (statement /: catalogs){
       case (s,catalog) => s.replaceAll(s"$catalog.","")
     }
-    formatted
+    //  Substitute COUNT(fields*) for COUNT(field1) or COUNT(*)
+
+    val countRegex = s"[Cc][Oo][Uu][Nn][Tt][(](.*)[)]".r
+    val countFiltered = countRegex.replaceAllIn(withoutCatalog, s => {
+      val fields = s.toString().drop(6).dropRight(1).split(",").toList
+      s"""COUNT(${if (fields.size > 1) "*" else fields.head})"""
+    })
+
+    countFiltered
   }
 
   /**
