@@ -45,6 +45,7 @@ private[sparksql] trait Constants {
   val MethodNotSupported = "Not supported yet"
   val SparkSQLConnectorJobConstant = "SparkSQLConnectorJob"
   val Spark = "spark"
+  val SparkCoresMax = "spark.cores.max"
   val ConnectorConfigFile = "SparkSQLConnector.xml"
   val ConnectorName = "ConnectorName"
   val DataStoreName = "DataStoreName"

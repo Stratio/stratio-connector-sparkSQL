@@ -24,13 +24,14 @@ import com.stratio.connector.sparksql.engine.query.QueryManager.{Finished, Async
 import com.stratio.connector.sparksql.{Catalog, Test}
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.exceptions.ExecutionException
-import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
+import com.stratio.crossdata.common.logicalplan.{Project, LogicalStep, LogicalWorkflow}
+import com.stratio.crossdata.common.metadata.Operations
 import com.stratio.crossdata.common.result.QueryResult
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{SaveMode, DataFrame, SQLContext}
 import scala.collection.JavaConversions._
-import com.stratio.crossdata.common.data.{Row => XDRow}
+import com.stratio.crossdata.common.data.{Row => XDRow, ClusterName, TableName}
 
 class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
@@ -80,7 +81,13 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
     val defaultChunkSize = amount / 3
 
-    val lw = new LogicalWorkflow(List())
+    val lw = new LogicalWorkflow(List(
+        new Project(
+          Set[Operations](),
+          new TableName("catalog","table"),
+          new ClusterName("cluster1"))
+      )
+    )
     lw.setSqlDirectQuery(query)
     val executor = system.actorOf(Props(new Actor {
       val slave = context.actorOf(Props(new QueryExecutor(
@@ -106,7 +113,12 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
     val defaultChunkSize = amount / 4
 
-    val lw = new LogicalWorkflow(List())
+    val lw = new LogicalWorkflow(List(
+      new Project(
+        Set[Operations](),
+        new TableName("catalog","table"),
+        new ClusterName("cluster1"))
+    ))
     lw.setSqlDirectQuery(query)
     val executor = system.actorOf(Props(new Actor {
       val slave = context.actorOf(Props(new QueryExecutor(
@@ -132,7 +144,12 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
     val defaultChunkSize = amount / 3
 
-    val lw = new LogicalWorkflow(List())
+    val lw = new LogicalWorkflow(List(
+      new Project(
+        Set[Operations](),
+        new TableName("catalog","table"),
+        new ClusterName("cluster1"))
+    ))
     lw.setSqlDirectQuery(query)
     val executor = system.actorOf(Props(new Actor {
       val slave = context.actorOf(Props(new QueryExecutor(

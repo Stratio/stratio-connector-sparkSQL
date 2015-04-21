@@ -273,6 +273,7 @@
                         com.stratio.connector.sparksql.SparkSQLConnector
                     </mainClass>
                     <jmxPort>7185</jmxPort>
+                    <javaOpts>-XX:MaxPermSize=512M</javaOpts>
                 </configuration>
             </plugin>
             <plugin>
@@ -303,13 +304,5 @@
             </plugin>
         </plugins>
     </build>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.6</version>
-            </plugin>
-        </plugins>
-    </reporting>
+
 </project>
