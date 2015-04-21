@@ -19,6 +19,7 @@
         <operation>SELECT_INNER_JOIN_PARTIALS_RESULTS</operation>
         <operation>SELECT_LIMIT</operation>
         <operation>SELECT_FUNCTIONS</operation>
+        <operation>FILTER_FUNCTION_IN</operation>
         <operation>FILTER_PK_EQ</operation>
         <operation>FILTER_PK_GT</operation>
         <operation>FILTER_PK_LT</operation>
