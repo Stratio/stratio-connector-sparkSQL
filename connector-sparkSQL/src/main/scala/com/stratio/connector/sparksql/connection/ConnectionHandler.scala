@@ -18,12 +18,11 @@
 package com.stratio.connector.sparksql.connection
 
 import com.stratio.connector.commons.Loggable
-import com.stratio.connector.sparksql.{Constants, Catalog}
+import com.stratio.connector.sparksql.Constants
+import com.stratio.connector.sparksql.providers
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
 import org.apache.spark.sql.SQLContext
-import scala.collection.JavaConversions._
-
 
 class ConnectionHandler extends Loggable with Constants{
 
@@ -46,26 +45,12 @@ class ConnectionHandler extends Loggable with Constants{
         None
       }
       else {
-        connections += (connectionId -> Connection(config, credentials))
-        logger.info(s"Connected to [$connectionId]")
-        /* Datastax CSQL Configuration */
-        if (config.getDataStoreName.getName  ==  "cassandra"){
-          import org.apache.spark.sql.cassandra._
-          import com.datastax.spark.connector.cql.CassandraConnectorConf
-          val conf= sqlContext.sparkContext.getConf
-          val clusterOptions = config.getClusterOptions.toMap
-          val clusterName = config.getName.getName
-          val cassConfig = Map(
-            CassandraConnectionHostProperty -> clusterOptions("hosts"),
-            CassandraConnectionNativePortProperty ->
-              clusterOptions.getOrElse("nativePort", "9042"),
-            CassandraConnectionRpcPortProperty ->
-              clusterOptions.getOrElse("rpcPort", "9160"))
-          sqlContext.addClusterLevelCassandraConnConf(
-            config.getName.getName,
-            CassandraConnectorConf(conf.setAll(cassConfig)))
+        providers.apply(config.getDataStoreName.getName).map{ provider =>
+          val connection = provider.createConnection(config,sqlContext,credentials)
+          connections += (connectionId -> connection)
+          logger.info(s"Connected to [$connectionId]")
+          connectionId
         }
-        Some(connectionId)
       }
     }
   }
@@ -92,7 +77,7 @@ class ConnectionHandler extends Loggable with Constants{
   def startJob(connectionId: ConnectionId): Unit = {
     withConnections{
       connections.get(connectionId).foreach{connection =>
-        connections += (connectionId -> connection.copy(busy=true))
+        connections += (connectionId -> connection.setBusy(true))
         logger.info(s"A new job has started in cluster [$connectionId]")
       }
     }
@@ -101,7 +86,7 @@ class ConnectionHandler extends Loggable with Constants{
   def endJob(connectionId: ConnectionId): Unit = {
     withConnections{
       connections.get(connectionId).foreach{connection =>
-        connections += (connectionId -> connection.copy(busy=false))
+        connections += (connectionId -> connection.setBusy(false))
         logger.info(s"A new job has finished in cluster [$connectionId]")
       }
     }

@@ -19,20 +19,4 @@
 <DataStore>
     <Name>hbase</Name>
     <Version>0.98.6</Version>
-    <RequiredProperties>
-        <Property>
-            <PropertyName>hosts</PropertyName>
-            <Description>IP1, IP2, ... IPn. Comma separated hosts of HBase cluster.</Description>
-        </Property>
-        <Property>
-            <PropertyName>cluster</PropertyName>
-            <Description>HBase cluster name.</Description>
-        </Property>
-    </RequiredProperties>
-    <OptionalProperties>
-        <Property>
-            <PropertyName>Port</PropertyName>
-            <Description>The HBase Port.</Description>
-        </Property>
-    </OptionalProperties>
 </DataStore>
