@@ -42,7 +42,8 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
     connectionHandler: ConnectionHandler): IMetadataListener =
     MetadataListener {
       case updatedMetadata: TableMetadata =>
-        timeFor(s"Received updated table metadata [$updatedMetadata]") {
+        logger.info(s"Received updated table metadata [$updatedMetadata]")
+        timeFor("Received updated table metadata.") {
           for {
             connection <- connectionHandler.getConnection(updatedMetadata.getClusterRef.getName)
             provider <- providers.apply(connection.config.getDataStoreName.getName)
@@ -58,7 +59,8 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
         logger.debug(s"'$other'[${other.getClass}] has no callbacks associated...")
     } {
       case deletedMetadata: Name =>
-        timeFor(s"Received deleted table metadata [$deletedMetadata]") {
+        logger.info(s"Received deleted table metadata [$deletedMetadata]")
+        timeFor("Received deleted table metadata") {
           unregisterTable(
             deletedMetadata.getQualifiedName,
             sqlContext)

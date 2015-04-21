@@ -53,38 +53,51 @@ with Metrics {
   import timer._
 
   override def execute(workflow: LogicalWorkflow): QueryResult = {
-    val rdd = timeFor(s"Sync. query executed:\n\t${workflow.toString}") {
+
+    logger.info(s"Execute workflow [$workflow]. The direct query is [${workflow.getSqlDirectQuery}]")
+
+    val dataFrame = timeFor(s"Sync. query executed.") {
       executeQuery(workflow, sqlContext, connectionHandler)
     }
     timeFor(s"Unique query result processed.") {
       QueryResult.createQueryResult(
-        toResultSet(rdd, toColumnMetadata(workflow)), 0, true)
+        toResultSet(dataFrame, toColumnMetadata(workflow)), 0, true)
     }
   }
 
   override def pagedExecute(
-    queryId: String,
-    workflow: LogicalWorkflow,
-    resultHandler: IResultHandler,
-    pageSize: Int): Unit =
-    timeFor(s"Paged query [$queryId] executed.\n\t${workflow.toString}") {
+                             queryId: String,
+                             workflow: LogicalWorkflow,
+                             resultHandler: IResultHandler,
+                             pageSize: Int): Unit = {
+
+    logger.info(s"Paged execute workflow [$workflow]. The direct query is [${workflow.getSqlDirectQuery}]")
+
+    timeFor(s"Paged query [$queryId] executed.") {
       queryManager ! PagedExecute(queryId, workflow, resultHandler, pageSize)
     }
+  }
 
 
   override def asyncExecute(
-    queryId: String,
-    workflow: LogicalWorkflow,
-    resultHandler: IResultHandler): Unit =
-    timeFor(s"Async. query [$queryId] executed.\n\t${workflow.toString}") {
+                             queryId: String,
+                             workflow: LogicalWorkflow,
+                             resultHandler: IResultHandler): Unit = {
+
+    logger.info(s"Async execute workflow [$workflow]. The direct query is [${workflow.getSqlDirectQuery}]")
+
+    timeFor(s"Async. query [$queryId] executed.") {
       queryManager ! AsyncExecute(queryId, workflow, resultHandler)
     }
+  }
 
 
-  override def stop(queryId: String): Unit =
-    timeFor(s"Query [$queryId] stopped.") {
-      queryManager ! Stop(queryId)
-    }
+  override def stop(queryId: String): Unit = {
+  logger.info(s"Query [$queryId] stopped.")
+  timeFor(s"Query stop.") {
+    queryManager ! Stop(queryId)
+  }
+}
 
 }
 
@@ -111,12 +124,12 @@ object QueryEngine extends Loggable with Metrics {
       val query = timeFor(s"Got workflow plain query.") {
         workflow.getSqlDirectQuery
       }
-      logger.debug(s"Workflow plain query : $query")
+      logger.debug(s"Workflow plain query before format : [$query]")
       //  Format query for avoiding conflicts such as 'catalog.table' issue
       val formattedQuery = timeFor("Query formatted to SparkSQL format") {
         sparkSQLFormat(query,catalogsFromWorkflow(workflow))
       }
-      logger.info(s"SparkSQL query : $formattedQuery")
+      logger.info(s"SparkSQL query after format: [$formattedQuery]")
       //  Execute actual query ...
       val rdd = sqlContext.sql(formattedQuery)
       logger.debug(rdd.schema.treeString)
@@ -133,7 +146,7 @@ object QueryEngine extends Loggable with Metrics {
    */
   def toColumnMetadata(workflow: LogicalWorkflow): List[ColumnMetadata] = {
     import scala.collection.JavaConversions._
-    logger.debug(s"Getting column selectors from last step (SELECT)")
+    logger.debug("Getting column selectors from last step (SELECT)")
     val (columnTypes: ColumnTypeMap, selectors: List[Selector]) = workflow.getLastStep match {
       case s: Select => s.getTypeMap.toMap -> s.getOutputSelectorOrder.toList
       case _ =>
@@ -273,7 +286,13 @@ object QueryEngine extends Loggable with Metrics {
 
   def catalogsFromWorkflow(lw: LogicalWorkflow): Iterable[String] = {
     lw.getInitialSteps.map {
-      case project: Project => project.getCatalogName
+      case project: Project => {
+        val catalogName = project.getCatalogName
+        if (logger.isDebugEnabled){
+          logger.debug(s"Catalog [$catalogName] has been find in the logicalWorkflow")
+        }
+        catalogName
+      }
     }
   }
 

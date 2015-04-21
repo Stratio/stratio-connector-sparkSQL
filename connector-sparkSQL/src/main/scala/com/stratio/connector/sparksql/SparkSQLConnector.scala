@@ -124,10 +124,12 @@ with Metrics {
   override def isConnected(name: ClusterName): Boolean =
     connectionHandler.isConnected(name.getName)
 
-  override def close(name: ClusterName): Unit =
-    timeFor(s"Connection to $name cluster was closed") {
+  override def close(name: ClusterName): Unit = {
+    logger.info(s"Connection to $name cluster was closed")
+    timeFor(s"Connection  cluster closed") {
       connectionHandler.closeConnection(name.getName)
     }
+  }
 
   override def shutdown(): Unit =
     timeFor("Connector has been shut down...") {
@@ -194,10 +196,12 @@ with Metrics {
 
   import timer._
 
-  val system =
-    timeFor(s"'$ActorSystemName' actor system has been initialized.") {
+  val system = {
+    logger.info(s"'$ActorSystemName' actor system has been initialized.")
+    timeFor(" actor system initialized.") {
       ActorSystem(ActorSystemName)
     }
+  }
 
   val connectorApp =
     timeFor("Connector App has been created.") {
