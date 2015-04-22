@@ -10,7 +10,7 @@
     <RequiredProperties>
         <Property>
             <PropertyName>DefaultLimit</PropertyName>
-            <Description>It is necessary to indicate de default limit for the queries</Description>
+            <Description>It is necessary to indicate the default limit for the queries</Description>
         </Property>
     </RequiredProperties>
     <SupportedOperations>

@@ -20,15 +20,15 @@ case object Cassandra extends Provider with Constants{
 
     val conf= sqlContext.sparkContext.getConf
     val clusterOptions = config.getClusterOptions.toMap
-    val clusterName = config.getName.getName
+    val clusterName = clusterOptions("cluster")
     val cassConfig = Map(
       CassandraConnectionHostProperty -> clusterOptions("hosts"),
       CassandraConnectionNativePortProperty ->
         clusterOptions.getOrElse("nativePort", "9042"),
       CassandraConnectionRpcPortProperty ->
         clusterOptions.getOrElse("rpcPort", "9160"))
-    sqlContext.addClusterLevelCassandraConnConf(
-      config.getName.getName,
+    sqlContext.addCassandraConnConf(
+      clusterName,
       CassandraConnectorConf(conf.setAll(cassConfig)))
     super.createConnection(config,sqlContext,credentials)
 
