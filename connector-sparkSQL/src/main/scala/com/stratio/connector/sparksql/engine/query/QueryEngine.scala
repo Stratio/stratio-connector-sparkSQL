@@ -132,6 +132,7 @@ object QueryEngine extends Loggable with Metrics {
       logger.info(s"SparkSQL query after format: [$formattedQuery]")
       //  Execute actual query ...
       val rdd = sqlContext.sql(formattedQuery)
+      logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(rdd.schema.treeString)
       //Return obtained RDD
       rdd
