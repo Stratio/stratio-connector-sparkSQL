@@ -19,7 +19,7 @@ package com.stratio.connector.sparksql.engine.query
 
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.providers.Provider
-import com.stratio.crossdata.common.statements.structures.Selector
+import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
 
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
@@ -29,7 +29,7 @@ import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.connector.sparksql.SparkSQLContext
 import com.stratio.connector.sparksql.CrossdataConverters._
 import com.stratio.crossdata.common.data.{ClusterName, TableName}
-import com.stratio.crossdata.common.metadata.ColumnMetadata
+import com.stratio.crossdata.common.metadata.{ColumnType, DataType, ColumnMetadata}
 import com.stratio.connector.sparksql.engine.query.QueryManager._
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
@@ -139,6 +139,7 @@ object QueryEngine extends Loggable with Metrics {
     }
   }
 
+
   /**
    * Get columns metadata from workflow.
    *
@@ -147,6 +148,7 @@ object QueryEngine extends Loggable with Metrics {
    */
   def toColumnMetadata(workflow: LogicalWorkflow): List[ColumnMetadata] = {
     import scala.collection.JavaConversions._
+    import com.stratio.connector.sparksql.engine.query.mappings.functionType.functionType
     logger.debug("Getting column selectors from last step (SELECT)")
     val (columnTypes: ColumnTypeMap, selectors: List[Selector]) = workflow.getLastStep match {
       case s: Select => s.getTypeMap.toMap -> s.getOutputSelectorOrder.toList
@@ -157,15 +159,23 @@ object QueryEngine extends Loggable with Metrics {
     }
     logger.debug(s"ColumnTypes : $columnTypes\nSelectors : $selectors")
     //  Map them into ColumnMetadata
-    selectors.map(s => {
-      val columnName = s.getColumnName
-      Option(s.getAlias).foreach(columnName.setAlias)
-      new ColumnMetadata(
-        columnName,
-        Array(),
-        columnTypes.getOrElse(s.getColumnName.getName,columnTypes(s.getAlias)))
-    })
+    val l: List[ColumnMetadata] =  selectors.map {
+      case fs : FunctionSelector => new ColumnMetadata(fs.getColumnName,Array(),functionType(fs.getFunctionName))
+      case  s => val columnName = s.getColumnName
+        Option(s.getAlias).foreach(columnName.setAlias)
+        new ColumnMetadata(
+          columnName,
+          Array(),
+          columnTypes.getOrElse(s.getColumnName.getName,columnTypes(s.getAlias)))
+    }/*(s => {
+
+    })*/
+
+
+    l
   }
+
+
 
   /**
    * Maps catalog.table names that use dots into some other without them.

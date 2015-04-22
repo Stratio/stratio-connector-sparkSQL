@@ -34,3 +34,4 @@ target/
 .orig
 *~
 connector-sparkSQL/metastore_db/
+metastore_db/

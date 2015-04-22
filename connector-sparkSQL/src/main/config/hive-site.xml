@@ -39,26 +39,5 @@
         <description>location of default database for the warehouse</description>
     </property>
 
-    <!--<property>
-      <name>hive.hwi.war.file</name>
-      <value>/usr/lib/hive/lib/hive-hwi-0.8.1-cdh4.0.0.jar</value>
-      <description>This is the WAR file with the jsp content for Hive Web Interface</description>
-    </property>
 
-    <property>
-      <name>datanucleus.fixedDatastore</name>
-      <value>true</value>
-    </property>
-
-    <property>
-      <name>datanucleus.autoCreateSchema</name>
-      <value>false</value>
-    </property>
-
-    <property>
-      <name>hive.metastore.uris</name>
-      <value>thrift://10.200.0.62:9083</value>
-      <description>IP address (or fully-qualified domain name) and port of the metastore host</description>
-    </property>
-   -->
 </configuration>
