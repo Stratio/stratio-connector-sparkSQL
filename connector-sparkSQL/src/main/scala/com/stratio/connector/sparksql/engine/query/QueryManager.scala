@@ -49,7 +49,8 @@ with Metrics {
   var pendingQueries: PendingQueriesMap = Map()
 
   var freeExecutors: Set[QueryExecutorRef] = {
-    timeFor(s"Created query executors pool $executorsAmount-sized") {
+    logger.info(s"Created query executors pool $executorsAmount-sized")
+    timeFor("Created query executors pool.") {
       (1 to executorsAmount).map(_ =>
         context.actorOf(QueryExecutor(
           sqlContext,
@@ -63,18 +64,21 @@ with Metrics {
   override def receive: Receive = {
 
     case job: JobCommand =>
-      timeFor(s"[QueryManager] Processed job request : $job") {
+      logger.info(s"[QueryManager] Processed job request : [$job]")
+      timeFor(s"[QueryManager] Processed job request.") {
         if (busy) stash()
         else assignJob(job)
       }
 
     case Stop(queryId) =>
-      timeFor(s"[QueryManager] Stopped query $queryId") {
+      logger.info(s"[QueryManager] Stopped query [$queryId]")
+      timeFor(s"[QueryManager] Stopped query") {
         finish(queryId, stopActor = true)
       }
 
     case Finished(queryId) =>
-      timeFor(s"[QueryManager] Set query $queryId as finished") {
+      logger.info(s"[QueryManager] Set query $queryId as finished")
+      timeFor(s"[QueryManager] Set query finished") {
         finish(queryId)
       }
 
