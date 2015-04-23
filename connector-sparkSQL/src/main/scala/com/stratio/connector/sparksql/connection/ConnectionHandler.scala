@@ -18,10 +18,13 @@
 package com.stratio.connector.sparksql.connection
 
 import com.stratio.connector.commons.Loggable
+import com.stratio.connector.sparksql.Constants
+import com.stratio.connector.sparksql.providers
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
+import org.apache.spark.sql.SQLContext
 
-class ConnectionHandler extends Loggable {
+class ConnectionHandler extends Loggable with Constants{
 
   type ConnectionId = String
 
@@ -32,8 +35,9 @@ class ConnectionHandler extends Loggable {
   }
 
   def createConnection(
-  config: ConnectorClusterConfig,
-  credentials: Option[ICredentials] = None): Option[ConnectionId] = {
+    config: ConnectorClusterConfig,
+    sqlContext: SQLContext,
+    credentials: Option[ICredentials] = None): Option[ConnectionId] = {
     val connectionId = config.getName.getName
     withConnections {
       if (connections.isDefinedAt(connectionId)) {
@@ -41,9 +45,12 @@ class ConnectionHandler extends Loggable {
         None
       }
       else {
-        connections += (connectionId -> Connection(config, credentials))
-        logger.info(s"Connected to [$connectionId]")
-        Some(connectionId)
+        providers.apply(config.getDataStoreName.getName).map{ provider =>
+          val connection = provider.createConnection(config,sqlContext,credentials)
+          connections += (connectionId -> connection)
+          logger.info(s"Connected to [$connectionId]")
+          connectionId
+        }
       }
     }
   }
@@ -70,7 +77,7 @@ class ConnectionHandler extends Loggable {
   def startJob(connectionId: ConnectionId): Unit = {
     withConnections{
       connections.get(connectionId).foreach{connection =>
-        connections += (connectionId -> connection.copy(busy=true))
+        connections += (connectionId -> connection.setBusy(true))
         logger.info(s"A new job has started in cluster [$connectionId]")
       }
     }
@@ -79,7 +86,7 @@ class ConnectionHandler extends Loggable {
   def endJob(connectionId: ConnectionId): Unit = {
     withConnections{
       connections.get(connectionId).foreach{connection =>
-        connections += (connectionId -> connection.copy(busy=false))
+        connections += (connectionId -> connection.setBusy(false))
         logger.info(s"A new job has finished in cluster [$connectionId]")
       }
     }

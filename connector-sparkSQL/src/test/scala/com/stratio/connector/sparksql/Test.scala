@@ -19,6 +19,7 @@ package com.stratio.connector.sparksql
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKitBase}
+import org.apache.spark.{SparkContext, SparkConf}
 import org.scalatest.{BeforeAndAfterAll, Matchers, FlatSpecLike}
 
 abstract class Test(val component: String) extends {
@@ -27,13 +28,21 @@ abstract class Test(val component: String) extends {
 with TestKitBase
 with ImplicitSender
 with Matchers
-with BeforeAndAfterAll{
+with BeforeAndAfterAll {
 
   behavior of component
 
-  override def afterAll(): Unit ={
+  override def afterAll(): Unit = {
     super.afterAll()
     system.shutdown()
   }
+
+}
+
+object Test {
+
+  lazy val sparkContext: SparkContext = new SparkContext(new SparkConf()
+    .setAppName("Test")
+    .setMaster("local[4]"))
 
 }
