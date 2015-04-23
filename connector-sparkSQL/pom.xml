@@ -177,6 +177,8 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-hbase_2.10</artifactId>
             <version>1.3.0</version>
+            <scope>system</scope>
+            <systemPath>/home/jsantos/workspace/stratio-connector-sparkSQL/connector-sparkSQL/lib/spark-hbase_2.10-1.3.0.jar</systemPath>
         </dependency>
     </dependencies>
     <build>
