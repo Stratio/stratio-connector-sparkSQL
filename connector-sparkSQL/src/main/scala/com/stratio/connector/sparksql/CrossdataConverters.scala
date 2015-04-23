@@ -18,15 +18,16 @@
 package com.stratio.connector.sparksql
 
 import com.stratio.connector.commons.Loggable
-import scala.language.implicitConversions
-import scala.collection.mutable.ArrayBuffer
+import com.stratio.crossdata.common.data.{Cell, ResultSet, Row => XDRow}
+import com.stratio.crossdata.common.metadata.{ColumnMetadata, ColumnType}
 import org.apache.spark.sql.catalyst.expressions.GenericRow
 import org.apache.spark.sql.types.{ArrayType, DataType, StructType}
-import org.apache.spark.sql.{Row => SparkSQLRow, DataFrame}
-import com.stratio.crossdata.common.metadata.{ColumnMetadata, ColumnType}
-import com.stratio.crossdata.common.data.{Row => XDRow, Cell, ResultSet}
+import org.apache.spark.sql.{DataFrame, Row => SparkSQLRow}
 
-object CrossdataConverters extends Loggable{
+import scala.collection.mutable.ArrayBuffer
+import scala.language.implicitConversions
+
+object CrossdataConverters extends Loggable {
 
   import scala.collection.JavaConversions._
 
@@ -39,8 +40,8 @@ object CrossdataConverters extends Loggable{
    * @return An equivalent ResultSet
    */
   def toResultSet(
-    dataFrame: DataFrame,
-    metadata: List[ColumnMetadata]): ResultSet =
+                   dataFrame: DataFrame,
+                   metadata: List[ColumnMetadata]): ResultSet =
     toResultSet(dataFrame.rdd.toLocalIterator, dataFrame.schema, metadata)
 
   /**
@@ -51,21 +52,20 @@ object CrossdataConverters extends Loggable{
    * @return A new Resultset with all converted rows
    */
   def toResultSet(
-    rows: Iterator[SparkSQLRow],
-    schema: StructType,
-    metadata: List[ColumnMetadata]): ResultSet = {
+                   rows: Iterator[SparkSQLRow],
+                   schema: StructType,
+                   metadata: List[ColumnMetadata]): ResultSet = {
     val resultSet = new ResultSet
     logger.debug(s"Metadata : $metadata")
     resultSet.setColumnMetadata(metadata)
     logger.debug(s"Generating result set...")
-    var rowCount = 1
-    rows.foreach(row => {
-      if (rowCount%5000 == 0){
-        logger.debug(s"The connector has inserted $rowCount rows in the resultset")
-      }
-      rowCount +=  1
-      resultSet.add(toCrossDataRow(row, schema))
-    })
+    val groupSize = 5000
+    rows.grouped(groupSize).zipWithIndex.foreach {
+      case (it, index) =>
+        it.foreach(row => resultSet.add(toCrossDataRow(row, schema)))
+        logger.debug(s"The connector has inserted ${index * groupSize} rows in the resultset")
+    }
+
     logger.info(s"Result set size : ${resultSet.size()}")
     resultSet
   }
