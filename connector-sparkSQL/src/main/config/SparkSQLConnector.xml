@@ -3,12 +3,14 @@
     <ConnectorName>SparkSQLConnector</ConnectorName>
     <DataStores>
         <DataStoreName>hdfs</DataStoreName>
+        <DataStoreName>cassandra</DataStoreName>
+        <DataStoreName>hbase</DataStoreName>
     </DataStores>
     <Version>0.1.0</Version>
     <RequiredProperties>
         <Property>
             <PropertyName>DefaultLimit</PropertyName>
-            <Description>It is necessary to indicate de default limit for the queries</Description>
+            <Description>It is necessary to indicate the default limit for the queries</Description>
         </Property>
     </RequiredProperties>
     <SupportedOperations>

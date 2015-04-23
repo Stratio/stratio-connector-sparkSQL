@@ -18,18 +18,22 @@
 package com.stratio.connector.sparksql.connection
 
 import com.stratio.connector.sparksql.Test
+import org.apache.spark.sql.SQLContext
 
 import scala.language.implicitConversions
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
-import com.stratio.crossdata.common.data.ClusterName
+import com.stratio.crossdata.common.data.{DataStoreName, ClusterName}
+
 
 class ConnectionHandlerTest extends Test("ConnectionHandler")
 with ConnectionHandlerSampleValues {
 
+  val sqlContext = new SQLContext(Test.sparkContext)
+
   it should "add a new connection" in {
     val ch = new ConnectionHandler
     ch.getConnection("cluster-1").isDefined should equal(false)
-    val Some(connectionId) = ch.createConnection(clusterConfig1)
+    val Some(connectionId) = ch.createConnection(clusterConfig1, sqlContext)
     val retrieved = ch.getConnection(connectionId).get
     retrieved.config should equal(clusterConfig1)
     retrieved.credentials should equal(None)
@@ -39,13 +43,13 @@ with ConnectionHandlerSampleValues {
   it should "fail adding a new connection when it already exists" in {
     val ch = new ConnectionHandler
     ch.getConnection("cluster-1").isDefined should equal(false)
-    val Some(_) = ch.createConnection(clusterConfig1)
-    ch.createConnection(clusterConfig1).isDefined should equal(false)
+    val Some(_) = ch.createConnection(clusterConfig1, sqlContext)
+    ch.createConnection(clusterConfig1, sqlContext).isDefined should equal(false)
   }
 
   it should "close an existing connection" in {
     val ch = new ConnectionHandler
-    val Some(connection) = ch.createConnection(clusterConfig1)
+    val Some(connection) = ch.createConnection(clusterConfig1, sqlContext)
     ch.getConnection(connection).isDefined should equal(true)
     ch.closeConnection(connection)
     ch.getConnection(connection).isDefined should equal(false)
@@ -63,7 +67,7 @@ with ConnectionHandlerSampleValues {
   it should "check whether a connection has been added or not" in {
     val ch = new ConnectionHandler
     ch.isConnected("non-existing-connection") should equal(false)
-    val Some(connection) = ch.createConnection(clusterConfig1)
+    val Some(connection) = ch.createConnection(clusterConfig1, sqlContext)
     ch.isConnected(connection) should equal(true)
     ch.closeConnection(connection)
     ch.isConnected(connection) should equal(false)
@@ -71,7 +75,7 @@ with ConnectionHandlerSampleValues {
 
   it should "set a connection as busy when a job is started" in {
     val ch = new ConnectionHandler
-    val Some(connection) = ch.createConnection(clusterConfig1)
+    val Some(connection) = ch.createConnection(clusterConfig1, sqlContext)
     ch.getConnection(connection).exists(_.busy == false) should equal(true)
     ch.startJob(connection)
     ch.getConnection(connection).exists(_.busy == true) should equal(true)
@@ -89,7 +93,7 @@ with ConnectionHandlerSampleValues {
 
   it should "set a connection as not busy when a job is started" in {
     val ch = new ConnectionHandler
-    val Some(connection) = ch.createConnection(clusterConfig1)
+    val Some(connection) = ch.createConnection(clusterConfig1, sqlContext)
     ch.getConnection(connection).exists(_.busy == false) should equal(true)
     ch.startJob(connection)
     ch.getConnection(connection).exists(_.busy == true) should equal(true)
@@ -113,11 +117,14 @@ trait ConnectionHandlerSampleValues {
 
   import scala.collection.JavaConversions._
 
-  val clusterConfig1 =
-    new ConnectorClusterConfig(
+  val clusterConfig1 = {
+    val config = new ConnectorClusterConfig(
       "cluster-1",
       Map[String, String](),
       Map[String, String]())
+    config.setDataStoreName(new DataStoreName("hdfs"))
+    config
+  }
 
   implicit def toClusterName(name: String): ClusterName =
     new ClusterName(name)

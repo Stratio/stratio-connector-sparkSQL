@@ -41,10 +41,7 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
   //  Initialize vars...
 
-  val sc = new SparkContext(new SparkConf()
-    .setMaster("local[4]")
-    .setAppName("QueryExecutorTest"))
-  val sqlContext = new HiveContext(sc) with Catalog
+  val sqlContext = new HiveContext(Test.sparkContext) with Catalog
   val connectionHandler = new ConnectionHandler
   val provider: DataFrameProvider = (workflow, connectionHandler, sqlContext) =>
   QueryEngine.executeQuery(
@@ -56,7 +53,7 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
 
   def generate(n: Int)(sqlContext: SQLContext): DataFrame = {
-    val rdd = sc.parallelize(for {
+    val rdd = Test.sparkContext.parallelize(for {
         id <- 1 to n
     } yield Student(id, s"Name$id"), 4)
     sqlContext.createDataFrame(rdd)

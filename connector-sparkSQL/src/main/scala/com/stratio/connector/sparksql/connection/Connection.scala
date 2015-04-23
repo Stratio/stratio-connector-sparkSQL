@@ -20,8 +20,13 @@ package com.stratio.connector.sparksql.connection
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
 
-case class Connection(
-  config: ConnectorClusterConfig,
-  credentials: Option[ICredentials] = None,
-  busy: Boolean = false,
-  lastUseDate: Long = System.currentTimeMillis())
+class Connection(
+  val config: ConnectorClusterConfig,
+  val credentials: Option[ICredentials] = None,
+  val busy: Boolean = false,
+  val lastUseDate: Long = System.currentTimeMillis()) {
+
+  def setBusy(state: Boolean): Connection =
+    new Connection(config,credentials,state)
+
+}
