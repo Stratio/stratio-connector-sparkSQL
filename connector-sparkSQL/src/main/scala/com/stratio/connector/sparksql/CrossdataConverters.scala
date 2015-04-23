@@ -58,7 +58,14 @@ object CrossdataConverters extends Loggable{
     logger.debug(s"Metadata : $metadata")
     resultSet.setColumnMetadata(metadata)
     logger.debug(s"Generating result set...")
-    rows.foreach(row => resultSet.add(toCrossDataRow(row, schema)))
+    var rowCount = 1
+    rows.foreach(row => {
+      if (rowCount%5000 == 0){
+        logger.debug(s"The connector has inserted $rowCount rows in the resultset")
+      }
+      rowCount +=  1
+      resultSet.add(toCrossDataRow(row, schema))
+    })
     logger.info(s"Result set size : ${resultSet.size()}")
     resultSet
   }
@@ -73,10 +80,13 @@ object CrossdataConverters extends Loggable{
     val fields = schema.fields
     val xdRow = new XDRow()
     fields.zipWithIndex.foreach {
-      case (field, idx) =>
+      case (field, idx) => {
         xdRow.addCell(
           field.name,
           new Cell(toCellValue(row(idx), field.dataType)))
+
+      }
+
     }
     xdRow
   }
