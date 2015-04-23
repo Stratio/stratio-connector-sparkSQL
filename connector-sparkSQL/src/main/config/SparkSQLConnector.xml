@@ -15,14 +15,17 @@
     </RequiredProperties>
     <SupportedOperations>
         <operation>PROJECT</operation>
-        <operation>PAGINATION</operation>
+        <operation>ASYNC_QUERY</operation>
         <operation>SELECT_OPERATOR</operation>
         <operation>SELECT_INNER_JOIN</operation>
-        <operation>SELECT_INNER_JOIN_PARTIALS_RESULTS</operation>
         <operation>SELECT_LIMIT</operation>
+        <operation>SELECT_CASE_WHEN</operation>
+        <operation>SELECT_GROUP_BY</operation>
+        <operation>SELECT_ORDER_BY</operation>
         <operation>SELECT_FUNCTIONS</operation>
-        <operation>FILTER_DISJUNCTION</operation>
-        <operation>FILTER_FUNCTION_IN</operation>
+        <operation>SELECT_WHERE_IN</operation>
+        <operation>SELECT_WHERE_BETWEEN</operation>
+
         <operation>FILTER_PK_EQ</operation>
         <operation>FILTER_PK_GT</operation>
         <operation>FILTER_PK_LT</operation>
@@ -30,6 +33,12 @@
         <operation>FILTER_PK_LET</operation>
         <operation>FILTER_PK_DISTINCT</operation>
         <operation>FILTER_PK_LIKE</operation>
+        <operation>FILTER_PK_NOT_LIKE</operation>
+        <operation>FILTER_PK_IN</operation>
+        <operation>FILTER_PK_NOT_IN</operation>
+        <operation>FILTER_PK_BETWEEN</operation>
+        <operation>FILTER_PK_NOT_BETWEEN</operation>
+
         <operation>FILTER_NON_INDEXED_EQ</operation>
         <operation>FILTER_NON_INDEXED_GT</operation>
         <operation>FILTER_NON_INDEXED_LT</operation>
@@ -37,20 +46,48 @@
         <operation>FILTER_NON_INDEXED_LET</operation>
         <operation>FILTER_NON_INDEXED_DISTINCT</operation>
         <operation>FILTER_NON_INDEXED_LIKE</operation>
+        <operation>FILTER_NON_INDEXED_NOT_LIKE</operation>
+        <operation>FILTER_NON_INDEXED_IN</operation>
+        <operation>FILTER_NON_INDEXED_NOT_IN</operation>
+        <operation>FILTER_NON_INDEXED_BETWEEN</operation>
+        <operation>FILTER_NON_INDEXED_NOT_BETWEEN</operation>
+
         <operation>FILTER_INDEXED_EQ</operation>
         <operation>FILTER_INDEXED_GT</operation>
         <operation>FILTER_INDEXED_LT</operation>
         <operation>FILTER_INDEXED_GET</operation>
         <operation>FILTER_INDEXED_LET</operation>
         <operation>FILTER_INDEXED_DISTINCT</operation>
-        <operation>FILTER_INDEXED_MATCH</operation>
-        <operation>FILTER_NON_INDEXED_LIKE</operation>
-        <operation>FILTER_NON_INDEXED_IN</operation>
-        <operation>PARTIAL_RESULTS</operation>
-        <operation>SELECT_GROUP_BY</operation>
-        <operation>SELECT_ORDER_BY</operation>
+        <operation>FILTER_INDEXED_LIKE</operation>
+        <operation>FILTER_INDEXED_NOT_LIKE</operation>
+        <operation>FILTER_INDEXED_IN</operation>
+        <operation>FILTER_INDEXED_NOT_IN</operation>
+        <operation>FILTER_INDEXED_BETWEEN</operation>
+        <operation>FILTER_INDEXED_NOT_BETWEEN</operation>
+
+        <operation>FILTER_FUNCTION_EQ</operation>
+        <operation>FILTER_FUNCTION_GT</operation>
+        <operation>FILTER_FUNCTION_LT</operation>
+        <operation>FILTER_FUNCTION_GET</operation>
+        <operation>FILTER_FUNCTION_LET</operation>
+        <operation>FILTER_FUNCTION_DISTINCT</operation>
+        <operation>FILTER_FUNCTION_LIKE</operation>
+        <operation>FILTER_FUNCTION_NOT_LIKE</operation>
+        <operation>FILTER_FUNCTION_IN</operation>
+        <operation>FILTER_FUNCTION_NOT_IN</operation>
+        <operation>FILTER_FUNCTION_BETWEEEN</operation>
+        <operation>FILTER_FUNCTION_NOT_BETWEEEN</operation>
+
+        <operation>FILTER_DISJUNCTION</operation>
+        <operation>PAGINATION</operation>
+        <operation>SQL_DIRECT</operation>
+
         <operation>SELECT_LEFT_OUTER_JOIN</operation>
-        <operation>FILTER_NON_INDEXED_BETWEEN</operation>
+        <operation>SELECT_RIGHT_OUTER_JOIN</operation>
+        <operation>SELECT_FULL_OUTER_JOIN</operation>
+        <operation>SELECT_FULL_NATURAL_JOIN</operation>
+        <operation>SELECT_CROSS_JOIN</operation>
+        <operation>SELECT_SUBQUERY</operation>
     </SupportedOperations>
     <Functions>
         <Function>
