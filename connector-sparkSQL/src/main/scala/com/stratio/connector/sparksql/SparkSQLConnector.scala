@@ -26,6 +26,7 @@ import com.stratio.crossdata.common.exceptions.{InitializationException, Unsuppo
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
 import com.typesafe.config.Config
+import org.apache.spark.sql.hbase.HBaseSQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
@@ -174,6 +175,7 @@ with Metrics {
     contextType: String,
     sc: SparkContext): SparkSQLContext =
     contextType match {
+      case HBaseContext => new HBaseSQLContext(sc) with Catalog
       case HIVEContext => new HiveContext(sc) with Catalog
       case _ => new SQLContext(sc) with Catalog
     }

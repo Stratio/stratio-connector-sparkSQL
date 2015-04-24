@@ -51,6 +51,7 @@ private[sparksql] trait Constants {
   val DataStoreName = "DataStoreName"
   val SQLContext = "SQLContext"
   val HIVEContext = "HiveContext"
+  val HBaseContext = "HBaseContext"
   val CountApproxTimeout = "connector.count-approx-timeout"
   val QueryExecutorsAmount = "connector.query-executors.size"
   val ConnectorProvider = "connector.provider"
