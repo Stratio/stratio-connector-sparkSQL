@@ -317,7 +317,7 @@
             </configuration>
             </plugin>
 
-            <plugin>
+       <!--     <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.7</version>
                 <executions>
@@ -341,7 +341,7 @@
                     </resources>
                 </configuration>
 
-            </plugin>
+            </plugin>  -->
         </plugins>
     </build>
 
