@@ -11,7 +11,8 @@ class HBaseTest extends Test("HBase"){
     val options = Map(
       HBase.MappedFieldsOption -> "field1->cf1:cq1,field2->cf1:cq2,field3->cf2:cq1")
 
-    println(HBase.formatSQL(query,options))
+    HBase.formatSQL(query,options) should equal(
+      "SELECT table1.`cf1:cq1`, table1.`cf1:cq2`, table1.`cf2:cq1` FROM table1")
 
   }
 
