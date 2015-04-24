@@ -285,6 +285,7 @@
                     <junitxml>.</junitxml>
                     <filereports>WDF TestSuite.txt</filereports>
                     <forkMode>never</forkMode>
+                    <parallel>false</parallel>
                 </configuration>
                 <executions>
                     <execution>
