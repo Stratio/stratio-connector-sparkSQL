@@ -284,6 +284,7 @@
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <junitxml>.</junitxml>
                     <filereports>WDF TestSuite.txt</filereports>
+                    <forkMode>never</forkMode>
                 </configuration>
                 <executions>
                     <execution>

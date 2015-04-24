@@ -24,16 +24,17 @@ import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Sel
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
+import com.stratio.crossdata.common.data.{ClusterName, TableName}
+import com.stratio.crossdata.common.metadata.ColumnMetadata
+import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
+import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
+import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.connector.commons.timer
 import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.connector.sparksql.SparkSQLContext
 import com.stratio.connector.sparksql.CrossdataConverters._
-import com.stratio.crossdata.common.data.{ClusterName, TableName}
-import com.stratio.crossdata.common.metadata.{ColumnType, DataType, ColumnMetadata}
+import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.engine.query.QueryManager._
-import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
-import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
-import com.stratio.crossdata.common.result.QueryResult
 
 /**
  * Query engine that support async., paged or sync. queries
@@ -119,7 +120,7 @@ object QueryEngine extends Loggable with Metrics {
     sqlContext: SparkSQLContext,
     connectionHandler: ConnectionHandler): DataFrame = {
     import timer._
-    withClusters(connectionHandler, workflow) {
+    withClusters(connectionHandler, workflow) { clusters =>
       //  Extract raw query from workflow
       val query = timeFor(s"Got workflow plain query.") {
         workflow.getSqlDirectQuery
@@ -129,9 +130,20 @@ object QueryEngine extends Loggable with Metrics {
       val formattedQuery = timeFor("Query formatted to SparkSQL format") {
         sparkSQLFormat(query,catalogsFromWorkflow(workflow))
       }
-      logger.info(s"SparkSQL query after format: [$formattedQuery]")
+      logger.info(s"Query after general format: [$formattedQuery]")
+      //  Format query for adapting it to involved providers
+      val providedClusters = for {
+          clusterName <- clusters
+        (name,provider) <- providers.apply(clusterName.getName).map(provider => clusterName.getName -> provider)
+        (provider,options) <- connectionHandler.getConnection(name).map(connection => provider -> globalOptions(connection.config))
+      } yield (provider,options)
+
+      val providersFormatted = (formattedQuery /: providedClusters){
+        case (statement,(provider,options)) => provider.formatSQL(statement,options)
+      }
+      logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
       //  Execute actual query ...
-      val rdd = sqlContext.sql(formattedQuery)
+      val rdd = sqlContext.sql(providersFormatted)
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(rdd.schema.treeString)
       //Return obtained RDD
@@ -277,16 +289,16 @@ object QueryEngine extends Loggable with Metrics {
    */
   def withClusters[T](
     connectionHandler: ConnectionHandler,
-    clusters: Iterable[ClusterName])(f: => T): T = {
+    clusters: Iterable[ClusterName])(f: Iterable[ClusterName] => T): T = {
     clusters.foreach(cluster => connectionHandler.startJob(cluster.getName))
-    val result = f
+    val result = f(clusters)
     clusters.foreach(cluster => connectionHandler.endJob(cluster.getName))
     result
   }
 
   def withClusters[T](
     connectionHandler: ConnectionHandler,
-    workflow: LogicalWorkflow)(f: => T): T = {
+    workflow: LogicalWorkflow)(f: Iterable[ClusterName] => T): T = {
     withClusters(connectionHandler, workflow.getInitialSteps.map {
       case project: Project => project.getClusterName
     })(f)

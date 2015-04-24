@@ -127,8 +127,6 @@ class QueryEngineTest extends Test("QueryEngine") {
       case(k,v)=>  QueryEngine.sparkSQLFormat(k.stripMargin,List("tpcc","catalog")) should equal(v.stripMargin)
     }
 
-
-
   }
 
   it should "begin and end a job in connectionHandler when using 'withClusters'" in {
@@ -145,7 +143,7 @@ class QueryEngineTest extends Test("QueryEngine") {
       }
     }
     val cluster = "Cluster1"
-    QueryEngine.withClusters(ch, List(new ClusterName(cluster)))(())
+    QueryEngine.withClusters(ch, List(new ClusterName(cluster)))(clusters =>())
     ch.execution.reverse should equal(List(cluster -> true, cluster -> false))
   }
 
