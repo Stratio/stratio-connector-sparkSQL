@@ -135,21 +135,23 @@ object QueryEngine extends Loggable with Metrics {
       }
       logger.info(s"Query after general format: [$formattedQuery]")
       //TODO Add parameter for timeout in retrieving table metadata
+      //TODO What if different tables join with column name coincidences?
       //  Format query for adapting it to involved providers
-      val projectInfo: (ConnectionHandler,Project) => Option[(Cluster,Table,DataStore,GlobalOptions)] = (connectionHandler,project) => {
+      val projectInfo: (ConnectionHandler,Project) => Option[(DataStore,GlobalOptions)] = (connectionHandler,project) => {
         val cluster = project.getClusterName
         connectionHandler.getConnection(cluster.getName).map{
           case connection => (
-            cluster.getName,
-            project.getTableName.getName,
             connection.config.getDataStoreName.getName,
-            globalOptions(connection.config)++SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3).getOptions)
+            globalOptions(connection.config)++
+              SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3).getOptions.map{
+                case (k,v) => k.getStringValue -> v.getStringValue
+              })
         }
       }
       val providedProjects = for {
-        (cluster,table,datastore,globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler,project))
+        (datastore,globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler,project))
         provider <- providers.apply(datastore)
-      } yield (provider,cluster,table, datastore, globalOptions)
+      } yield (provider, globalOptions)
       val providersFormatted = (formattedQuery /: providedProjects){
         case (statement,(provider,options)) => provider.formatSQL(statement,options)
       }
