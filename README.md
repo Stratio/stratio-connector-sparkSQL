@@ -19,7 +19,13 @@ Stratio HBase connector must be downloaded from  [here] (<https://github.com/Str
 
     hbase/
 
-    > mvn clean install
+    > mvn -e -T1C -Phbase,hadoop-2.4  -Dhadoop.version=2.4.0 -DskipTests clean package install
+
+As well as [Stratio Cassandra connector] (<https://github.com/Stratio/spark-cassandra-connector>) (branch SPARKC-112)
+
+    spark-cassandra-connector/
+
+    > sbt publishM2
 
 Stratio SparkSQL must be installed and started. [Crossdata] (<https://github.com/Stratio/crossdata>) is needed in order to interact with this connector.
 
@@ -27,6 +33,8 @@ Compiling Stratio SparkSQL Connector
 ------------------------------------
 
 To automatically build execute the following command:
+
+    stratio-connector-sparkSQL/
 
     > mvn clean compile install -DskipTests
 
