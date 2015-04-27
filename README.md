@@ -15,6 +15,12 @@ Tune up ```MAVEN_OPTS``` with:
 
     > export MAVEN_OPTS="-XX:MaxPermSize=512m -Xmx3072m"
 
+Stratio HBase connector must be downloaded from  [here] (<https://github.com/Stratio/hbase>) and installed with
+
+    hbase/
+
+    > mvn clean install
+
 Stratio SparkSQL must be installed and started. [Crossdata] (<https://github.com/Stratio/crossdata>) is needed in order to interact with this connector.
 
 Compiling Stratio SparkSQL Connector
