@@ -31,9 +31,8 @@ import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflo
 import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.connector.commons.timer
 import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.connector.sparksql.SparkSQLContext
+import com.stratio.connector.sparksql.{SparkSQLConnector, SparkSQLContext, providers}
 import com.stratio.connector.sparksql.CrossdataConverters._
-import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.engine.query.QueryManager._
 
 /**
@@ -67,10 +66,10 @@ with Metrics {
   }
 
   override def pagedExecute(
-                             queryId: String,
-                             workflow: LogicalWorkflow,
-                             resultHandler: IResultHandler,
-                             pageSize: Int): Unit = {
+    queryId: String,
+    workflow: LogicalWorkflow,
+    resultHandler: IResultHandler,
+    pageSize: Int): Unit = {
 
     logger.info(s"Paged execute workflow [$workflow]. The direct query is [${workflow.getSqlDirectQuery}]")
 
@@ -81,9 +80,9 @@ with Metrics {
 
 
   override def asyncExecute(
-                             queryId: String,
-                             workflow: LogicalWorkflow,
-                             resultHandler: IResultHandler): Unit = {
+    queryId: String,
+    workflow: LogicalWorkflow,
+    resultHandler: IResultHandler): Unit = {
 
     logger.info(s"Async execute workflow [$workflow]. The direct query is [${workflow.getSqlDirectQuery}]")
 
@@ -94,11 +93,11 @@ with Metrics {
 
 
   override def stop(queryId: String): Unit = {
-  logger.info(s"Query [$queryId] stopped.")
-  timeFor(s"Query stop.") {
-    queryManager ! Stop(queryId)
+    logger.info(s"Query [$queryId] stopped.")
+    timeFor(s"Query stop.") {
+      queryManager ! Stop(queryId)
+    }
   }
-}
 
 }
 
@@ -120,7 +119,11 @@ object QueryEngine extends Loggable with Metrics {
     sqlContext: SparkSQLContext,
     connectionHandler: ConnectionHandler): DataFrame = {
     import timer._
-    withClusters(connectionHandler, workflow) { clusters =>
+    type Cluster = String
+    type DataStore = String
+    type Table = String
+    type GlobalOptions = Map[String,String]
+    withProjects(connectionHandler, workflow) { projects =>
       //  Extract raw query from workflow
       val query = timeFor(s"Got workflow plain query.") {
         workflow.getSqlDirectQuery
@@ -131,14 +134,23 @@ object QueryEngine extends Loggable with Metrics {
         sparkSQLFormat(query,catalogsFromWorkflow(workflow))
       }
       logger.info(s"Query after general format: [$formattedQuery]")
+      //TODO Add parameter for timeout in retrieving table metadata
       //  Format query for adapting it to involved providers
-      val providedClusters = for {
-          clusterName <- clusters
-        (name,provider) <- providers.apply(clusterName.getName).map(provider => clusterName.getName -> provider)
-        (provider,options) <- connectionHandler.getConnection(name).map(connection => provider -> globalOptions(connection.config))
-      } yield (provider,options)
-
-      val providersFormatted = (formattedQuery /: providedClusters){
+      val projectInfo: (ConnectionHandler,Project) => Option[(Cluster,Table,DataStore,GlobalOptions)] = (connectionHandler,project) => {
+        val cluster = project.getClusterName
+        connectionHandler.getConnection(cluster.getName).map{
+          case connection => (
+            cluster.getName,
+            project.getTableName.getName,
+            connection.config.getDataStoreName.getName,
+            globalOptions(connection.config)++SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3).getOptions)
+        }
+      }
+      val providedProjects = for {
+        (cluster,table,datastore,globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler,project))
+        provider <- providers.apply(datastore)
+      } yield (provider,cluster,table, datastore, globalOptions)
+      val providersFormatted = (formattedQuery /: providedProjects){
         case (statement,(provider,options)) => provider.formatSQL(statement,options)
       }
       logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
@@ -287,20 +299,20 @@ object QueryEngine extends Loggable with Metrics {
    * @tparam T Action returning type.
    * @return Action result type.
    */
-  def withClusters[T](
+  def withProjects[T](
     connectionHandler: ConnectionHandler,
-    clusters: Iterable[ClusterName])(f: Iterable[ClusterName] => T): T = {
-    clusters.foreach(cluster => connectionHandler.startJob(cluster.getName))
+    clusters: Iterable[Project])(f: Iterable[Project] => T): T = {
+    clusters.foreach(cluster => connectionHandler.startJob(cluster.getClusterName.getName))
     val result = f(clusters)
-    clusters.foreach(cluster => connectionHandler.endJob(cluster.getName))
+    clusters.foreach(cluster => connectionHandler.endJob(cluster.getClusterName.getName))
     result
   }
 
-  def withClusters[T](
+  def withProjects[T](
     connectionHandler: ConnectionHandler,
-    workflow: LogicalWorkflow)(f: Iterable[ClusterName] => T): T = {
-    withClusters(connectionHandler, workflow.getInitialSteps.map {
-      case project: Project => project.getClusterName
+    workflow: LogicalWorkflow)(f: Iterable[Project] => T): T = {
+    withProjects(connectionHandler, workflow.getInitialSteps.map {
+      case project: Project => project
     })(f)
   }
 

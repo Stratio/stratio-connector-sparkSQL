@@ -160,7 +160,8 @@ with Metrics {
       .setAll(List(
       SparkDriverMemory,
       SparkExecutorMemory,
-      SparkCoresMax).filter(config.hasPath).map(k => k -> config.getString(k))))
+      SparkCoresMax,
+      ZookeeperHosts).filter(config.hasPath).map(k => k -> config.getString(k))))
   }
 
   /**

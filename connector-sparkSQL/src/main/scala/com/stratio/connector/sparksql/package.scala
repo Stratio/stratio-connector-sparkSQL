@@ -46,6 +46,7 @@ private[sparksql] trait Constants {
   val SparkSQLConnectorJobConstant = "SparkSQLConnectorJob"
   val Spark = "spark"
   val SparkCoresMax = "spark.cores.max"
+  val ZookeeperHosts = "spark.hadoop.hbase.zookeeper.quorum"
   val ConnectorConfigFile = "SparkSQLConnector.xml"
   val ConnectorName = "ConnectorName"
   val DataStoreName = "DataStoreName"

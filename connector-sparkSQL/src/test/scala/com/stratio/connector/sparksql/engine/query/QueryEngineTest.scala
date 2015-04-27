@@ -25,7 +25,7 @@ import com.stratio.connector.sparksql.Test
 import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.data.{ColumnName, TableName, ClusterName}
-import com.stratio.crossdata.common.logicalplan.{Select, LogicalStep, LogicalWorkflow}
+import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalStep, LogicalWorkflow}
 import com.stratio.crossdata.common.metadata.{DataType, ColumnType, Operations, ColumnMetadata}
 import com.stratio.crossdata.common.statements.structures.{AsteriskSelector, Selector}
 
@@ -143,7 +143,7 @@ class QueryEngineTest extends Test("QueryEngine") {
       }
     }
     val cluster = "Cluster1"
-    QueryEngine.withClusters(ch, List(new ClusterName(cluster)))(clusters =>())
+    QueryEngine.withProjects(ch, List(new Project(Set[Operations](),new TableName("catalog","table"),new ClusterName(cluster))))(clusters =>())
     ch.execution.reverse should equal(List(cluster -> true, cluster -> false))
   }
 
