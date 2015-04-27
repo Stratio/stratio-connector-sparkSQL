@@ -11,6 +11,10 @@ SparkSQL connector for Crossdata.
 Requirements
 ------------
 
+Tune up ```MAVEN_OPTS``` with:
+
+    > export MAVEN_OPTS="-XX:MaxPermSize=512m -Xmx3072m"
+
 Stratio SparkSQL must be installed and started. [Crossdata] (<https://github.com/Stratio/crossdata>) is needed in order to interact with this connector.
 
 Compiling Stratio SparkSQL Connector
@@ -18,7 +22,7 @@ Compiling Stratio SparkSQL Connector
 
 To automatically build execute the following command:
 
-    > mvn clean compile install
+    > mvn clean compile install -DskipTests
 
 Build an executable SparkSQL Connector
 --------------------------------------
