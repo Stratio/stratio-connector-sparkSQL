@@ -134,13 +134,13 @@
         </Function>
         <Function>
             <FunctionName>to_date</FunctionName>
-            <Signature>to_date(Tuple[Text]):Tuple[Text]</Signature>
+            <Signature>to_date(Tuple[Any]):Tuple[Any]</Signature>
             <FunctionType>simple</FunctionType>
             <Description>Change to date a text data</Description>
         </Function>
         <Function>
             <FunctionName>datediff</FunctionName>
-            <Signature>datediff(Tuple[Text, Text]):Tuple[Text]</Signature>
+            <Signature>datediff(Tuple[Any,Any]):Tuple[Int]</Signature>
             <FunctionType>simple</FunctionType>
             <Description>Returns the difference between two dates</Description>
         </Function>
@@ -168,14 +168,14 @@
 
         <Function>
             <FunctionName>date_add</FunctionName>
-            <Signature>date_add(Tuple[Text, Text]):Tuple[Text]</Signature>
+            <Signature>date_add(Tuple[Any,Int]):Tuple[Any]</Signature>
             <FunctionType>simple</FunctionType>
             <Description>Returns the date after the addiction</Description>
         </Function>
 
         <Function>
             <FunctionName>date_sub</FunctionName>
-            <Signature>date_sub(Tuple[Text, Text]):Tuple[Text]</Signature>
+            <Signature>date_sub(Tuple[Any,Int]):Tuple[Any]</Signature>
             <FunctionType>simple</FunctionType>
             <Description>Returns the date after the subtraction</Description>
         </Function>
