@@ -17,6 +17,7 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
+import com.datastax.driver.core.TableMetadata
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
@@ -24,8 +25,8 @@ import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Sel
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
-import com.stratio.crossdata.common.data.{ClusterName, TableName}
-import com.stratio.crossdata.common.metadata.ColumnMetadata
+import com.stratio.crossdata.common.data.{Name, ClusterName, TableName}
+import com.stratio.crossdata.common.metadata.{UpdatableMetadata, ColumnMetadata}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
@@ -34,6 +35,8 @@ import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.connector.sparksql.{SparkSQLConnector, SparkSQLContext, providers}
 import com.stratio.connector.sparksql.CrossdataConverters._
 import com.stratio.connector.sparksql.engine.query.QueryManager._
+
+import scala.util.Try
 
 /**
  * Query engine that support async., paged or sync. queries
@@ -140,12 +143,12 @@ object QueryEngine extends Loggable with Metrics {
       val projectInfo: (ConnectionHandler,Project) => Option[(DataStore,GlobalOptions)] = (connectionHandler,project) => {
         val cluster = project.getClusterName
         connectionHandler.getConnection(cluster.getName).map{
-          case connection => (
-            connection.config.getDataStoreName.getName,
-            globalOptions(connection.config)++
-              SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3).getOptions.map{
-                case (k,v) => k.getStringValue -> v.getStringValue
-              })
+          case connection =>
+            (connection.config.getDataStoreName.getName,
+              globalOptions(connection.config) ++
+                Option(SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3000)).map(_.getOptions.toMap.map{
+                  case (k,v) => k.getStringValue -> v.getStringValue
+                }).getOrElse(Map()))
         }
       }
       val providedProjects = for {
