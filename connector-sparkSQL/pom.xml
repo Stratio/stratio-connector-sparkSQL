@@ -293,14 +293,6 @@
                 <artifactId>crossdata-connector-maven-plugin</artifactId>
                 <groupId>com.stratio.crossdata</groupId>
                 <version>${version.crossdata}</version>
-                <!--<executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>install</goal>
-                        </goals>
-                    </execution>
-                </executions>-->
                 <configuration>
                 <mainClass>
                     com.stratio.connector.sparksql.SparkSQLConnector
