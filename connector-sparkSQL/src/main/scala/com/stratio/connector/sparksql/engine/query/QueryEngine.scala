@@ -19,7 +19,7 @@ package com.stratio.connector.sparksql.engine.query
 
 import com.datastax.driver.core.TableMetadata
 import com.stratio.connector.sparksql.connection.ConnectionHandler
-import com.stratio.connector.sparksql.providers.Provider
+import com.stratio.connector.sparksql.providers.{CustomContextProvider, Provider}
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
 
 import scala.collection.JavaConversions._
@@ -246,17 +246,36 @@ object QueryEngine extends Loggable with Metrics {
     sqlContext: SparkSQLContext,
     provider: Provider,
     options: Map[String, String]): Unit = {
-    if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
-      logger.warn(s"Tried to register $tableName table but it already exists!")
-    else {
-      logger.debug(s"Registering table [$tableName]")
-      val statement = createTable(
-        tableName,
-        provider,
-        options)
-      logger.debug(s"Statement: $statement")
-      sqlContext.sql(statement)
+
+    def register(
+      tableName:String,
+      sqlContext:SparkSQLContext,
+      provider: Provider,
+      options:Map[String,String]): Unit = {
+      if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
+        logger.warn(s"Tried to register $tableName table but it already exists!")
+      else {
+        logger.debug(s"Registering table [$tableName]")
+        val statement = createTable(
+          tableName,
+          provider,
+          options)
+        logger.debug(s"Statement: $statement")
+        sqlContext.sql(statement)
+      }
     }
+
+    provider match {
+      case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
+        provider.sqlContext.foreach{ context =>
+          register(tableName,context,provider,options)
+          val dataFrame = context.table(tableName)
+          sqlContext.createDataFrame(dataFrame.rdd,dataFrame.schema).registerTempTable(tableName)
+        }
+      case simpleProvider =>
+        register(tableName,sqlContext,provider,options)
+    }
+
   }
 
   /**

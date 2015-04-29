@@ -3,6 +3,7 @@ package com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.connection.Connection
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
+import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
 
 /**
@@ -14,6 +15,12 @@ trait Provider {
    * DefaultSource qualifed package name
    */
   val datasource: String
+
+  /**
+   * Initialize current provider
+   * @param sc Driver SparkContext
+   */
+  def initialize(sc: SparkContext): Unit = ()
 
   /**
    * How to create a connection from a cluster that uses

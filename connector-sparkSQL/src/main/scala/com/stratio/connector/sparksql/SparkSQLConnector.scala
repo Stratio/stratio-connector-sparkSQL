@@ -104,6 +104,9 @@ with Metrics {
 
   override def init(configuration: IConfiguration): Unit =
     timeFor(s"SparkSQL connector initialized.") {
+      timeFor("All providers are initialized") {
+        providers.all.flatMap(providers.apply).foreach(_.initialize(sparkContext))
+      }
       timeFor("Subscribed to metadata updates.") {
         connectorApp.foreach(_.subscribeToMetadataUpdate(
           SparkSQLMetadataListener(
