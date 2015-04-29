@@ -13,7 +13,7 @@
 
     <property>
         <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:mysql://10.200.0.44/testmetastore?createDatabaseIfNotExist=true</value>
+        <value>jdbc:mysql://benchmark1/testmetastore?createDatabaseIfNotExist=true</value>
         <description>JDBC connect string for a JDBC metastore</description>
     </property>
 
