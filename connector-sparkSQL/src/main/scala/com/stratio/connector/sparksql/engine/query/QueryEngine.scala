@@ -121,12 +121,9 @@ object QueryEngine extends Loggable with Metrics {
   def executeQuery(
     workflow: LogicalWorkflow,
     sqlContext: SparkSQLContext,
-    connectionHandler: ConnectionHandler): DataFrame = {
+    connectionHandler: ConnectionHandler,
+    metadataTimeout: Int = 3000): DataFrame = {
     import timer._
-    type Cluster = String
-    type DataStore = String
-    type Table = String
-    type GlobalOptions = Map[String,String]
     withProjects(connectionHandler, workflow) { projects =>
       //  Extract raw query from workflow
       val query = timeFor(s"Got workflow plain query.") {
@@ -134,47 +131,29 @@ object QueryEngine extends Loggable with Metrics {
       }
       logger.debug(s"Workflow plain query before format : [$query]")
       //  Format query for avoiding conflicts such as 'catalog.table' issue
-      val formattedQuery = timeFor("Query formatted to SparkSQL format") {
-        sparkSQLFormat(query,catalogsFromWorkflow(workflow))
-      }
-      logger.info(s"Query after general format: [$formattedQuery]")
-      //TODO Add parameter for timeout in retrieving table metadata
       //TODO What if different tables join with column name coincidences?
       //  Format query for adapting it to involved providers
-      val projectInfo: (ConnectionHandler,Project) => Option[(DataStore,GlobalOptions)] = (connectionHandler,project) => {
-        val cluster = project.getClusterName
-        connectionHandler.getConnection(cluster.getName).map{
-          case connection =>
-            (connection.config.getDataStoreName.getName,
-              globalOptions(connection.config) ++
-                /*Option(SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3000)).map(_.getOptions.toMap.map{
-                  case (k,v) => k.getStringValue -> v.getStringValue
-                }).getOrElse(*/Map("namespace" -> "",
-                  "tableName" -> "personasSpark2",
-                  "hbaseTableName" -> "personas",
-                  "colsSeq" -> "datos:,datos:padre,numeros:edad,numeros:telefono",
-                  "keyCols" -> "datos:,string",
-                  "nonKeyCols" -> "datos:padre,string,datos,padre;numeros:edad,integer,numeros,edad;numeros:telefono,integer,numeros,telefono",
-                  "mapped_fields" -> "personas.datos->datos:,personas.padre->datos:padre,personas.edad->numeros:edad,personas.telefono->numeros:telefono"))//)
-        }
-      }
       val providedProjects = for {
-        (datastore,globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler,project))
+        (datastore, globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler, project,metadataTimeout))
         provider <- providers.apply(datastore)
       } yield (provider, globalOptions)
-      val providersFormatted = (formattedQuery /: providedProjects){
-        case (statement,(provider,options)) => provider.formatSQL(statement,options)
+      val providersFormatted = (query /: providedProjects) {
+        case (statement, (provider, options)) => provider.formatSQL(statement, options)
       }
       logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
+      val formattedQuery = timeFor("Query formatted to SparkSQL format") {
+        sparkSQLFormat(providersFormatted, catalogsFromWorkflow(workflow))
+      }
+      logger.info(s"Query after general format: [$formattedQuery]")
       //  Execute actual query ...
-      val rdd = sqlContext.sql(providersFormatted)
+      val rdd = sqlContext.sql(formattedQuery)
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(rdd.schema.treeString)
       //Format dataFrame schema
-      val formattedDataframe = sqlContext.createDataFrame(rdd.rdd,(rdd.schema /: providedProjects){
-        case (schema,(provider,options)) => provider.formatSchema(schema,options)
+      val formattedDataframe = sqlContext.createDataFrame(rdd.rdd, (rdd.schema /: providedProjects) {
+        case (schema, (provider, options)) => provider.formatSchema(schema, options)
       })
-      //Return obtained RDD
+      //Return schema-formatted DataFrame
       formattedDataframe
     }
   }
@@ -200,18 +179,17 @@ object QueryEngine extends Loggable with Metrics {
     logger.debug(s"ColumnTypes : $columnTypes\nSelectors : $selectors")
     //  Map them into ColumnMetadata
     selectors.map {
-      case fs : FunctionSelector => new ColumnMetadata(fs.getColumnName,Array(),functionType(fs.getFunctionName))
-      case  s => val columnName = s.getColumnName
+      case fs: FunctionSelector => new ColumnMetadata(fs.getColumnName, Array(), functionType(fs.getFunctionName))
+      case s => val columnName = s.getColumnName
         Option(s.getAlias).foreach(columnName.setAlias)
         new ColumnMetadata(
           columnName,
           Array(),
-          columnTypes.getOrElse(s.getColumnName.getName,columnTypes(s.getAlias)))
+          columnTypes.getOrElse(s.getColumnName.getName, columnTypes(s.getAlias)))
     }
 
 
   }
-
 
 
   /**
@@ -227,8 +205,8 @@ object QueryEngine extends Loggable with Metrics {
 
     //  Remove catalog name
 
-    val withoutCatalog = (statement /: catalogs){
-      case (s,catalog) => s.replaceAll(s"$catalog.","")
+    val withoutCatalog = (statement /: catalogs) {
+      case (s, catalog) => s.replaceAll(s"$catalog.", "")
     }
 
     withoutCatalog
@@ -292,6 +270,34 @@ object QueryEngine extends Loggable with Metrics {
   def globalOptions(config: ConnectorClusterConfig): Map[String, String] =
     config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
 
+  type DataStore = String
+  type GlobalOptions = Map[String, String]
+
+  /**
+   * Retrieves project info and metadata options from given project and connection
+   *
+   * @param connectionHandler ConnectionHandler for retrieving related connection
+   * @param project Workflow project
+   * @param metadataTimeout Timeout for synchronous call
+   * @return A possible pair of data store name and its options.
+   */
+  private def projectInfo(
+    connectionHandler: ConnectionHandler,
+    project: Project,
+    metadataTimeout: Int): Option[(DataStore, GlobalOptions)] = {
+    val cluster = project.getClusterName
+    connectionHandler.getConnection(cluster.getName).map {
+      case connection =>
+        (connection.config.getDataStoreName.getName,
+          globalOptions(connection.config) ++
+            SparkSQLConnector.connectorApp
+              .getTableMetadata(cluster, project.getTableName, metadataTimeout)
+              .map(_.getOptions.toMap.map {
+              case (k, v) => k.getStringValue -> v.getStringValue
+            }).getOrElse(Map()))
+    }
+  }
+
   /*
    *  Provides the necessary syntax for creating a table in SparkSQL.
    */
@@ -337,7 +343,7 @@ object QueryEngine extends Loggable with Metrics {
     lw.getInitialSteps.map {
       case project: Project => {
         val catalogName = project.getCatalogName
-        if (logger.isDebugEnabled){
+        if (logger.isDebugEnabled) {
           logger.debug(s"Catalog [$catalogName] has been find in the logicalWorkflow")
         }
         catalogName
