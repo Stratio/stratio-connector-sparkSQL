@@ -19,6 +19,7 @@ package com.stratio.connector.sparksql.engine.query
 
 import com.datastax.driver.core.TableMetadata
 import com.stratio.connector.sparksql.connection.ConnectionHandler
+import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener
 import com.stratio.connector.sparksql.providers.{CustomContextProvider, Provider}
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
 
@@ -125,7 +126,7 @@ object QueryEngine extends Loggable with Metrics {
     type Cluster = String
     type DataStore = String
     type Table = String
-    type GlobalOptions = Map[String,String]
+    type GlobalOptions = Map[String, String]
     withProjects(connectionHandler, workflow) { projects =>
       //  Extract raw query from workflow
       val query = timeFor(s"Got workflow plain query.") {
@@ -134,29 +135,32 @@ object QueryEngine extends Loggable with Metrics {
       logger.debug(s"Workflow plain query before format : [$query]")
       //  Format query for avoiding conflicts such as 'catalog.table' issue
       val formattedQuery = timeFor("Query formatted to SparkSQL format") {
-        sparkSQLFormat(query,catalogsFromWorkflow(workflow))
+        sparkSQLFormat(query, catalogsFromWorkflow(workflow))
       }
       logger.info(s"Query after general format: [$formattedQuery]")
       //TODO Add parameter for timeout in retrieving table metadata
       //TODO What if different tables join with column name coincidences?
       //  Format query for adapting it to involved providers
-      val projectInfo: (ConnectionHandler,Project) => Option[(DataStore,GlobalOptions)] = (connectionHandler,project) => {
+      val projectInfo: (ConnectionHandler, Project) => Option[(DataStore, GlobalOptions)] = (connectionHandler, project) => {
         val cluster = project.getClusterName
-        connectionHandler.getConnection(cluster.getName).map{
+        connectionHandler.getConnection(cluster.getName).map {
           case connection =>
             (connection.config.getDataStoreName.getName,
               globalOptions(connection.config) ++
-                Option(SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3000)).map(_.getOptions.toMap.map{
-                  case (k,v) => k.getStringValue -> v.getStringValue
+                //TODO: Change below line for the following when 'metadata' is removed from SparkSQLListener object.
+                //SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3000)
+                SparkSQLMetadataListener.metadata(cluster, project.getTableName)
+                  .map(_.getOptions.toMap.map {
+                  case (k, v) => k.getStringValue -> v.getStringValue
                 }).getOrElse(Map()))
         }
       }
       val providedProjects = for {
-        (datastore,globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler,project))
+        (datastore, globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler, project))
         provider <- providers.apply(datastore)
       } yield (provider, globalOptions)
-      val providersFormatted = (formattedQuery /: providedProjects){
-        case (statement,(provider,options)) => provider.formatSQL(statement,options)
+      val providersFormatted = (formattedQuery /: providedProjects) {
+        case (statement, (provider, options)) => provider.formatSQL(statement, options)
       }
       logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
       //  Execute actual query ...
@@ -189,18 +193,17 @@ object QueryEngine extends Loggable with Metrics {
     logger.debug(s"ColumnTypes : $columnTypes\nSelectors : $selectors")
     //  Map them into ColumnMetadata
     selectors.map {
-      case fs : FunctionSelector => new ColumnMetadata(fs.getColumnName,Array(),functionType(fs.getFunctionName))
-      case  s => val columnName = s.getColumnName
+      case fs: FunctionSelector => new ColumnMetadata(fs.getColumnName, Array(), functionType(fs.getFunctionName))
+      case s => val columnName = s.getColumnName
         Option(s.getAlias).foreach(columnName.setAlias)
         new ColumnMetadata(
           columnName,
           Array(),
-          columnTypes.getOrElse(s.getColumnName.getName,columnTypes(s.getAlias)))
+          columnTypes.getOrElse(s.getColumnName.getName, columnTypes(s.getAlias)))
     }
 
 
   }
-
 
 
   /**
@@ -216,8 +219,8 @@ object QueryEngine extends Loggable with Metrics {
 
     //  Remove catalog name
 
-    val withoutCatalog = (statement /: catalogs){
-      case (s,catalog) => s.replaceAll(s"$catalog.","")
+    val withoutCatalog = (statement /: catalogs) {
+      case (s, catalog) => s.replaceAll(s"$catalog.", "")
     }
 
     withoutCatalog
@@ -248,10 +251,10 @@ object QueryEngine extends Loggable with Metrics {
     options: Map[String, String]): Unit = {
 
     def register(
-      tableName:String,
-      sqlContext:SparkSQLContext,
+      tableName: String,
+      sqlContext: SparkSQLContext,
       provider: Provider,
-      options:Map[String,String],
+      options: Map[String, String],
       temporaryTable: Boolean = false): Unit = {
       if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
         logger.warn(s"Tried to register $tableName table but it already exists!")
@@ -269,17 +272,17 @@ object QueryEngine extends Loggable with Metrics {
 
     provider match {
       case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
-        provider.sqlContext.foreach{ context =>
+        provider.sqlContext.foreach { context =>
           logger.debug(s"Registering $tableName into '${provider.datasource}' specific context")
-          register(tableName,context,provider,options,!provider.catalogPersistence)
+          register(tableName, context, provider, options, !provider.catalogPersistence)
           logger.debug(s"Retrieving table '$tableName' as dataframe")
           val dataFrame = context.table(tableName)
           logger.debug(s"Registering dataframe with schema ${dataFrame.schema} into common context'")
-          sqlContext.createDataFrame(dataFrame.rdd,dataFrame.schema).registerTempTable(tableName)
+          sqlContext.createDataFrame(dataFrame.rdd, dataFrame.schema).registerTempTable(tableName)
         }
       case simpleProvider =>
         logger.debug(s"Registering $tableName into regular context")
-        register(tableName,sqlContext,provider,options)
+        register(tableName, sqlContext, provider, options)
     }
 
   }
@@ -350,8 +353,8 @@ object QueryEngine extends Loggable with Metrics {
     lw.getInitialSteps.map {
       case project: Project => {
         val catalogName = project.getCatalogName
-        if (logger.isDebugEnabled){
-          logger.debug(s"Catalog [$catalogName] has been find in the logicalWorkflow")
+        if (logger.isDebugEnabled) {
+          logger.debug(s"Catalog [$catalogName] has been found in the logicalWorkflow")
         }
         catalogName
       }

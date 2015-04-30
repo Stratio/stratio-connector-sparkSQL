@@ -74,6 +74,9 @@ class ConnectionHandler extends Loggable with Constants{
     }
   }
 
+  def getConnections(): Map[ConnectionId, Connection] =
+    withConnections(connections)
+
   def startJob(connectionId: ConnectionId): Unit = {
     withConnections{
       connections.get(connectionId).foreach{connection =>

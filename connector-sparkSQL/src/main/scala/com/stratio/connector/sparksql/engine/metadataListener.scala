@@ -23,7 +23,7 @@ import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.SparkSQLContext
 import com.stratio.crossdata.common.connector.IMetadataListener
 import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.crossdata.common.data.Name
+import com.stratio.crossdata.common.data.{ClusterName, TableName, Name}
 import com.stratio.crossdata.common.metadata.{UpdatableMetadata, TableMetadata}
 import com.stratio.crossdata.common.statements.structures.{Selector, StringSelector}
 import org.slf4j.Logger
@@ -37,23 +37,36 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
 
   import timer._
 
+  //TODO: Remove 'metadata' from this object (Workaround 'till fix of Crossdata metadata bug).
+
+  private var _metadata: Map[(ClusterName, TableName), TableMetadata] = Map()
+
+  def metadata(cluster: ClusterName,table: TableName): Option[TableMetadata] =
+    _metadata.get(cluster -> table)
+
   def apply(
     sqlContext: SparkSQLContext,
     connectionHandler: ConnectionHandler): IMetadataListener =
     MetadataListener {
       case updatedMetadata: TableMetadata =>
         logger.info(s"Received updated table metadata [$updatedMetadata]")
+        logger.debug(s"Active connections : [${connectionHandler.getConnections()}'")
+        val clusterName = updatedMetadata.getClusterRef
+        val tableName = updatedMetadata.getName
         timeFor("Received updated table metadata.") {
           for {
-            connection <- connectionHandler.getConnection(updatedMetadata.getClusterRef.getName)
+            connection <- connectionHandler.getConnection(clusterName.getName)
             provider <- providers.apply(connection.config.getDataStoreName.getName)
-          } registerTable(
-            qualified(updatedMetadata.getName),
-            sqlContext,
-            provider,
-            globalOptions(connection.config) ++ updatedMetadata.getOptions.toMap.map{
-              case (k,v) => k.getStringValue -> v.getStringValue
-            })
+          } {
+            synchronized(_metadata += ((clusterName,tableName) -> updatedMetadata))
+            registerTable(
+              qualified(tableName),
+              sqlContext,
+              provider,
+              globalOptions(connection.config) ++ updatedMetadata.getOptions.toMap.map {
+                case (k, v) => k.getStringValue -> v.getStringValue
+              })
+          }
         }
       case other: UpdatableMetadata =>
         logger.debug(s"'$other'[${other.getClass}] has no callbacks associated...")
