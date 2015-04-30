@@ -6,6 +6,7 @@ import com.stratio.crossdata.common.security.ICredentials
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hbase.HBaseSQLContext
+import org.apache.spark.sql.types.{StructField, StructType}
 
 case object HBase extends Provider {
 
@@ -46,5 +47,17 @@ case object HBase extends Provider {
       val (crossdataField :: hbaseField :: Nil) = field.split("->").toList
       crossdataField -> hbaseField
   }.toMap
+
+  override def formatSchema(
+    schema: StructType,
+    options: Map[String,String] = Map()): StructType = {
+    val mapping = options.get(MappedFieldsOption).map(parseMapping).getOrElse(Map()).map{
+      case (k,v) => v -> k
+    }
+    new StructType(schema.iterator.map{
+      case StructField(name,tpe,nullable,metadata) =>
+        new StructField(mapping(name),tpe,nullable,metadata)
+    }.toArray)
+  }
 
 }

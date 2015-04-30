@@ -21,6 +21,7 @@ import com.datastax.driver.core.TableMetadata
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
+import org.apache.spark.sql.hive.HiveContext
 
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
@@ -146,9 +147,15 @@ object QueryEngine extends Loggable with Metrics {
           case connection =>
             (connection.config.getDataStoreName.getName,
               globalOptions(connection.config) ++
-                Option(SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3000)).map(_.getOptions.toMap.map{
+                /*Option(SparkSQLConnector.connectorApp.getTableMetadata(cluster,project.getTableName,3000)).map(_.getOptions.toMap.map{
                   case (k,v) => k.getStringValue -> v.getStringValue
-                }).getOrElse(Map()))
+                }).getOrElse(*/Map("namespace" -> "",
+                  "tableName" -> "personasSpark2",
+                  "hbaseTableName" -> "personas",
+                  "colsSeq" -> "datos:,datos:padre,numeros:edad,numeros:telefono",
+                  "keyCols" -> "datos:,string",
+                  "nonKeyCols" -> "datos:padre,string,datos,padre;numeros:edad,integer,numeros,edad;numeros:telefono,integer,numeros,telefono",
+                  "mapped_fields" -> "personas.datos->datos:,personas.padre->datos:padre,personas.edad->numeros:edad,personas.telefono->numeros:telefono"))//)
         }
       }
       val providedProjects = for {
@@ -163,8 +170,12 @@ object QueryEngine extends Loggable with Metrics {
       val rdd = sqlContext.sql(providersFormatted)
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(rdd.schema.treeString)
+      //Format dataFrame schema
+      val formattedDataframe = sqlContext.createDataFrame(rdd.rdd,(rdd.schema /: providedProjects){
+        case (schema,(provider,options)) => provider.formatSchema(schema,options)
+      })
       //Return obtained RDD
-      rdd
+      formattedDataframe
     }
   }
 
@@ -253,7 +264,8 @@ object QueryEngine extends Loggable with Metrics {
       val statement = createTable(
         tableName,
         provider,
-        options)
+        options,
+        temporary = !sqlContext.isInstanceOf[HiveContext])
       logger.debug(s"Statement: $statement")
       sqlContext.sql(statement)
     }

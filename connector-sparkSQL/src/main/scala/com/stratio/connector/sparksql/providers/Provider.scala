@@ -4,6 +4,7 @@ import com.stratio.connector.sparksql.connection.Connection
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
 import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.types.StructType
 
 /**
  * Represents a custom SparkSQL Data Source.
@@ -40,5 +41,17 @@ trait Provider {
   def formatSQL(
     statement: String,
     options: Map[String,String] = Map()): String = statement
+
+  /**
+   * Format back retrieved schema from dataframe into expected
+   * original schema.
+   *
+   * @param schema Retrieved dataframe schema
+   * @param options Option map
+   * @return The formatted schema
+   */
+  def formatSchema(
+    schema: StructType,
+    options: Map[String,String] = Map()): StructType = schema
 
 }
