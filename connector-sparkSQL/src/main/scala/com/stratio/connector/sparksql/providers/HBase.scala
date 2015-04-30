@@ -8,6 +8,8 @@ case object HBase extends CustomContextProvider[HBaseSQLContext with Catalog] {
 
   val datasource: String = "org.apache.spark.sql.hbase.HBaseSource"
 
+  val catalogPersistence = false
+
   def buildContext(sc: SparkContext) = new HBaseSQLContext(sc) with Catalog
 
   val MappedFieldsOption = "mapped_fields"

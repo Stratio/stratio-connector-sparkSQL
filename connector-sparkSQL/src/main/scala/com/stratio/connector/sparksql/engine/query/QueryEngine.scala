@@ -251,7 +251,8 @@ object QueryEngine extends Loggable with Metrics {
       tableName:String,
       sqlContext:SparkSQLContext,
       provider: Provider,
-      options:Map[String,String]): Unit = {
+      options:Map[String,String],
+      temporaryTable: Boolean = false): Unit = {
       if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
         logger.warn(s"Tried to register $tableName table but it already exists!")
       else {
@@ -259,7 +260,8 @@ object QueryEngine extends Loggable with Metrics {
         val statement = createTable(
           tableName,
           provider,
-          options)
+          options,
+          temporaryTable)
         logger.debug(s"Statement: $statement")
         sqlContext.sql(statement)
       }
@@ -268,11 +270,15 @@ object QueryEngine extends Loggable with Metrics {
     provider match {
       case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
         provider.sqlContext.foreach{ context =>
-          register(tableName,context,provider,options)
+          logger.debug(s"Registering $tableName into '${provider.datasource}' specific context")
+          register(tableName,context,provider,options,!provider.catalogPersistence)
+          logger.debug(s"Retrieving table '$tableName' as dataframe")
           val dataFrame = context.table(tableName)
+          logger.debug(s"Registering dataframe with schema ${dataFrame.schema} into common context'")
           sqlContext.createDataFrame(dataFrame.rdd,dataFrame.schema).registerTempTable(tableName)
         }
       case simpleProvider =>
+        logger.debug(s"Registering $tableName into regular context")
         register(tableName,sqlContext,provider,options)
     }
 

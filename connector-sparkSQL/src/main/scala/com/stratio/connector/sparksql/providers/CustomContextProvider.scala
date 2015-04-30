@@ -7,6 +7,8 @@ trait CustomContextProvider[Context <: SparkSQLContext] extends Provider {
 
   var sqlContext: Option[Context] = None
 
+  val catalogPersistence: Boolean
+
   def buildContext(sc: SparkContext): Context
 
   def initializeContext(sc: SparkContext): Unit =
