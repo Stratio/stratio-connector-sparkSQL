@@ -34,6 +34,8 @@ import com.stratio.connector.sparksql.{SparkSQLConnector, SparkSQLContext, provi
 import com.stratio.connector.sparksql.CrossdataConverters._
 import com.stratio.connector.sparksql.engine.query.QueryManager._
 
+import scala.util.Try
+
 /**
  * Query engine that support async., paged or sync. queries
  *
@@ -236,7 +238,7 @@ object QueryEngine extends Loggable with Metrics {
       sqlContext: SparkSQLContext,
       provider: Provider,
       options: Map[String, String],
-      temporaryTable: Boolean = false): Unit = {
+      temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
       if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
         logger.warn(s"Tried to register $tableName table but it already exists!")
       else {
@@ -249,6 +251,9 @@ object QueryEngine extends Loggable with Metrics {
         logger.debug(s"Statement: $statement")
         sqlContext.sql(statement)
       }
+    }.recover {
+      case t: Throwable =>
+        logger.warn(s"Error at registering table '$tableName' : ${t.getMessage}")
     }
 
     provider match {
