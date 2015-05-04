@@ -200,7 +200,7 @@ object QueryEngine extends Loggable with Metrics {
     //  Remove catalog name
 
     val withoutCatalog = (statement /: catalogs){
-      case (s,catalog) => s.replaceAll(s"$catalog.","")
+      case (s,catalog) => s.replaceAll(s" $catalog\\."," ")
     }
 
     withoutCatalog
