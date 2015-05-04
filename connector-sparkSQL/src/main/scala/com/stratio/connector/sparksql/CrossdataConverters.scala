@@ -62,7 +62,7 @@ object CrossdataConverters extends Loggable {
     val groupSize = 5000
     rows.grouped(groupSize).zipWithIndex.foreach {
       case (it, index) =>
-        it.foreach(row => resultSet.add(toCrossDataRow(row, schema)))
+        it.foreach(row => resultSet.add(toCrossDataRow(row, schema, metadata)))
         logger.debug(s"The connector has inserted ${index * groupSize} rows in the resultset")
     }
 
@@ -74,15 +74,19 @@ object CrossdataConverters extends Loggable {
    * Convert some SparkSQL row into a Crossdata row
    * @param row SparkSQL row to be converted
    * @param schema Row structure
+   * @param metadata Crossdata column metadata
    * @return A new Resultset with all converted rows
    */
-  def toCrossDataRow(row: SparkSQLRow, schema: StructType): XDRow = {
+  def toCrossDataRow(
+    row: SparkSQLRow,
+    schema: StructType,
+    metadata: List[ColumnMetadata]): XDRow = {
     val fields = schema.fields
     val xdRow = new XDRow()
-    fields.zipWithIndex.foreach {
-      case (field, idx) => {
+    fields.zipWithIndex.zip(metadata).foreach {
+      case ((field, idx),meta) => {
         xdRow.addCell(
-          field.name,
+          meta.getName.getColumnNameToShow,
           new Cell(toCellValue(row(idx), field.dataType)))
 
       }
