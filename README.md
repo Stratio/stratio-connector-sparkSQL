@@ -11,41 +11,16 @@ SparkSQL connector for Crossdata.
 Requirements
 ------------
 
-Tune up ```MAVEN_OPTS``` with:
-
-    > export MAVEN_OPTS="-XX:MaxPermSize=512m -Xmx3072m"
-
-Stratio HBase connector must be downloaded from  [here] (<https://github.com/Stratio/hbase>) and installed with
-
-    hbase/
-
-    > mvn -e -T1C -Phbase,hadoop-2.4  -Dhadoop.version=2.4.0 -DskipTests clean package install
-
-As well as [Stratio Cassandra connector] (<https://github.com/Stratio/spark-cassandra-connector>) (branch SPARKC-112)
-
-    spark-cassandra-connector/
-
-    > sbt publishM2
+You need to install sbt and maven.
 
 Stratio SparkSQL must be installed and started. [Crossdata] (<https://github.com/Stratio/crossdata>) is needed in order to interact with this connector.
 
-Compiling Stratio SparkSQL Connector
-------------------------------------
-
-To automatically build execute the following command:
-
-    stratio-connector-sparkSQL/
-
-    > mvn clean compile install -DskipTests
-
-Build an executable SparkSQL Connector
---------------------------------------
-
-To generate the executable, execute the following command in
-
-    stratio-connector-sparkSQL/connector-sparkSQL/
-
-    > mvn crossdata-connector:install
+Compiling, building and generating the executable for Stratio SparkSQL Connector
+--------------------------------------------------------------------------------
+    
+    stratio-connector-sparkSQL/	
+    
+    > sh scripts/installconnector.sh
 
 This connector might be used for querying Parquet HDFS files, so it should use HDFSDatastore, defined as well in [Stratio HDFS][] :
 
