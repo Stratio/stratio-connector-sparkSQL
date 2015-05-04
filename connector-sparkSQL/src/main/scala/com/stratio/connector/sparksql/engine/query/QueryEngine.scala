@@ -17,27 +17,22 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
-import com.datastax.driver.core.TableMetadata
-import com.stratio.connector.sparksql.connection.ConnectionHandler
-import com.stratio.connector.sparksql.providers.Provider
-import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
-import org.apache.spark.sql.hive.HiveContext
-
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
-import com.stratio.crossdata.common.data.{Name, ClusterName, TableName}
-import com.stratio.crossdata.common.metadata.{UpdatableMetadata, ColumnMetadata}
+import com.stratio.crossdata.common.data.TableName
+import com.stratio.crossdata.common.metadata.ColumnMetadata
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
+import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
 import com.stratio.connector.commons.timer
 import com.stratio.connector.commons.{Loggable, Metrics}
+import com.stratio.connector.sparksql.connection.ConnectionHandler
+import com.stratio.connector.sparksql.providers.{CustomContextProvider, Provider}
 import com.stratio.connector.sparksql.{SparkSQLConnector, SparkSQLContext, providers}
 import com.stratio.connector.sparksql.CrossdataConverters._
 import com.stratio.connector.sparksql.engine.query.QueryManager._
-
-import scala.util.Try
 
 /**
  * Query engine that support async., paged or sync. queries
@@ -134,7 +129,7 @@ object QueryEngine extends Loggable with Metrics {
       //TODO What if different tables join with column name coincidences?
       //  Format query for adapting it to involved providers
       val providedProjects = for {
-        (datastore, globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler, project,metadataTimeout))
+        (datastore, globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler, project, metadataTimeout))
         provider <- providers.apply(datastore)
       } yield (provider, globalOptions)
       val providersFormatted = (query /: providedProjects) {
@@ -235,18 +230,42 @@ object QueryEngine extends Loggable with Metrics {
     sqlContext: SparkSQLContext,
     provider: Provider,
     options: Map[String, String]): Unit = {
-    if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
-      logger.warn(s"Tried to register $tableName table but it already exists!")
-    else {
-      logger.debug(s"Registering table [$tableName]")
-      val statement = createTable(
-        tableName,
-        provider,
-        options,
-        temporary = !sqlContext.isInstanceOf[HiveContext])
-      logger.debug(s"Statement: $statement")
-      sqlContext.sql(statement)
+
+    def register(
+      tableName: String,
+      sqlContext: SparkSQLContext,
+      provider: Provider,
+      options: Map[String, String],
+      temporaryTable: Boolean = false): Unit = {
+      if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
+        logger.warn(s"Tried to register $tableName table but it already exists!")
+      else {
+        logger.debug(s"Registering table [$tableName]")
+        val statement = createTable(
+          tableName,
+          provider,
+          options,
+          temporaryTable)
+        logger.debug(s"Statement: $statement")
+        sqlContext.sql(statement)
+      }
     }
+
+    provider match {
+      case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
+        provider.sqlContext.foreach { context =>
+          logger.debug(s"Registering $tableName into '${provider.datasource}' specific context")
+          register(tableName, context, provider, options, !provider.catalogPersistence)
+          logger.debug(s"Retrieving table '$tableName' as dataframe")
+          val dataFrame = context.table(tableName)
+          logger.debug(s"Registering dataframe with schema ${dataFrame.schema} into common context'")
+          sqlContext.createDataFrame(dataFrame.rdd, dataFrame.schema).registerTempTable(tableName)
+        }
+      case simpleProvider =>
+        logger.debug(s"Registering $tableName into regular context")
+        register(tableName, sqlContext, provider, options)
+    }
+
   }
 
   /**
@@ -341,13 +360,11 @@ object QueryEngine extends Loggable with Metrics {
 
   def catalogsFromWorkflow(lw: LogicalWorkflow): Iterable[String] = {
     lw.getInitialSteps.map {
-      case project: Project => {
+      case project: Project =>
         val catalogName = project.getCatalogName
-        if (logger.isDebugEnabled) {
+        if (logger.isDebugEnabled)
           logger.debug(s"Catalog [$catalogName] has been find in the logicalWorkflow")
-        }
         catalogName
-      }
     }
   }
 
