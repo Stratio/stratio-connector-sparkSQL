@@ -51,16 +51,4 @@ trait Provider extends Loggable {
     statement: String,
     options: Map[String,String] = Map()): String = statement
 
-  /**
-   * Format back retrieved schema from dataframe into expected
-   * original schema.
-   *
-   * @param schema Retrieved dataframe schema
-   * @param options Option map
-   * @return The formatted schema
-   */
-  def formatSchema(
-    schema: StructType,
-    options: Map[String,String] = Map()): StructType = schema
-
 }

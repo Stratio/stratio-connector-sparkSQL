@@ -24,9 +24,9 @@ case object Cassandra extends Provider with Constants{
     val cassConfig = Map(
       CassandraConnectionHostProperty -> clusterOptions("hosts"),
       CassandraConnectionNativePortProperty ->
-        clusterOptions.getOrElse("nativePort", "9042"),
+        clusterOptions.getOrElse("nativePort", "9042"),//TODO Magical value. Read nativePort from properties file
       CassandraConnectionRpcPortProperty ->
-        clusterOptions.getOrElse("rpcPort", "9160"))
+        clusterOptions.getOrElse("rpcPort", "9160"))//TODO Magical value. Read rpcPort from properties file
     sqlContext.addCassandraConnConf(
       clusterName,
       CassandraConnectorConf(conf.setAll(cassConfig)))

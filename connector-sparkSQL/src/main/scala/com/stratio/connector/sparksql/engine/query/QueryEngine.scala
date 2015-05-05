@@ -127,8 +127,6 @@ object QueryEngine extends Loggable with Metrics {
         workflow.getSqlDirectQuery
       }
       logger.debug(s"Workflow plain query before format : [$query]")
-      //  Format query for avoiding conflicts such as 'catalog.table' issue
-      //TODO What if different tables join with column name coincidences?
       //  Format query for adapting it to involved providers
       val providedProjects = for {
         (datastore, globalOptions) <- projects.flatMap(project => projectInfo(connectionHandler, project, metadataTimeout))
@@ -138,6 +136,7 @@ object QueryEngine extends Loggable with Metrics {
         case (statement, (provider, options)) => provider.formatSQL(statement, options)
       }
       logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
+      //  Format query for avoiding conflicts such as 'catalog.table' issue
       val formattedQuery = timeFor("Query formatted to SparkSQL format") {
         sparkSQLFormat(providersFormatted, catalogsFromWorkflow(workflow))
       }
@@ -146,12 +145,8 @@ object QueryEngine extends Loggable with Metrics {
       val rdd = sqlContext.sql(formattedQuery)
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(rdd.schema.treeString)
-      //Format dataFrame schema
-      val formattedDataframe = sqlContext.createDataFrame(rdd.rdd, (rdd.schema /: providedProjects) {
-        case (schema, (provider, options)) => provider.formatSchema(schema, options)
-      })
-      //Return schema-formatted DataFrame
-      formattedDataframe
+      //Return dataframe
+      rdd
     }
   }
 
@@ -178,7 +173,8 @@ object QueryEngine extends Loggable with Metrics {
     selectors.map {
       case fs: FunctionSelector =>
         new ColumnMetadata(fs.getColumnName, Array(), functionType(fs.getFunctionName))
-      case s => val columnName = s.getColumnName
+      case s =>
+        val columnName = s.getColumnName
         Option(s.getAlias).foreach(columnName.setAlias)
         new ColumnMetadata(
           columnName,
