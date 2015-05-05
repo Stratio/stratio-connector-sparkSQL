@@ -48,10 +48,8 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
         logger.info(s"Received updated catalog metadata [$catalogMetadata]")
         catalogMetadata.getTables.toMap.values.foreach(metadata =>
           tableCallback(metadata,connectionHandler,sqlContext))
-      case other: UpdatableMetadata =>
-        logger.debug(s"'$other'[${other.getClass}] has no callbacks associated...")
     } {
-      case deletedMetadata: Name =>
+      case deletedMetadata: TableName =>
         logger.info(s"Received deleted table metadata [$deletedMetadata]")
         timeFor("Received deleted table metadata") {
           unregisterTable(

@@ -176,7 +176,8 @@ object QueryEngine extends Loggable with Metrics {
     logger.debug(s"ColumnTypes : $columnTypes\nSelectors : $selectors")
     //  Map them into ColumnMetadata
     selectors.map {
-      case fs: FunctionSelector => new ColumnMetadata(fs.getColumnName, Array(), functionType(fs.getFunctionName))
+      case fs: FunctionSelector =>
+        new ColumnMetadata(fs.getColumnName, Array(), functionType(fs.getFunctionName))
       case s => val columnName = s.getColumnName
         Option(s.getAlias).foreach(columnName.setAlias)
         new ColumnMetadata(
