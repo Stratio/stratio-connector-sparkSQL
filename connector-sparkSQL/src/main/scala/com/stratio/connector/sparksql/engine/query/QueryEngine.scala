@@ -17,6 +17,10 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
+import com.stratio.connector.sparksql.connection.ConnectionHandler
+import com.stratio.connector.sparksql.providers.Provider
+import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
+
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
@@ -113,6 +117,8 @@ object QueryEngine extends Loggable with Metrics {
    *
    * @param workflow Given workflow.
    * @param sqlContext Targeted SQL context.
+   * @param connectionHandler Connection handler for all attached clusters.
+   * @param metadataTimeout Timeout for querying connector actor.
    * @return Obtained DataFrame.
    */
   def executeQuery(
@@ -186,6 +192,7 @@ object QueryEngine extends Loggable with Metrics {
   }
 
 
+
   /**
    * Maps catalog.table names that use dots into some other without them.
    *
@@ -199,8 +206,8 @@ object QueryEngine extends Loggable with Metrics {
 
     //  Remove catalog name
 
-    val withoutCatalog = (statement /: catalogs) {
-      case (s, catalog) => s.replaceAll(s"$catalog.", "")
+    val withoutCatalog = (statement /: catalogs){
+      case (s,catalog) => s.replaceAll(s" $catalog\\."," ")
     }
 
     withoutCatalog
