@@ -170,11 +170,13 @@ with Metrics {
     val (rows, idx) = chunk
     currentJob.foreach { job =>
       job.resultHandler.processResult {
+        logger.debug(s"Preparing query result [$idx] for query ${job.queryId}")
         val result = QueryResult.createQueryResult(
           toResultSet(rows, schema, toColumnMetadata(job.workflow)),
           idx,
           isLast)
         result.setQueryId(job.queryId)
+        logger.debug(s"Query result [$idx] for query ${job.queryId} sent to resultHandler")
         result
       }
     }
