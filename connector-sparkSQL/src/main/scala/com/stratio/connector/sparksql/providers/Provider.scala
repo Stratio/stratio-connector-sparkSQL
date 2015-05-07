@@ -16,7 +16,7 @@ trait Provider extends Loggable {
   /**
    * DefaultSource qualifed package name
    */
-  val datasource: String
+  val dataSource: String
 
   /**
    * Initialize current provider

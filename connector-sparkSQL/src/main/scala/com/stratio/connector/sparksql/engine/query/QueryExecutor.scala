@@ -58,11 +58,11 @@ with Metrics {
 
   var currentSchema: Option[StructType] = None
 
+  /** Current job chunks iterator*/
   var rddChunks: Iterator[Chunk] = List.empty[Chunk].iterator
 
+  /** Maximum time for waiting at count approx in chunk split*/
   val timeoutCountApprox = connectorConfig.get.getInt(CountApproxTimeout).seconds
-
-  private val me: String = s"[QueryExecutor#${context.self}}]"
 
   override def receive = {
 
@@ -90,6 +90,8 @@ with Metrics {
 
   //  Helpers
 
+  def me: String = s"[QueryExecutor#${context.self}}]"
+
   /**
    * Start a new async query job. This will execute the given query
    * on SparkSQL and the repartition results for handling them in
@@ -115,7 +117,7 @@ with Metrics {
               .repartition((amount.high / pageSize).toInt + {
               if (amount.high % pageSize == 0) 0 else 1
             }).rdd
-            logger.debug(s"Dataframe split into ${repartitioned.partitions.length} partitions")
+            logger.debug(s"DataFrame split into ${repartitioned.partitions.length} partitions")
             rddChunks = repartitioned
               .toLocalIterator
               .grouped(pageSize)

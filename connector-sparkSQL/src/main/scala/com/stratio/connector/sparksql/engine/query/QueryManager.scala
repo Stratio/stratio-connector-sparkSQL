@@ -26,6 +26,15 @@ import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
 import com.stratio.connector.commons.timer
 
+/**
+ * A QueryManager deploys a bunch of query executors.
+ * It's in charge of orchestrating them and rooting job requests.
+ * @param executorsAmount Amount of query executors
+ * @param sqlContext SQLContext
+ * @param provider A DataFrame provider, that is, the way to create a DataFrame
+ *                 given a certain context.
+ * @param connectionHandler The connection handler.
+ */
 class QueryManager(
   executorsAmount: Int,
   sqlContext: SparkSQLContext,
@@ -46,8 +55,10 @@ with Metrics {
   //  All query executors are busy or not
   var busy: Boolean = false
 
+  /** Relation of pending queries and executors that are executing them.*/
   var pendingQueries: PendingQueriesMap = Map()
 
+  /** Query executors that remain free*/
   var freeExecutors: Set[QueryExecutorRef] = {
     logger.info(s"Created query executors pool $executorsAmount-sized")
     timeFor("Created query executors pool.") {
