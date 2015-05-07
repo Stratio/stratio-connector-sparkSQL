@@ -120,7 +120,15 @@ class QueryEngineTest extends Test("QueryEngine") {
          |where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241
          |group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc""",
   s"""select catalog.catalog.catalog as column, catalog.catalog.other as catalog, precatalog.table.column as other from catalog.catalog where catalog.catalog.catalog = 10""" ->
-    s"""select catalog.catalog as column, catalog.other as catalog, table.column as other from catalog where catalog.catalog = 10"""
+    s"""select catalog.catalog as column, catalog.other as catalog, table.column as other from catalog where catalog.catalog = 10""",
+  s"""select catalog.table.column1 from table where column2 = \" catalog.\""""" ->
+  s"""select table.column1 from table where column2 = \" catalog.\""""",
+    s"""select catalog.table.column1 from table where column2 = ' catalog.'"""" ->
+      s"""select table.column1 from table where column2 = ' catalog.'"""",
+  s"""select catalog.table.column1 from table where column2 = ' The catalog. name'"""" ->
+    s"""select table.column1 from table where column2 = ' The catalog. name'"""",
+    s"""select catalog.table.column1 from table where column2 = \" The catalog. name\""""" ->
+      s"""select table.column1 from table where column2 = \" The catalog. name\"""""
 
   )
 
