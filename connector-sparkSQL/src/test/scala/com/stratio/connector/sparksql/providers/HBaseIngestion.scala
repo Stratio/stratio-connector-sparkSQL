@@ -15,15 +15,17 @@ object HBaseIngestion extends App with Generators{
 
   lazy val hbaseContext: HBaseSQLContext = new HBaseSQLContext(sparkContext)
 
-  val tableName = s"hbasecustomers_${System.currentTimeMillis()}"
+  val tableName = s"clientes"
 
-  val sampleSize = 450
+  val sparkTableName = s"${tableName}_${System.currentTimeMillis()}"
 
-  hbaseContext.sql(s"""CREATE TABLE $tableName (id STRING, name STRING, surname STRING,
+  val sampleSize = 10
+
+  hbaseContext.sql(s"""CREATE TABLE $sparkTableName (id STRING, name STRING, surname STRING,
                      age INTEGER, PRIMARY KEY (id))
-                    MAPPED BY (hbase_customers, COLS=[name=`data.name`, surname=`data.surname`, age=`data.age`])""")
+                    MAPPED BY ($tableName, COLS=[name=`data.name`, surname=`data.surname`, age=`data.age`])""")
 
-  Gen.listOfN(sampleSize,customerGen(tableName)).sample.getOrElse(List())
+  Gen.listOfN(sampleSize,customerGen(sparkTableName)).sample.getOrElse(List())
     .foreach { statement =>
     hbaseContext.sql(statement)
   }
