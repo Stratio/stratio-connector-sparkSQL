@@ -27,6 +27,9 @@ import org.apache.spark.sql.{DataFrame, Row => SparkSQLRow}
 import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
 
+/**
+ * Provides the way to create Crossdata structures given some Spark's.
+ */
 object CrossdataConverters extends Loggable {
 
   import scala.collection.JavaConversions._
@@ -88,9 +91,7 @@ object CrossdataConverters extends Loggable {
         xdRow.addCell(
           meta.getName.getColumnNameToShow,
           new Cell(toCellValue(row(idx), field.dataType)))
-
       }
-
     }
     xdRow
   }

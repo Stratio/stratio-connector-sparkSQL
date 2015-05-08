@@ -22,7 +22,7 @@ import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.engine.query.{QueryManager, QueryEngine}
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
-import com.stratio.crossdata.common.exceptions.{InitializationException, UnsupportedException}
+import com.stratio.crossdata.common.exceptions.UnsupportedException
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
 import com.typesafe.config.Config
@@ -152,9 +152,6 @@ with Metrics {
    */
   def initContext(config: Config): SparkContext = {
     import scala.collection.JavaConversions._
-
-
-
     new SparkContext(new SparkConf()
       .setAppName(SparkSQLConnector.SparkSQLConnectorJobConstant)
       .setSparkHome(config.getString(SparkHome))

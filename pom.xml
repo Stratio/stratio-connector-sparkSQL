@@ -23,7 +23,7 @@
     <packaging>pom</packaging>
     <description>Stratio SparkSQL connector parent</description>
     <properties>
-        <version.crossdata>0.3.0-SNAPSHOT</version.crossdata>
+        <version.crossdata>0.3.0-RC1</version.crossdata>
         <scala.version>2.10.4</scala.version>
         <scala.test.version>2.2.1</scala.test.version>
         <scala.binary.version>2.10</scala.binary.version>

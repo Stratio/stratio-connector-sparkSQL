@@ -38,7 +38,7 @@ class QueryEngineTest extends Test("QueryEngine") {
   val resultHandler = None.orNull[IResultHandler]
   val connectionHandler = None.orNull[ConnectionHandler]
   val provider = new Provider {
-    val datasource = "my-provider"
+    val dataSource = "my-provider"
   }
 
   it should "execute async. queries" in {

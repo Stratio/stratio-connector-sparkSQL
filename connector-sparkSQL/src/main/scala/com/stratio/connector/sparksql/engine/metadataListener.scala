@@ -23,9 +23,8 @@ import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.SparkSQLContext
 import com.stratio.crossdata.common.connector.IMetadataListener
 import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.crossdata.common.data.{ClusterName, TableName, Name}
+import com.stratio.crossdata.common.data.{TableName, Name}
 import com.stratio.crossdata.common.metadata.{CatalogMetadata, UpdatableMetadata, TableMetadata}
-import com.stratio.crossdata.common.statements.structures.{Selector, StringSelector}
 import org.slf4j.Logger
 import com.stratio.connector.sparksql.engine.query.QueryEngine._
 import scala.collection.JavaConversions._
