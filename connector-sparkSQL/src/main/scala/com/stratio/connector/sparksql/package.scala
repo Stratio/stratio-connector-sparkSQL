@@ -55,7 +55,6 @@ private[sparksql] trait Constants {
   val HBaseContext = "HBaseContext"
   val CountApproxTimeout = "connector.count-approx-timeout"
   val QueryExecutorsAmount = "connector.query-executors.size"
-  val ConnectorProvider = "connector.provider"
   val SQLContextType = "connector.sql-context-type"
   val AsyncStoppable = "connector.async-stoppable"
   val ChunkSize = "connector.query-executors.chunk-size"
