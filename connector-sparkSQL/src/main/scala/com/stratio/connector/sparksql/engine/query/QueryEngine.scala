@@ -140,12 +140,8 @@ object QueryEngine extends Loggable with Metrics {
       }
       logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
       //  Format query for avoiding conflicts such as 'catalog.table' issue
-      val formattedQuery = timeFor("Query formatted to SparkSQL format") {
-        sparkSQLFormat(providersFormatted, catalogsFromWorkflow(workflow))
-      }
-      logger.info(s"Query after general format: [$formattedQuery]")
       //  Execute actual query ...
-      val rdd = sqlContext.sql(formattedQuery)
+      val rdd = sqlContext.sql(providersFormatted)
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(rdd.schema.treeString)
       //Return dataFrame
@@ -188,27 +184,6 @@ object QueryEngine extends Loggable with Metrics {
 
   }
 
-
-  /**
-   * Maps catalog.table names that use dots into some other without them.
-   *
-   * @param statement Query statement.
-   * @return Escaped query statement
-   */
-  def sparkSQLFormat(
-    statement: Query,
-    catalogs: Iterable[String],
-    conflictChar: String = "."): Query = {
-
-    //  Remove catalog name
-
-    val withoutCatalog = (statement /: catalogs) {
-      case (s, catalog) => s.replaceAll(s" $catalog\\.", " ")
-    }
-
-    withoutCatalog
-  }
-
   /**
    * Converts name to canonical format.
    *
@@ -228,50 +203,61 @@ object QueryEngine extends Loggable with Metrics {
    * @param options Options map.
    */
   def registerTable(
+    catalogName: String,
     tableName: String,
     sqlContext: SparkSQLContext,
     provider: Provider,
-    options: Map[String, String]): Unit = {
-
-    //Aux register method, generic for no mather what SQLContext is being used
-    def register(
-      tableName: String,
-      sqlContext: SparkSQLContext,
-      provider: Provider,
-      options: Map[String, String],
-      temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
-      if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
-        logger.warn(s"Tried to register $tableName table but it already exists!")
-      else {
-        logger.debug(s"Registering table [$tableName]")
-        val statement = createTable(
-          tableName,
-          provider,
-          options,
-          temporaryTable)
-        logger.debug(s"Statement: $statement")
-        sqlContext.sql(statement)
-      }
-    }.recover {
-      case t: Throwable =>
-        logger.error(s"Error at registering table '$tableName' : ${t.getMessage}")
-    }
-
+    options: Map[String, String]): Unit =
     provider match {
       case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
         provider.sqlContext.foreach { context =>
-          logger.debug(s"Registering $tableName into '${provider.dataSource}' specific context")
-          register(tableName, context, provider, options, !provider.catalogPersistence)
-          logger.debug(s"Retrieving table '$tableName' as dataFrame")
-          val dataFrame = context.table(tableName)
+          logger.debug(s"Registering [$catalogName].[$tableName] into '${provider.dataSource}' specific context")
+          genRegister(catalogName, tableName, context, provider, options, !provider.catalogPersistence)
+          logger.debug(s"Retrieving table [$catalogName].[$tableName] as dataFrame")
+          val tableFullName = s"$catalogName.$tableName"
+          val dataFrame = context.table(tableFullName)
           logger.debug(s"Registering dataFrame with schema ${dataFrame.schema} into common context'")
-          sqlContext.createDataFrame(dataFrame.rdd, dataFrame.schema).registerTempTable(tableName)
+          sqlContext.createDataFrame(dataFrame.rdd, dataFrame.schema).registerTempTable(tableFullName)
         }
       case simpleProvider =>
         logger.debug(s"Registering $tableName into regular context")
-        register(tableName, sqlContext, provider, options)
+        genRegister(catalogName, tableName, sqlContext, provider, options)
     }
 
+  //  Aux register method, generic for no mather what SQLContext is being used
+  private def genRegister(
+    catalogName: String,
+    tableName: String,
+    sqlContext: SparkSQLContext,
+    provider: Provider,
+    options: Map[String, String],
+    temporaryTable: Boolean = false): Try[Unit] = {
+    val tableFullName = s"$catalogName.$tableName"
+    (for {
+      _ <- Try {
+        //Register catalog
+        logger.debug(s"Registering catalog [$catalogName]")
+        sqlContext.sql(createCatalog(catalogName))
+      }
+      _ <- Try {
+        //Register table
+        if (sqlContext.getCatalog.tableExists(Seq(catalogName, tableName)))
+          logger.warn(s"Tried to register $tableFullName table but it already exists!")
+        else {
+          logger.debug(s"Registering table [$tableFullName]")
+          val statement = createTable(
+              tableFullName,
+              provider,
+              options,
+              temporaryTable)
+          logger.debug(s"Statement: $statement")
+          sqlContext.sql(s"USE $catalogName;$statement")
+        }
+      }
+    } yield ()).recover {
+      case t: Throwable =>
+        logger.error(s"Error at registering table '$tableFullName' : ${t.getMessage}")
+    }
   }
 
   /**
@@ -329,13 +315,22 @@ object QueryEngine extends Loggable with Metrics {
   }
 
   /**
+   * Returns a SparkSQL script for creating a catalog.
+   *
+   * @param catalog Catalog name to be created
+   * @return A SparkSQL script.
+   */
+  private def createCatalog(catalog: String): String =
+    s"CREATE DATABASE IF NOT EXISTS $catalog COMMENT '$catalog'"
+
+  /**
    * Returns an Spark SQL script for creating a table.
    *
    * @param table Table name to be registered
    * @param provider Used dataSource for creating the table
    * @param options Options map to be used in table creation
    * @param temporary Is this one a temporary table?
-   * @return An Spark SQL script.
+   * @return A Spark SQL script.
    */
   private def createTable(
     table: String,
