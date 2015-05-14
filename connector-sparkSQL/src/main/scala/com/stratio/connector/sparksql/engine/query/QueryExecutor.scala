@@ -54,21 +54,33 @@ with Metrics {
 
   type Chunk = (Iterator[Row], Int)
 
-  var currentJob: Option[JobCommand] = None
+  var currentJob: Option[AsyncJob] = None
 
   var currentSchema: Option[StructType] = None
 
-  /** Current job chunks iterator*/
+  /** Current job chunks iterator */
   var rddChunks: Iterator[Chunk] = List.empty[Chunk].iterator
 
-  /** Maximum time for waiting at count approx in chunk split*/
+  /** Maximum time for waiting at count approx in chunk split */
   val timeoutCountApprox = connectorConfig.get.getInt(CountApproxTimeout).seconds
 
   override def receive = {
 
-    case job @ PagedExecute(_,_,_,pageSize) =>
+    case job@SyncExecute(_, workflow) =>
+      val requester = sender()
+      val dataFrame = timeFor(s"Processed sync. job request: $job") {
+        QueryEngine.executeQuery(workflow, sqlContext, connectionHandler)
+      }
+      val result = timeFor(s"Unique query result processed.") {
+        QueryResult.createQueryResult(
+          toResultSet(dataFrame, toColumnMetadata(workflow)), 0, true)
+      }
+      requester ! result
+
+
+    case job@PagedExecute(_, _, _, pageSize) =>
       timeFor(s"$me Processed paged job request : $job") {
-        startNewJob(job,pageSize)
+        startNewJob(job, pageSize)
       }
 
     case job: AsyncExecute =>
@@ -100,7 +112,7 @@ with Metrics {
    *
    * @param job Query to be asynchronously executed.
    */
-  def startNewJob(job: JobCommand, pageSize: Int = defaultChunkSize): Unit =
+  def startNewJob(job: AsyncJob, pageSize: Int = defaultChunkSize): Unit =
     timeFor(s"$me Job ${job.queryId} is started") {
       //  Update current job
       currentJob = Option(job)

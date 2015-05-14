@@ -17,8 +17,10 @@
  */
 package com.stratio.connector.sparksql.engine
 
+import akka.actor.ActorRef
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.connection.ConnectionHandler
+import com.stratio.connector.sparksql.engine.query.QueryManager.{Unregistered, Registered}
 import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.SparkSQLContext
 import com.stratio.crossdata.common.connector.IMetadataListener
@@ -38,44 +40,46 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
 
   def apply(
     sqlContext: SparkSQLContext,
-    connectionHandler: ConnectionHandler): IMetadataListener =
+    connectionHandler: ConnectionHandler,
+    queryManager: ActorRef): IMetadataListener =
     MetadataListener {
       case tableMetadata: TableMetadata =>
         logger.info(s"Received updated table metadata [$tableMetadata]")
-        tableCallback(tableMetadata,connectionHandler,sqlContext)
+        tableCallback(tableMetadata,connectionHandler,sqlContext, queryManager)
       case catalogMetadata: CatalogMetadata =>
         logger.info(s"Received updated catalog metadata [$catalogMetadata]")
         catalogMetadata.getTables.toMap.values.foreach(metadata =>
-          tableCallback(metadata,connectionHandler,sqlContext))
+          tableCallback(metadata,connectionHandler,sqlContext,queryManager))
     } {
-      case deletedMetadata: TableName =>
-        logger.info(s"Received deleted table metadata [$deletedMetadata]")
+      case deletedTable: TableName =>
+        logger.info(s"Received deleted table metadata [$deletedTable]")
         timeFor("Received deleted table metadata") {
           unregisterTable(
-            deletedMetadata.getQualifiedName,
+            deletedTable.getQualifiedName,
             sqlContext)
+          queryManager ! Unregistered(deletedTable)
         }
     }
 
   private def tableCallback(
     tableMetadata: TableMetadata,
     connectionHandler: ConnectionHandler,
-    sqlContext: SparkSQLContext): Unit = {
+    sqlContext: SparkSQLContext,
+    queryManager: ActorRef): Unit = {
     val clusterName = tableMetadata.getClusterRef
     val tableName = tableMetadata.getName
     timeFor("Received updated table metadata.") {
       for {
         connection <- connectionHandler.getConnection(clusterName.getName)
         provider <- providers.apply(connection.config.getDataStoreName.getName)
-      } {
-        registerTable(
-          qualified(tableName),
+        _ <- registerTable(
+          tableName.getName,
           sqlContext,
           provider,
           globalOptions(connection.config) ++ tableMetadata.getOptions.toMap.map {
             case (k, v) => k.getStringValue -> v.getStringValue
           })
-      }
+      } queryManager ! Registered(tableName)
     }
   }
 

@@ -23,6 +23,7 @@ import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.connector.sparksql.{SparkSQLContext, SparkSQLConnector}
 import com.stratio.connector.sparksql.engine.query.QueryExecutor.DataFrameProvider
 import com.stratio.crossdata.common.connector.IResultHandler
+import com.stratio.crossdata.common.data.TableName
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
 import com.stratio.connector.commons.timer
 
@@ -74,11 +75,12 @@ with Metrics {
 
   override def receive: Receive = {
 
-    case job: JobCommand =>
+    case job: Job =>
       logger.info(s"[QueryManager] Processed job request : [$job]")
+      val requester = sender()
       timeFor(s"[QueryManager] Processed job request.") {
         if (busy) stash()
-        else assignJob(job)
+        else assignJob(job,requester)
       }
 
     case Stop(queryId) =>
@@ -93,6 +95,12 @@ with Metrics {
         finish(queryId)
       }
 
+    case Registered(table) =>
+      //TODO Handle table registration
+
+    case Unregistered(table) =>
+      //TODO Handle table un-registration
+
   }
 
   //  Helpers
@@ -104,7 +112,7 @@ with Metrics {
    *
    * @param msg The new async query to be executed
    */
-  def assignJob(msg: JobCommand): Unit = {
+  def assignJob(msg: Job,sender: ActorRef): Unit = {
     val (executor, rest) = freeExecutors.splitAt(1)
     freeExecutors = rest
     pendingQueries += (msg.queryId -> executor.head)
@@ -145,11 +153,15 @@ object QueryManager {
 
   //  Messages
 
-  sealed trait JobCommand {
+  sealed trait Job {
 
     def queryId: QueryManager#QueryId
 
     def workflow: LogicalWorkflow
+
+  }
+
+  sealed trait AsyncJob extends Job {
 
     def resultHandler: IResultHandler
 
@@ -157,23 +169,33 @@ object QueryManager {
 
   }
 
+  case class SyncExecute(
+    queryId: QueryManager#QueryId,
+    workflow: LogicalWorkflow) extends Job
+  
   case class PagedExecute(
     queryId: QueryManager#QueryId,
     workflow: LogicalWorkflow,
     resultHandler: IResultHandler,
-    pageSize: Int) extends JobCommand {
+    pageSize: Int) extends AsyncJob {
     override def currentChunk = Some(pageSize)
   }
 
   case class AsyncExecute(
     queryId: QueryManager#QueryId,
     workflow: LogicalWorkflow,
-    resultHandler: IResultHandler) extends JobCommand
+    resultHandler: IResultHandler) extends AsyncJob
 
   case class Stop(
     queryId: QueryManager#QueryId)
 
   case class Finished(
     queryId: QueryManager#QueryId)
+
+  case class Registered(
+    table: TableName)
+
+  case class Unregistered(
+    table: TableName)
 
 }

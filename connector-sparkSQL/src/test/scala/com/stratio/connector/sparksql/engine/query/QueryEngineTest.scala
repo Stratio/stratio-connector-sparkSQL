@@ -20,7 +20,7 @@ package com.stratio.connector.sparksql.engine.query
 import akka.testkit.TestProbe
 import com.stratio.connector.sparksql.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.connection.ConnectionHandler
-import com.stratio.connector.sparksql.engine.query.QueryManager.{Stop, PagedExecute, AsyncExecute}
+import com.stratio.connector.sparksql.engine.query.QueryManager._
 import com.stratio.connector.sparksql.Test
 import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.connector.IResultHandler
@@ -39,6 +39,13 @@ class QueryEngineTest extends Test("QueryEngine") {
   val connectionHandler = None.orNull[ConnectionHandler]
   val provider = new Provider {
     val dataSource = "my-provider"
+  }
+
+  it should "execute sync. queries" in {
+    val queryManager = TestProbe()
+    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler)
+    qe.execute(workflow)
+    queryManager.expectMsg(SyncExecute("", workflow))
   }
 
   it should "execute async. queries" in {
