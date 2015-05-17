@@ -141,8 +141,14 @@ object QueryEngine extends Loggable with Metrics {
       val providersFormatted = (formattedQuery /: providedClusters){
         case (statement,(provider,options)) => provider.formatSQL(statement,options)
       }
+
+      logger.info("Find for partialResults")
+      val partialsResults = PartialResultProcessor().recoveredPartialResult(workflow)
+
       logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
       //  Execute actual query ...
+
+
       val rdd = sqlContext.sql(providersFormatted)
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(rdd.schema.treeString)
