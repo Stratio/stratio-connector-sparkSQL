@@ -17,6 +17,8 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
+import com.stratio.crossdata.common.data.TableName
+
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import akka.pattern.ask
@@ -192,6 +194,18 @@ object QueryEngine extends Loggable with Metrics {
           columnName,
           Array(),
           columnTypes.getOrElse(s.getColumnName.getName, columnTypes(s.getAlias)))
+    }
+  }
+
+  /**
+   * Get involved tables in some query workflow.
+   *
+   * @param workflow Logical workflow
+   * @return
+   */
+  def involvedTables(workflow: LogicalWorkflow): Iterable[TableName] = {
+    workflow.getInitialSteps.map{
+      case p: Project => p.getTableName
     }
   }
 

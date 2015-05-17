@@ -73,15 +73,29 @@ with Metrics {
     }
   }
 
+  /** Registered tables*/
+  var registeredTables: Set[TableName] = Set()
+
   override def receive: Receive = {
 
-    case job: Job =>
+    case job @ SyncExecute(_,workflow) =>
+      logger.info(s"[QueryManager] Processed job request : [$job]")
+      val (registered,notRegistered) = QueryEngine
+        .involvedTables(workflow)
+        .partition(table => registeredTables.contains(table))
+      if (notRegistered.isEmpty){
+        val requester = sender()
+        executeJob(job,requester)
+      } else {
+        logger.warn(s"Not all involved tables are registered: $notRegistered")
+        self forward job
+      }
+
+
+    case job: AsyncJob =>
       logger.info(s"[QueryManager] Processed job request : [$job]")
       val requester = sender()
-      timeFor(s"[QueryManager] Processed job request.") {
-        if (busy) stash()
-        else assignJob(job,requester)
-      }
+      executeJob(job,requester)
 
     case Stop(queryId) =>
       logger.info(s"[QueryManager] Stopped query [$queryId]")
@@ -96,14 +110,29 @@ with Metrics {
       }
 
     case Registered(table) =>
-      //TODO Handle table registration
+      logger.info(s"[QueryManager] Registered table ${table.getQualifiedName}")
+      registeredTables += table
 
     case Unregistered(table) =>
-      //TODO Handle table un-registration
+      logger.info(s"[QueryManager] Unregistered table ${table.getQualifiedName}")
+      registeredTables -= table
 
+    case other => println(s"Unexpected: $other [${other.getClass}]")
   }
 
   //  Helpers
+
+  /**
+   * Assign any type of job to first free executor
+   * @param job Job to be executed
+   * @param requester ActorRef that requests this query execution.
+   */
+  def executeJob(job: Job,requester: ActorRef): Unit = {
+    timeFor(s"[QueryManager] Processed job request.") {
+      if (busy) stash()
+      else assignJob(job,requester)
+    }
+  }
 
   /**
    * Assign a new async query execution to some free executor.

@@ -17,6 +17,7 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
+import akka.actor.{Props, Actor}
 import akka.testkit.TestProbe
 import com.stratio.connector.sparksql.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.connection.ConnectionHandler
@@ -24,9 +25,10 @@ import com.stratio.connector.sparksql.engine.query.QueryManager._
 import com.stratio.connector.sparksql.Test
 import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.connector.IResultHandler
-import com.stratio.crossdata.common.data.{ColumnName, TableName, ClusterName}
+import com.stratio.crossdata.common.data.{ResultSet, ColumnName, TableName, ClusterName}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalStep, LogicalWorkflow}
 import com.stratio.crossdata.common.metadata.{DataType, ColumnType, Operations, ColumnMetadata}
+import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.crossdata.common.statements.structures.{AsteriskSelector, Selector}
 
 class QueryEngineTest extends Test("QueryEngine") {
@@ -42,10 +44,20 @@ class QueryEngineTest extends Test("QueryEngine") {
   }
 
   it should "execute sync. queries" in {
-    val queryManager = TestProbe()
-    val qe = new QueryEngine(sqlContext, queryManager.ref, connectionHandler)
+    val probe = TestProbe()
+    val queryManager = system.actorOf(Props(new Actor{
+      override def receive = {
+        case msg =>
+          val response = QueryResult.createQueryResult("",None.orNull[ResultSet],0,true)
+          sender ! response
+          probe.ref ! response
+      }
+    }))
+    val qe = new QueryEngine(sqlContext, queryManager, connectionHandler)
     qe.execute(workflow)
-    queryManager.expectMsg(SyncExecute("", workflow))
+    probe.expectMsgClass(classOf[QueryResult])
+
+    //queryManager.expectMsgClass(classOf[SyncExecute])
   }
 
   it should "execute async. queries" in {
