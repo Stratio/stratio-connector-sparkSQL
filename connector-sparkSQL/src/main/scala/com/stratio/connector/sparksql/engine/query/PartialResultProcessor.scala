@@ -18,19 +18,19 @@ case class PartialResultProcessor() extends  Loggable{
 
 
   val partialResultType = Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS,Operations.PARTIAL_RESULTS,Operations.SELECT_FULL_OUTER_JOIN_PARTIALS_RESULTS,Operations.SELECT_INNER_JOIN_PARTIALS_RESULTS,Operations.SELECT_LEFT_OUTER_JOIN_PARTIALS_RESULTS,Operations.SELECT_RIGHT_OUTER_JOIN_PARTIALS_RESULTS)
-  def findPartialResutltInProjec(list: List[PartialResults],logicalStep: LogicalStep): List[PartialResults] = {
-    def isPartialResul(p: Join): Boolean = {
+  def findPartialResutltInProject(list: List[PartialResults],logicalStep: LogicalStep): List[PartialResults] = {
+    def isPartialResult(p: Join): Boolean = {
       p.getOperations.asScala.subsetOf(partialResultType)
     }
     logicalStep match {
       case p: Join => {
-        if (isPartialResul(p)) {
+        if (isPartialResult(p)) {
           logger.info(s"New partial result find with id ${p.getId}")
-          list ::: findPartialResutltInProjec(List(), p.getFirstPrevious) ::: findPartialResutltInProjec(List(), p.getNextStep)
+          list ::: findPartialResutltInProject(List(), p.getFirstPrevious) ::: findPartialResutltInProject(List(), p.getNextStep)
         } else list
       }
       case pr: PartialResults => list :+ pr
-      case ls: LogicalStep => findPartialResutltInProjec(List(),ls.getNextStep)
+      case ls: LogicalStep => findPartialResutltInProject(List(),ls.getNextStep)
 
       case _ => List() 
     }
@@ -38,7 +38,7 @@ case class PartialResultProcessor() extends  Loggable{
 
 
   def recoveredPartialResult(workflow: LogicalWorkflow) : Iterable[PartialResults] ={
-   workflow.getInitialSteps.asScala.flatMap(ls => findPartialResutltInProjec(List(),ls))
+   workflow.getInitialSteps.asScala.flatMap(ls => findPartialResutltInProject(List(),ls))
   }
 
 

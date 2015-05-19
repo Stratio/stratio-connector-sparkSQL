@@ -17,11 +17,16 @@
  */
 package com.stratio.connector.sparksql
 
+import com.stratio.connector.sparksql.CrossdataConverters.XDCell
+import com.stratio.crossdata.common.data.{ColumnName, Cell, Row}
+import com.stratio.crossdata.common.metadata.{ColumnType, ColumnMetadata}
 import org.apache.spark.sql.catalyst.expressions.GenericRow
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import org.apache.spark.sql.types._
+
+import scala.util.{Failure, Success}
 
 class CrossdataConvertersTest extends Test("CrossdataConverters") {
 
@@ -84,6 +89,42 @@ class CrossdataConvertersTest extends Test("CrossdataConverters") {
     }
 
   }
+
+  it should "deduce type of the fields in a row" in {
+    import com.stratio.crossdata.common.metadata.DataType._
+    val metadataList = List(new ColumnMetadata(new ColumnName("catalog","table","column0"), null,new ColumnType(INT)),new ColumnMetadata(new ColumnName("catalog","table","column1"), null,new ColumnType(TEXT)))
+    val r = new Row()
+    r.addCell("0",new Cell(1))
+    r.addCell("1",new Cell("field1"))
+
+    val result = CrossdataConverters.deduceFieldsType(r, metadataList)
+    val expected = List((new Cell(1), "column0",new ColumnType(INT)),(new Cell("field1"), "column1",new ColumnType(TEXT)))
+
+    result.zipWithIndex.foreach{
+
+      case (tuple, count) => {
+        val (val1,name, tpe) = expected.get(count)
+        val val2 = tuple._1.asInstanceOf[Cell].getValue
+        val1.getValue should equal(val2)
+        name should equal (tuple._2)
+      }
+    }
+
+  }
+
+
+  it should "to sparksql row" in {
+    import com.stratio.crossdata.common.metadata.DataType._
+    val input = List((new Cell(1), "campo1",new ColumnType(INT)),(new Cell("field1"), "campo2",new ColumnType(TEXT)))
+
+
+
+    val result = CrossdataConverters.toSparkSQLRow(input)
+
+    result
+
+  }
+
 
 }
 

@@ -21,17 +21,26 @@ import com.stratio.connector.commons.Loggable
 import com.stratio.crossdata.common.data.{Cell, ResultSet, Row => XDRow}
 import com.stratio.crossdata.common.metadata.{ColumnMetadata, ColumnType}
 import org.apache.spark.sql.catalyst.expressions.GenericRow
-import org.apache.spark.sql.types.{ArrayType, DataType, StructType}
+import org.apache.spark.sql.types.{StructField, ArrayType, DataType, StructType}
 import org.apache.spark.sql.{DataFrame, Row => SparkSQLRow}
+
+import com.stratio.crossdata.common.metadata.{DataType => XDdataType}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
+import scala.util.Try
 
 object CrossdataConverters extends Loggable {
 
   import scala.collection.JavaConversions._
 
   type ColumnTypeMap = Map[String, ColumnType]
+
+  type SparkSQLValue = Any
+
+  type XDCell = Any
+
+  type SparkSQLType = StructType
 
   /**
    * Compute some SchemaRDD and map it into a Crossdata ResultSet
@@ -117,5 +126,70 @@ object CrossdataConverters extends Loggable {
       }
     }.orNull
   }
+
+  def toSchemaRDD(resultSet: ResultSet, sparkSQLContext: SparkSQLContext) : DataFrame = {
+    val metadata = resultSet.getColumnMetadata
+    val xdRows = resultSet.getRows
+
+
+
+
+    val columns = metadata.map(cm => (cm.getName,cm.getColumnType))
+
+
+
+    // inferr schema
+ /*   var schema = SparkSQLType( columns.map{ case (name,tpe)  => StructField(name.getName, tpe., true)})
+    var rdd = // parallelize (lista sparksqlRows)
+    */
+
+
+    //df = sparkSQLContext.createDataFrame(schema, rdd)
+    ???
+
+  }
+
+
+//  def deduceFieldsType (row: XDRow, metadata: List[ColumnMetadata]) : Try [Iterable [(XDCell, ColumnType)]] = Try{
+//    row.getCellList.zipWithIndex.map {
+//      case (cell, count) =>
+//        (cell, metadata.get(count).getColumnType)
+//    }
+//  }
+
+  def deduceFieldsType (row: XDRow, metadata: List[ColumnMetadata]) :  Iterable [(XDCell, String, ColumnType)] = {
+    val (succedeed,failed) = row.getCellList.zipWithIndex.map {
+      case (cell, count) =>
+        Try {
+          (cell, metadata.get(count).getName.getName,metadata.get(count).getColumnType)
+        }
+    }.partition(_.isSuccess)
+    succedeed.map(_.get)
+  }
+
+
+  def toSparkSQLRow (it: Iterable [(XDCell, String, ColumnType)]) : (SparkSQLRow, SparkSQLType) = {
+    import com.stratio.crossdata.common.metadata.DataType._
+    // get values
+
+    val rowsMap = it.map {
+
+      case (value, name, tpe) => value
+    }
+
+//    val schemaMap = it.map {
+//      case (value: Int, name, INT) => value
+//    }
+//
+    val row = SparkSQLRow(Seq(rowsMap))
+    val sparkSQLType = null
+    (row, null)
+  }
+
+
+
+
+
+
 
 }
