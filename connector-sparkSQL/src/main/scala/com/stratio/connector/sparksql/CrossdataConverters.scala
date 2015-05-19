@@ -17,11 +17,12 @@
  */
 package com.stratio.connector.sparksql
 
+import com.datastax.spark.connector.types.IntType
 import com.stratio.connector.commons.Loggable
 import com.stratio.crossdata.common.data.{Cell, ResultSet, Row => XDRow}
 import com.stratio.crossdata.common.metadata.{ColumnMetadata, ColumnType}
 import org.apache.spark.sql.catalyst.expressions.GenericRow
-import org.apache.spark.sql.types.{StructField, ArrayType, DataType, StructType}
+import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row => SparkSQLRow}
 
 import com.stratio.crossdata.common.metadata.{DataType => XDdataType}
@@ -170,19 +171,21 @@ object CrossdataConverters extends Loggable {
 
   def toSparkSQLRow (it: Iterable [(XDCell, String, ColumnType)]) : (SparkSQLRow, SparkSQLType) = {
     import com.stratio.crossdata.common.metadata.DataType._
-    // get values
-
     val rowsMap = it.map {
 
       case (value, name, tpe) => value
     }
 
-//    val schemaMap = it.map {
-//      case (value: Int, name, INT) => value
-//    }
-//
+    val schemaMap = it.map {
+      case (value: Int, name, INT) => StructField(name, IntegerType, true)
+      case (value: Double, name, DOUBLE) => StructField(name, DoubleType, true)
+      case (value: String, name, TEXT) => StructField(name, StringType, true)
+      case (value: String, name, VARCHAR) => StructField(name, StringType, true)
+      case (value: Boolean, name, BOOLEAN) => StructField(name, BooleanType, true)
+    }
+
     val row = SparkSQLRow(Seq(rowsMap))
-    val sparkSQLType = null
+    val sparkSQLType = StructType(schemaMap.toList)
     (row, null)
   }
 
