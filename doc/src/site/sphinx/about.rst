@@ -13,7 +13,12 @@ connector.
 
 Compiling Stratio SparkSQL Connector
 ------------------------------------
+First of all, in the shell where the connector will be running, execute:
 
+::
+
+      > export MAVEN_OPTS="-XX:MaxPermSize=512m -Xmx3072m"
+      
 To automatically build execute the following command:
 
 ::
