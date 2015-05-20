@@ -56,8 +56,7 @@ class PartialResultProcesorTest extends FlatSpec with Matchers {
 
 
 
-  it should "return the partial result in a logical workflow with crossJoing" in {
-
+  it should "return the partial result in a logical workflow with crossJoin" in {
 
     val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
     val partialResult: LogicalStep = new PartialResults(Set(Operations.PARTIAL_RESULTS))

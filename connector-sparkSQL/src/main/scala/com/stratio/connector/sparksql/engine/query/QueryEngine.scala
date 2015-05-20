@@ -20,6 +20,7 @@ package com.stratio.connector.sparksql.engine.query
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
+import org.apache.spark.partial.PartialResult
 
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
@@ -31,9 +32,8 @@ import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflo
 import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.connector.commons.timer
 import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.connector.sparksql.SparkSQLContext
+import com.stratio.connector.sparksql.{CrossdataConverters, SparkSQLContext, providers}
 import com.stratio.connector.sparksql.CrossdataConverters._
-import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.engine.query.QueryManager._
 
 /**
@@ -128,22 +128,33 @@ object QueryEngine extends Loggable with Metrics {
       logger.debug(s"Workflow plain query before format : [$query]")
       //  Format query for avoiding conflicts such as 'catalog.table' issue
       val formattedQuery = timeFor("Query formatted to SparkSQL format") {
-        sparkSQLFormat(query,catalogsFromWorkflow(workflow))
+        sparkSQLFormat(query, catalogsFromWorkflow(workflow))
       }
       logger.info(s"Query after general format: [$formattedQuery]")
       //  Format query for adapting it to involved providers
       val providedClusters = for {
-          clusterName <- clusters
-        (name,provider) <- providers.apply(clusterName.getName).map(provider => clusterName.getName -> provider)
-        (provider,options) <- connectionHandler.getConnection(name).map(connection => provider -> globalOptions(connection.config))
-      } yield (provider,options)
+        clusterName <- clusters
+        (name, provider) <- providers.apply(clusterName.getName).map(provider => clusterName.getName -> provider)
+        (provider, options) <- connectionHandler.getConnection(name).map(connection => provider -> globalOptions(connection.config))
+      } yield (provider, options)
 
-      val providersFormatted = (formattedQuery /: providedClusters){
-        case (statement,(provider,options)) => provider.formatSQL(statement,options)
+      val providersFormatted = (formattedQuery /: providedClusters) {
+        case (statement, (provider, options)) => provider.formatSQL(statement, options)
       }
 
       logger.info("Find for partialResults")
       val partialsResults = PartialResultProcessor().recoveredPartialResult(workflow)
+
+      // if partial results have found, register temp table
+      partialsResults.map {
+        case (pr:PartialResult) => {
+          val resultSet = pr.getResults
+          val df = CrossdataConverters.toSchemaRDD(resultSet, sqlContext)
+        }
+
+      }
+
+
 
       logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
       //  Execute actual query ...

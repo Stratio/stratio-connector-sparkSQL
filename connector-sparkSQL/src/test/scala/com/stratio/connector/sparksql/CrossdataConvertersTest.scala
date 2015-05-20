@@ -98,14 +98,14 @@ class CrossdataConvertersTest extends Test("CrossdataConverters") {
     r.addCell("1",new Cell("field1"))
 
     val result = CrossdataConverters.deduceFieldsType(r, metadataList)
-    val expected = List((new Cell(1), "column0",new ColumnType(INT)),(new Cell("field1"), "column1",new ColumnType(TEXT)))
+    val expected = List((1, "column0",INT),("field1", "column1",TEXT))
 
     result.zipWithIndex.foreach{
 
       case (tuple, count) => {
         val (val1,name, tpe) = expected.get(count)
-        val val2 = tuple._1.asInstanceOf[Cell].getValue
-        val1.getValue should equal(val2)
+        val val2 = tuple._1
+        val1 should equal(val2)
         name should equal (tuple._2)
       }
     }
@@ -115,13 +115,21 @@ class CrossdataConvertersTest extends Test("CrossdataConverters") {
 
   it should "to sparksql row" in {
     import com.stratio.crossdata.common.metadata.DataType._
-    val input = List((new Cell(1), "campo1",new ColumnType(INT)),(new Cell("field1"), "campo2",new ColumnType(TEXT)))
+    val input = List((1, "column0",INT),("field1", "column1",TEXT))
 
 
 
     val result = CrossdataConverters.toSparkSQLRow(input)
 
-    result
+    val row = result._1
+
+
+
+    val tpe = result._2
+
+    row.getInt(0) should equal (1)
+    row.getString(1) should equal ("field1")
+
 
   }
 
