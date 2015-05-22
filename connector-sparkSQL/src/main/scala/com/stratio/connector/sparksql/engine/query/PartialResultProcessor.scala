@@ -26,13 +26,16 @@ case class PartialResultProcessor() extends  Loggable{
       case p: Join => {
         if (isPartialResult(p)) {
           logger.info(s"New partial result find with id ${p.getId}")
-          list ::: findPartialResutltInProject(List(), p.getFirstPrevious) ::: findPartialResutltInProject(List(), p.getNextStep)
+          list ::: findPartialResutltInProject(List(), p.getPreviousSteps.asScala.lastOption.orNull) ::: findPartialResutltInProject(List(), p.getNextStep)
         } else list
       }
-      case pr: PartialResults => list :+ pr
-      case ls: LogicalStep => findPartialResutltInProject(List(),ls.getNextStep)
+      case pr: PartialResults =>
+        list :+ pr
+      case ls: LogicalStep =>
+        findPartialResutltInProject(List(),ls.getNextStep)
 
-      case _ => List() 
+      case _ =>
+        List()
     }
   }
 

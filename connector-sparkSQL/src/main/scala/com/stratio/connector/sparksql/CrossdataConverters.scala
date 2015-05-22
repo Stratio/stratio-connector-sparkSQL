@@ -17,6 +17,8 @@
  */
 package com.stratio.connector.sparksql
 
+import java.math.BigInteger
+
 import com.datastax.spark.connector.types.IntType
 import com.stratio.connector.commons.Loggable
 import com.stratio.crossdata.common.data.{Cell, ResultSet, Row => XDRow}
@@ -130,6 +132,7 @@ object CrossdataConverters extends Loggable {
   }
 
   def toSchemaRDD(resultSet: ResultSet, sparkSQLContext: SparkSQLContext) : DataFrame = {
+    logger.debug(s"ResultSet is: $resultSet" )
     val metadata = resultSet.getColumnMetadata.toList
     val xdRows = resultSet.getRows
     val rows: Iterable[(SparkSQLRow,SparkSQLType)] = xdRows.map{
@@ -138,7 +141,11 @@ object CrossdataConverters extends Loggable {
       }
     }
     val rowRdd = sparkSQLContext.sparkContext.parallelize(rows.map(_._1).toSeq)
-    val df = sparkSQLContext.createDataFrame(rowRdd, rows.head._2)
+    val schema = rows.head._2
+    logger.info(s"Schema deduced from resultset: $schema")
+    val count = rowRdd.count()
+    logger.info(s"Number of rows in dataframe: ${rowRdd.count}")
+    val df = sparkSQLContext.createDataFrame(rowRdd, schema)
     df
   }
 
@@ -173,13 +180,12 @@ object CrossdataConverters extends Loggable {
         StructField(name, StringType, nullable=true)
       case (value: Boolean, name, BOOLEAN) =>
         StructField(name, BooleanType, nullable=true)
-
-        // TODO: More cases
+      case (value, name, BIGINT) =>
+        StructField(name, IntegerType, nullable=true)
+        // TODO More cases
         //
     }
-
     val row = SparkSQLRow.fromSeq(rowsMap.toSeq)
-
     val sparkSQLType = StructType(schemaMap.toList)
     (row, sparkSQLType)
   }

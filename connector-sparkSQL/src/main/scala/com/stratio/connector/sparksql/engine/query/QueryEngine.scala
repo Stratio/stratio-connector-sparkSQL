@@ -146,14 +146,23 @@ object QueryEngine extends Loggable with Metrics {
       val partialsResults = PartialResultProcessor().recoveredPartialResult(workflow)
 
       // if partial results have found, register temp table
-      partialsResults.map {
-        case (pr:PartialResult) => {
+      val catalogsPartialResult = partialsResults.map {
+        case (pr) => {
           val resultSet = pr.getResults
           val df = CrossdataConverters.toSchemaRDD(resultSet, sqlContext)
+          val cm = resultSet.getColumnMetadata.get(0).getName
+          val catalogName = cm.getTableName.getCatalogName.getName
+
+          val tableName = cm.getTableName.getName
+          df.registerTempTable(tableName)
+          catalogName
         }
 
       }
 
+      val partialResultsFormatted = timeFor("SparkSQL query after partial results format: ") {
+        sparkSQLFormat(providersFormatted, catalogsPartialResult.toList)
+      }
 
 
       logger.info(s"SparkSQL query after providers format: [$providersFormatted]")

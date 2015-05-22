@@ -116,21 +116,11 @@ class CrossdataConvertersTest extends Test("CrossdataConverters") {
   it should "to sparksql row" in {
     import com.stratio.crossdata.common.metadata.DataType._
     val input = List((1, "column0",INT),("field1", "column1",TEXT))
-
-
-
     val result = CrossdataConverters.toSparkSQLRow(input)
-
     val row = result._1
-
-
-
     val tpe = result._2
-
     row.getInt(0) should equal (1)
     row.getString(1) should equal ("field1")
-
-
   }
 
 
