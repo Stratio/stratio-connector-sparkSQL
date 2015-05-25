@@ -62,7 +62,7 @@ with Metrics {
     }
     timeFor(s"Unique query result processed.") {
       QueryResult.createQueryResult(
-        toResultSet(dataFrame, toColumnMetadata(workflow)), 0, true)
+        toResultSet(dataFrame, toColumnMetadata(workflow)),0, true)
     }
   }
 
@@ -160,16 +160,16 @@ object QueryEngine extends Loggable with Metrics {
 
       }
 
-      val partialResultsFormatted = timeFor("SparkSQL query after partial results format: ") {
+      val partialResultsFormatted = timeFor("SparkSQL query after partial results format:   ") {
         sparkSQLFormat(providersFormatted, catalogsPartialResult.toList)
       }
+      logger.info(s"SparkSQL query after result set format: [$partialResultsFormatted]")
 
-
-      logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
+      logger.info(s"SparkSQL query after providers format: [$partialResultsFormatted]")
       //  Execute actual query ...
 
 
-      val rdd = sqlContext.sql(providersFormatted)
+      val rdd = sqlContext.sql(partialResultsFormatted)
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(rdd.schema.treeString)
       //Return obtained RDD

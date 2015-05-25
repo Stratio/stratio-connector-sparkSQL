@@ -23,8 +23,8 @@
         <operation>SELECT_GROUP_BY</operation>
         <operation>SELECT_ORDER_BY</operation>
         <operation>SELECT_FUNCTIONS</operation>
-        <operation>SELECT_WHERE_IN</operation>
-        <operation>SELECT_WHERE_BETWEEN</operation>
+        <operation>SELECT_INNER_JOIN_PARTIALS_RESULTS</operation>
+
 
         <operation>FILTER_PK_EQ</operation>
         <operation>FILTER_PK_GT</operation>
@@ -77,11 +77,15 @@
         <operation>FILTER_FUNCTION_NOT_IN</operation>
         <operation>FILTER_FUNCTION_BETWEEEN</operation>
         <operation>FILTER_FUNCTION_NOT_BETWEEEN</operation>
-
         <operation>FILTER_DISJUNCTION</operation>
         <operation>PAGINATION</operation>
         <operation>SQL_DIRECT</operation>
+        <operation>PARTIAL_RESULTS</operation>
+        <operation>SELECT_LEFT_OUTER_JOIN_PARTIALS_RESULTS</operation>
 
+        <operation>SELECT_RIGHT_OUTER_JOIN_PARTIALS_RESULTS</operation>
+        <operation>SELECT_FULL_OUTER_JOIN_PARTIALS_RESULTS</operation>
+        <operation>SELECT_CROSS_JOIN_PARTIALS_RESULTS</operation>
         <operation>SELECT_LEFT_OUTER_JOIN</operation>
         <operation>SELECT_RIGHT_OUTER_JOIN</operation>
         <operation>SELECT_FULL_OUTER_JOIN</operation>

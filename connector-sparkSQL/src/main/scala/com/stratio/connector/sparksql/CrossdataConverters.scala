@@ -69,14 +69,14 @@ object CrossdataConverters extends Loggable {
                    schema: StructType,
                    metadata: List[ColumnMetadata]): ResultSet = {
     val resultSet = new ResultSet
-    logger.debug(s"Metadata : $metadata")
+    logger.info(s"Metadata : $metadata")
     resultSet.setColumnMetadata(metadata)
-    logger.debug(s"Generating result set...")
+    logger.info(s"Generating result set...")
     val groupSize = 5000
     rows.grouped(groupSize).zipWithIndex.foreach {
       case (it, index) =>
         it.foreach(row => resultSet.add(toCrossDataRow(row, schema)))
-        logger.debug(s"The connector has inserted ${index * groupSize} rows in the resultset")
+        logger.info(s"The connector has inserted ${index * groupSize} rows in the resultset")
     }
 
     logger.info(s"Result set size : ${resultSet.size()}")
@@ -132,7 +132,7 @@ object CrossdataConverters extends Loggable {
   }
 
   def toSchemaRDD(resultSet: ResultSet, sparkSQLContext: SparkSQLContext) : DataFrame = {
-    logger.debug(s"ResultSet is: $resultSet" )
+    logger.debug(s"ResultSet count: ${resultSet.size()}" )
     val metadata = resultSet.getColumnMetadata.toList
     val xdRows = resultSet.getRows
     val rows: Iterable[(SparkSQLRow,SparkSQLType)] = xdRows.map{
