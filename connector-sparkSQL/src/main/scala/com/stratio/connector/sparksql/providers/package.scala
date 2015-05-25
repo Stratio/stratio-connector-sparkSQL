@@ -23,7 +23,7 @@ package com.stratio.connector.sparksql.providers
 object `package` {
 
   val ParquetProvider = "hdfs"
-  val CassandraProvider = "cassandra"
+  val CassandraProvider = "Cassandra"
   val HBaseProvider = "hbase"
 
   val all = List(

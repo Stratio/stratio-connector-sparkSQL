@@ -21,7 +21,7 @@ import com.stratio.connector.sparksql.Constants
 import com.stratio.connector.sparksql.connection.Connection
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.{cassandra, SQLContext}
 import scala.collection.JavaConversions._
 import org.apache.spark.sql.cassandra._
 import com.datastax.spark.connector.cql.CassandraConnectorConf
@@ -43,14 +43,18 @@ case object Cassandra extends Provider with Constants{
     val clusterOptions = config.getClusterOptions.toMap
     val clusterName = clusterOptions("cluster")
     val cassConfig = Map(
-      CassandraConnectionHostProperty -> clusterOptions("hosts"),
+      CassandraConnectionHostProperty -> clusterOptions("Hosts").replaceAll("\\[","").replaceAll("\\]",""),
       CassandraConnectionNativePortProperty ->
-        clusterOptions.getOrElse("nativePort", DefaultNativePort),
+        clusterOptions.getOrElse("Port", DefaultNativePort),
       CassandraConnectionRpcPortProperty ->
         clusterOptions.getOrElse("rpcPort", DefaultRPCPort))
+
+
     sqlContext.addCassandraConnConf(
       clusterName,
       CassandraConnectorConf(conf.setAll(cassConfig)))
+    logger.debug(s"The cache for [$clusterName] has been registering.")
+
     super.createConnection(config,sqlContext,credentials)
 
   }

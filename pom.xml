@@ -23,10 +23,17 @@
     <packaging>pom</packaging>
     <description>Stratio SparkSQL connector parent</description>
     <properties>
-        <version.crossdata>0.3.0-RC1</version.crossdata>
+        <version.connector.commons>0.5.0-RC2</version.connector.commons>
+        <version.crossdata>0.3.0-RC2</version.crossdata>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.7.0</java.version>
+        <akka.version>2.3.4</akka.version>
         <scala.version>2.10.4</scala.version>
+        <spark.version>1.3.1</spark.version>
         <scala.test.version>2.2.1</scala.test.version>
         <scala.binary.version>2.10</scala.binary.version>
+        <scala.mock.version>3.2.1</scala.mock.version>
+        <lib.path>${basedir}/lib/</lib.path>
         <outputFileName>stratio-sparksql-crossdataconnector</outputFileName>
     </properties>
     <licenses>

@@ -68,13 +68,14 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
         connection <- connectionHandler.getConnection(clusterName.getName)
         provider <- providers.apply(connection.config.getDataStoreName.getName)
       } {
-        registerTable(
+        val tableRegister = registerTable(
           qualified(tableName),
           sqlContext,
           provider,
           globalOptions(connection.config) ++ tableMetadata.getOptions.toMap.map {
             case (k, v) => k.getStringValue -> v.getStringValue
           })
+        logger.info(s"Register table $tableRegister")
       }
     }
   }
