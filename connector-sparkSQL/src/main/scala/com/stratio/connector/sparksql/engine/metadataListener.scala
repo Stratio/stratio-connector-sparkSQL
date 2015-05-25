@@ -23,9 +23,8 @@ import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.SparkSQLContext
 import com.stratio.crossdata.common.connector.IMetadataListener
 import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.crossdata.common.data.Name
-import com.stratio.crossdata.common.metadata.{UpdatableMetadata, TableMetadata}
-import com.stratio.crossdata.common.statements.structures.{Selector, StringSelector}
+import com.stratio.crossdata.common.data.{TableName, Name}
+import com.stratio.crossdata.common.metadata.{CatalogMetadata, UpdatableMetadata, TableMetadata}
 import org.slf4j.Logger
 import com.stratio.connector.sparksql.engine.query.QueryEngine._
 import scala.collection.JavaConversions._
@@ -41,24 +40,15 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
     sqlContext: SparkSQLContext,
     connectionHandler: ConnectionHandler): IMetadataListener =
     MetadataListener {
-      case updatedMetadata: TableMetadata =>
-        logger.info(s"Received updated table metadata [$updatedMetadata]")
-        timeFor("Received updated table metadata.") {
-          for {
-            connection <- connectionHandler.getConnection(updatedMetadata.getClusterRef.getName)
-            provider <- providers.apply(connection.config.getDataStoreName.getName)
-          } registerTable(
-            qualified(updatedMetadata.getName),
-            sqlContext,
-            provider,
-            globalOptions(connection.config) ++ updatedMetadata.getOptions.toMap.map{
-              case (k,v) => k.getStringValue -> v.getStringValue
-            })
-        }
-      case other: UpdatableMetadata =>
-        logger.debug(s"'$other'[${other.getClass}] has no callbacks associated...")
+      case tableMetadata: TableMetadata =>
+        logger.info(s"Received updated table metadata [$tableMetadata]")
+        tableCallback(tableMetadata,connectionHandler,sqlContext)
+      case catalogMetadata: CatalogMetadata =>
+        logger.info(s"Received updated catalog metadata [$catalogMetadata]")
+        catalogMetadata.getTables.toMap.values.foreach(metadata =>
+          tableCallback(metadata,connectionHandler,sqlContext))
     } {
-      case deletedMetadata: Name =>
+      case deletedMetadata: TableName =>
         logger.info(s"Received deleted table metadata [$deletedMetadata]")
         timeFor("Received deleted table metadata") {
           unregisterTable(
@@ -66,6 +56,29 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
             sqlContext)
         }
     }
+
+  private def tableCallback(
+    tableMetadata: TableMetadata,
+    connectionHandler: ConnectionHandler,
+    sqlContext: SparkSQLContext): Unit = {
+    val clusterName = tableMetadata.getClusterRef
+    val tableName = tableMetadata.getName
+    timeFor("Received updated table metadata.") {
+      for {
+        connection <- connectionHandler.getConnection(clusterName.getName)
+        provider <- providers.apply(connection.config.getDataStoreName.getName)
+      } {
+        val tableRegister = registerTable(
+          qualified(tableName),
+          sqlContext,
+          provider,
+          globalOptions(connection.config) ++ tableMetadata.getOptions.toMap.map {
+            case (k, v) => k.getStringValue -> v.getStringValue
+          })
+        logger.info(s"Register table $tableRegister")
+      }
+    }
+  }
 
 
 }

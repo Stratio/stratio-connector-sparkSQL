@@ -30,10 +30,14 @@ import com.stratio.crossdata.common.metadata.ColumnMetadata
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
+import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
 import com.stratio.connector.commons.timer
 import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.connector.sparksql.{CrossdataConverters, SparkSQLContext, providers}
+import com.stratio.connector.sparksql.connection.ConnectionHandler
+import com.stratio.connector.sparksql.providers.{CustomContextProvider, Provider}
+import com.stratio.connector.sparksql.{SparkSQLConnector, SparkSQLContext, providers}
 import com.stratio.connector.sparksql.CrossdataConverters._
+import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.engine.query.QueryManager._
 
 /**
@@ -62,15 +66,15 @@ with Metrics {
     }
     timeFor(s"Unique query result processed.") {
       QueryResult.createQueryResult(
-        toResultSet(dataFrame, toColumnMetadata(workflow)),0, true)
+        toResultSet(dataFrame, toColumnMetadata(workflow)), 0, true)
     }
   }
 
   override def pagedExecute(
-                             queryId: String,
-                             workflow: LogicalWorkflow,
-                             resultHandler: IResultHandler,
-                             pageSize: Int): Unit = {
+    queryId: String,
+    workflow: LogicalWorkflow,
+    resultHandler: IResultHandler,
+    pageSize: Int): Unit = {
 
     logger.info(s"Paged execute workflow [$workflow]. The direct query is [${workflow.getSqlDirectQuery}]")
 
@@ -81,9 +85,9 @@ with Metrics {
 
 
   override def asyncExecute(
-                             queryId: String,
-                             workflow: LogicalWorkflow,
-                             resultHandler: IResultHandler): Unit = {
+    queryId: String,
+    workflow: LogicalWorkflow,
+    resultHandler: IResultHandler): Unit = {
 
     logger.info(s"Async execute workflow [$workflow]. The direct query is [${workflow.getSqlDirectQuery}]")
 
@@ -94,11 +98,11 @@ with Metrics {
 
 
   override def stop(queryId: String): Unit = {
-  logger.info(s"Query [$queryId] stopped.")
-  timeFor(s"Query stop.") {
-    queryManager ! Stop(queryId)
+    logger.info(s"Query [$queryId] stopped.")
+    timeFor(s"Query stop.") {
+      queryManager ! Stop(queryId)
+    }
   }
-}
 
 }
 
@@ -113,35 +117,37 @@ object QueryEngine extends Loggable with Metrics {
    *
    * @param workflow Given workflow.
    * @param sqlContext Targeted SQL context.
+   * @param connectionHandler Connection handler for all attached clusters.
+   * @param metadataTimeout Timeout for querying connector actor.
    * @return Obtained DataFrame.
    */
   def executeQuery(
     workflow: LogicalWorkflow,
     sqlContext: SparkSQLContext,
-    connectionHandler: ConnectionHandler): DataFrame = {
+    connectionHandler: ConnectionHandler,
+    metadataTimeout: Int = 3000): DataFrame = {
     import timer._
-    withClusters(connectionHandler, workflow) { clusters =>
+    withProjects(connectionHandler, workflow) { projects =>
       //  Extract raw query from workflow
       val query = timeFor(s"Got workflow plain query.") {
         workflow.getSqlDirectQuery
       }
       logger.debug(s"Workflow plain query before format : [$query]")
-      //  Format query for avoiding conflicts such as 'catalog.table' issue
-      val formattedQuery = timeFor("Query formatted to SparkSQL format") {
-        sparkSQLFormat(query, catalogsFromWorkflow(workflow))
-      }
-      logger.info(s"Query after general format: [$formattedQuery]")
       //  Format query for adapting it to involved providers
-      val providedClusters = for {
-        clusterName <- clusters
-        (name, provider) <- providers.apply(clusterName.getName).map(provider => clusterName.getName -> provider)
-        (provider, options) <- connectionHandler.getConnection(name).map(connection => provider -> globalOptions(connection.config))
-      } yield (provider, options)
-
-      val providersFormatted = (formattedQuery /: providedClusters) {
+      val providedProjects = for {
+        project <- projects
+        (dataStore, globalOptions) <- projectInfo(connectionHandler, project, metadataTimeout)
+        provider <- providers.apply(dataStore)
+      } yield (provider, globalOptions)
+      val providersFormatted = (query /: providedProjects) {
         case (statement, (provider, options)) => provider.formatSQL(statement, options)
       }
-
+      logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
+      //  Format query for avoiding conflicts such as 'catalog.table' issue
+      val formattedQuery = timeFor("Query formatted to SparkSQL format") {
+        sparkSQLFormat(providersFormatted, catalogsFromWorkflow(workflow))
+      }
+      logger.info(s"Query after general format: [$formattedQuery]")
       logger.info("Find for partialResults")
       val partialsResults = PartialResultProcessor().recoveredPartialResult(workflow)
 
@@ -167,13 +173,11 @@ object QueryEngine extends Loggable with Metrics {
 
       logger.info(s"SparkSQL query after providers format: [$partialResultsFormatted]")
       //  Execute actual query ...
-
-
-      val rdd = sqlContext.sql(partialResultsFormatted)
+      val dataframe = sqlContext.sql(partialResultsFormatted)
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
-      logger.debug(rdd.schema.treeString)
-      //Return obtained RDD
-      rdd
+      logger.debug(dataframe.schema.treeString)
+      //Return dataFrame
+      dataframe
     }
   }
 
@@ -186,7 +190,7 @@ object QueryEngine extends Loggable with Metrics {
    */
   def toColumnMetadata(workflow: LogicalWorkflow): List[ColumnMetadata] = {
     import scala.collection.JavaConversions._
-    import com.stratio.connector.sparksql.engine.query.mappings.functionType.functionType
+    import com.stratio.connector.sparksql.engine.query.mappings.functionType
     logger.debug("Getting column selectors from last step (SELECT)")
     val (columnTypes: ColumnTypeMap, selectors: List[Selector]) = workflow.getLastStep match {
       case s: Select => s.getTypeMap.toMap -> s.getOutputSelectorOrder.toList
@@ -198,13 +202,15 @@ object QueryEngine extends Loggable with Metrics {
     logger.debug(s"ColumnTypes : $columnTypes\nSelectors : $selectors")
     //  Map them into ColumnMetadata
     selectors.map {
-      case fs : FunctionSelector => new ColumnMetadata(fs.getColumnName,Array(),functionType(fs.getFunctionName))
-      case  s => val columnName = s.getColumnName
+      case fs: FunctionSelector =>
+        new ColumnMetadata(fs.getColumnName, Array(), functionType(fs.getFunctionName))
+      case s =>
+        val columnName = s.getColumnName
         Option(s.getAlias).foreach(columnName.setAlias)
         new ColumnMetadata(
           columnName,
           Array(),
-          columnTypes.getOrElse(s.getColumnName.getName,columnTypes(s.getAlias)))
+          columnTypes.getOrElse(s.getColumnName.getName, columnTypes(s.getAlias)))
     }
 
 
@@ -225,13 +231,11 @@ object QueryEngine extends Loggable with Metrics {
 
     //  Remove catalog name
 
-    val withoutCatalog = (statement /: catalogs){
-
-      case (s,catalog) => {
-      val regularExpresion = s"""(?!(('|\"))) $catalog\\.(?!(('|\")))"""
-
-        s.replaceAll(regularExpresion, " ")
-      }
+    val withoutCatalog = (statement /: catalogs) {
+      case (s, catalog) =>
+        val regex = s"[\\s|(]$catalog\\.".r
+        regex.replaceAllIn(s,mtch =>
+          mtch.toString().dropRight(s"$catalog.".length))
     }
 
     withoutCatalog
@@ -260,17 +264,46 @@ object QueryEngine extends Loggable with Metrics {
     sqlContext: SparkSQLContext,
     provider: Provider,
     options: Map[String, String]): Unit = {
-    if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
-      logger.warn(s"Tried to register $tableName table but it already exists!")
-    else {
-      logger.debug(s"Registering table [$tableName]")
-      val statement = createTable(
-        tableName,
-        provider,
-        options)
-      logger.debug(s"Statement: $statement")
-      sqlContext.sql(statement)
+
+    //Aux register method, generic for no mather what SQLContext is being used
+    def register(
+      tableName: String,
+      sqlContext: SparkSQLContext,
+      provider: Provider,
+      options: Map[String, String],
+      temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
+      if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
+        logger.warn(s"Tried to register $tableName table but it already exists!")
+      else {
+        logger.debug(s"Registering table [$tableName]")
+        val statement = createTable(
+          tableName,
+          provider,
+          options,
+          temporaryTable)
+        logger.debug(s"Statement: $statement")
+        sqlContext.sql(statement)
+      }
+    }.recover {
+      case t: Throwable =>
+        logger.error(s"Error at registering table '$tableName' : ${t.getMessage}")
     }
+
+    provider match {
+      case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
+        provider.sqlContext.foreach { context =>
+          logger.debug(s"Registering $tableName into '${provider.dataSource}' specific context")
+          register(tableName, context, provider, options, !provider.catalogPersistence)
+          logger.debug(s"Retrieving table '$tableName' as dataFrame")
+          val dataFrame = context.table(tableName)
+          logger.debug(s"Registering dataFrame with schema ${dataFrame.schema} into common context'")
+          sqlContext.createDataFrame(dataFrame.rdd, dataFrame.schema).registerTempTable(tableName)
+        }
+      case simpleProvider =>
+        logger.debug(s"Registering $tableName into regular context")
+        register(tableName, sqlContext, provider, options)
+    }
+
   }
 
   /**
@@ -291,11 +324,50 @@ object QueryEngine extends Loggable with Metrics {
     }
   }
 
-  def globalOptions(config: ConnectorClusterConfig): Map[String, String] =
+  type DataStore = String
+  type GlobalOptions = Map[String, String]
+
+  /**
+   * Combine both connector and cluster options in a single map.
+   * @param config Connector cluster configuration
+   * @return The combined map
+   */
+  def globalOptions(config: ConnectorClusterConfig): GlobalOptions =
     config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
 
-  /*
-   *  Provides the necessary syntax for creating a table in SparkSQL.
+  /**
+   * Retrieves project info and metadata options from given project and connection
+   *
+   * @param connectionHandler ConnectionHandler for retrieving related connection
+   * @param project Workflow project
+   * @param metadataTimeout Timeout for synchronous call
+   * @return A possible pair of data store name and its options.
+   */
+  private def projectInfo(
+    connectionHandler: ConnectionHandler,
+    project: Project,
+    metadataTimeout: Int): Option[(DataStore, GlobalOptions)] = {
+    val cluster = project.getClusterName
+    connectionHandler.getConnection(cluster.getName).map {
+      case connection =>
+        (connection.config.getDataStoreName.getName,
+          globalOptions(connection.config) ++
+            SparkSQLConnector.connectorApp
+              .getTableMetadata(cluster, project.getTableName, metadataTimeout)
+              .map(_.getOptions.toMap.map {
+              case (k, v) => k.getStringValue -> v.getStringValue
+            }).getOrElse(Map()))
+    }
+  }
+
+  /**
+   * Returns an Spark SQL script for creating a table.
+   *
+   * @param table Table name to be registered
+   * @param provider Used dataSource for creating the table
+   * @param options Options map to be used in table creation
+   * @param temporary Is this one a temporary table?
+   * @return An Spark SQL script.
    */
   private def createTable(
     table: String,
@@ -304,7 +376,7 @@ object QueryEngine extends Loggable with Metrics {
     temporary: Boolean = false): String =
     s"""
        |CREATE ${if (temporary) "TEMPORARY" else ""} TABLE $table
-        |USING ${provider.datasource}
+        |USING ${provider.dataSource}
         |OPTIONS (${options.map { case (k, v) => s"$k '$v'" }.mkString(",")})
        """.stripMargin
 
@@ -318,32 +390,41 @@ object QueryEngine extends Loggable with Metrics {
    * @tparam T Action returning type.
    * @return Action result type.
    */
-  def withClusters[T](
+  def withProjects[T](
     connectionHandler: ConnectionHandler,
-    clusters: Iterable[ClusterName])(f: Iterable[ClusterName] => T): T = {
-    clusters.foreach(cluster => connectionHandler.startJob(cluster.getName))
+    clusters: Iterable[Project])(f: Iterable[Project] => T): T = {
+    clusters.foreach(cluster => connectionHandler.startJob(cluster.getClusterName.getName))
     val result = f(clusters)
-    clusters.foreach(cluster => connectionHandler.endJob(cluster.getName))
+    clusters.foreach(cluster => connectionHandler.endJob(cluster.getClusterName.getName))
     result
   }
 
-  def withClusters[T](
+  /**
+   * Execute some statements assuring that current job will be started
+   * at connectionHandler, besides it will be stopped as well at the end.
+   * (Based on generic {{{withProjects}}})
+   *
+   * @param connectionHandler ConnectionHandler of this connector.
+   * @param workflow Workflow from Projects (attached clusters info) will be extracted
+   * @param f Action to be executed
+   * @tparam T Action returning type
+   * @return Action result type
+   */
+  def withProjects[T](
     connectionHandler: ConnectionHandler,
-    workflow: LogicalWorkflow)(f: Iterable[ClusterName] => T): T = {
-    withClusters(connectionHandler, workflow.getInitialSteps.map {
-      case project: Project => project.getClusterName
+    workflow: LogicalWorkflow)(f: Iterable[Project] => T): T = {
+    withProjects(connectionHandler, workflow.getInitialSteps.map {
+      case project: Project => project
     })(f)
   }
 
   def catalogsFromWorkflow(lw: LogicalWorkflow): Iterable[String] = {
     lw.getInitialSteps.map {
-      case project: Project => {
+      case project: Project =>
         val catalogName = project.getCatalogName
-        if (logger.isDebugEnabled){
+        if (logger.isDebugEnabled)
           logger.debug(s"Catalog [$catalogName] has been find in the logicalWorkflow")
-        }
         catalogName
-      }
     }
   }
 

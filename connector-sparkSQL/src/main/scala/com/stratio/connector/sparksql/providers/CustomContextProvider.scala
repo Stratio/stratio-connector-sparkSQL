@@ -17,26 +17,29 @@
  */
 package com.stratio.connector.sparksql.providers
 
+import com.stratio.connector.sparksql.SparkSQLContext
+import org.apache.spark.SparkContext
+
 /**
- * Router for every single supported provider.
+ * A CustomContextProvider denotes a provider that owns a different SQLContext
+ * than the common one.
+ * @tparam Context
  */
-object `package` {
+trait CustomContextProvider[Context <: SparkSQLContext] extends Provider {
 
-  val ParquetProvider = "hdfs"
-  val CassandraProvider = "Cassandra"
-  val HBaseProvider = "hbase"
+  var sqlContext: Option[Context] = None
 
-  val all = List(
-    ParquetProvider,
-    CassandraProvider,
-    HBaseProvider
-  )
+  /** Is this context's catalog persistent?*/
+  val catalogPersistence: Boolean
 
-  def apply(providerName: String): Option[Provider] = providerName match {
-    case ParquetProvider => Some(Parquet)
-    case CassandraProvider => Some(Cassandra)
-    case HBaseProvider => Some(HBase)
-    case _ => None
+  def buildContext(sc: SparkContext): Context
+
+  def initializeContext(sc: SparkContext): Unit =
+    synchronized(sqlContext = Some(buildContext(sc)))
+
+  override def initialize(sc: SparkContext): Unit = {
+    super.initialize(sc)
+    initializeContext(sc)
   }
 
 }

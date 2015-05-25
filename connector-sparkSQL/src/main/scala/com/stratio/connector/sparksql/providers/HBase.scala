@@ -1,50 +1,32 @@
+/*
+ * Licensed to STRATIO (C) under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  The STRATIO (C) licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.stratio.connector.sparksql.providers
 
-import com.stratio.connector.sparksql.connection.{Connection => SparkSQLConnection}
-import com.stratio.crossdata.common.connector.ConnectorClusterConfig
-import com.stratio.crossdata.common.security.ICredentials
+import com.stratio.connector.sparksql.Catalog
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hbase.HBaseSQLContext
 
-case object HBase extends Provider {
+case object HBase extends CustomContextProvider[HBaseSQLContext with Catalog] {
 
-  override val datasource: String = "org.apache.spark.sql.hbase.HBaseSource"
+  val dataSource: String = "org.apache.spark.sql.hbase.HBaseSource"
 
-  val MappedFieldsOption = "mapped_fields"
+  val catalogPersistence = false
 
-  /**
-   * Expected mapping fields in HBase will be as follows:{{{
-   *   val options =
-   *     Map("mapped_fields" -> "field1->cf1:cq1,field2->cf1:cq2,field3->cf2:cq1")
-   * }}}
-   * @param statement Given SQL statement
-   * @param options Option map
-   * @return The formatted statement
-   */
-  override def formatSQL(
-    statement: String,
-    options: Map[String, String] = Map()): String =
-    (statement /: options.get(MappedFieldsOption)) {
-      case (query, mapped) =>
-        val mapping = parseMapping(mapped)
-        (query /: mapping) {
-          case (q, (crossdataField, hbaseField)) =>
-            q.replaceAll(crossdataField, s"""`$hbaseField`""")
-        }
-    }
-
-  /**
-   * It parses mapped_fields format (i.e.: {{{
-   * "field1->cf1:cq1,field2->cf1:cq2,field3->cf2:cq1"
-   * }}}
-   * @param mapped input mapped string
-   * @return A map with split fields mapping.
-   */
-  private def parseMapping(mapped: String): Map[String, String] = mapped.split(",").map {
-    case field =>
-      val (crossdataField :: hbaseField :: Nil) = field.split("->").toList
-      crossdataField -> hbaseField
-  }.toMap
+  def buildContext(sc: SparkContext) = new HBaseSQLContext(sc) with Catalog
 
 }

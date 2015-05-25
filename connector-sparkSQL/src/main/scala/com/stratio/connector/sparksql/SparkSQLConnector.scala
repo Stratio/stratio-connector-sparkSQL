@@ -22,10 +22,11 @@ import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.engine.query.{QueryManager, QueryEngine}
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
-import com.stratio.crossdata.common.exceptions.{InitializationException, UnsupportedException}
+import com.stratio.crossdata.common.exceptions.UnsupportedException
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
 import com.typesafe.config.Config
+import org.apache.spark.sql.hbase.HBaseSQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
@@ -103,6 +104,9 @@ with Metrics {
 
   override def init(configuration: IConfiguration): Unit =
     timeFor(s"SparkSQL connector initialized.") {
+      timeFor("All providers are initialized") {
+        providers.all.flatMap(providers.apply).foreach(_.initialize(sparkContext))
+      }
       timeFor("Subscribed to metadata updates.") {
         connectorApp.foreach(_.subscribeToMetadataUpdate(
           SparkSQLMetadataListener(
@@ -148,9 +152,6 @@ with Metrics {
    */
   def initContext(config: Config): SparkContext = {
     import scala.collection.JavaConversions._
-
-
-
     new SparkContext(new SparkConf()
       .setAppName(SparkSQLConnector.SparkSQLConnectorJobConstant)
       .setSparkHome(config.getString(SparkHome))
@@ -159,7 +160,8 @@ with Metrics {
       .setAll(List(
       SparkDriverMemory,
       SparkExecutorMemory,
-      SparkCoresMax).filter(config.hasPath).map(k => k -> config.getString(k))))
+      SparkCoresMax,
+      ZookeeperHosts).filter(config.hasPath).map(k => k -> config.getString(k))))
   }
 
   /**
@@ -174,6 +176,7 @@ with Metrics {
     contextType: String,
     sc: SparkContext): SparkSQLContext =
     contextType match {
+      case HBaseContext => new HBaseSQLContext(sc) with Catalog
       case HIVEContext => new HiveContext(sc) with Catalog
       case _ => new SQLContext(sc) with Catalog
     }

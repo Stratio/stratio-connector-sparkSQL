@@ -34,6 +34,9 @@ import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
 import scala.util.Try
 
+/**
+ * Provides the way to create Crossdata structures given some Spark's.
+ */
 object CrossdataConverters extends Loggable {
 
   import scala.collection.JavaConversions._
@@ -69,14 +72,14 @@ object CrossdataConverters extends Loggable {
                    schema: StructType,
                    metadata: List[ColumnMetadata]): ResultSet = {
     val resultSet = new ResultSet
-    logger.info(s"Metadata : $metadata")
+    logger.debug(s"Metadata : $metadata")
     resultSet.setColumnMetadata(metadata)
-    logger.info(s"Generating result set...")
+    logger.debug(s"Generating result set...")
     val groupSize = 5000
     rows.grouped(groupSize).zipWithIndex.foreach {
       case (it, index) =>
-        it.foreach(row => resultSet.add(toCrossDataRow(row, schema)))
-        logger.info(s"The connector has inserted ${index * groupSize} rows in the resultset")
+        it.foreach(row => resultSet.add(toCrossDataRow(row, schema, metadata)))
+        logger.debug(s"The connector has inserted ${index * groupSize} rows in the resultset")
     }
 
     logger.info(s"Result set size : ${resultSet.size()}")
@@ -87,19 +90,21 @@ object CrossdataConverters extends Loggable {
    * Convert some SparkSQL row into a Crossdata row
    * @param row SparkSQL row to be converted
    * @param schema Row structure
+   * @param metadata Crossdata column metadata
    * @return A new Resultset with all converted rows
    */
-  def toCrossDataRow(row: SparkSQLRow, schema: StructType): XDRow = {
+  def toCrossDataRow(
+    row: SparkSQLRow,
+    schema: StructType,
+    metadata: List[ColumnMetadata]): XDRow = {
     val fields = schema.fields
     val xdRow = new XDRow()
-    fields.zipWithIndex.foreach {
-      case (field, idx) => {
+    fields.zipWithIndex.zip(metadata).foreach {
+      case ((field, idx),meta) => {
         xdRow.addCell(
-          field.name,
+          meta.getName.getColumnNameToShow,
           new Cell(toCellValue(row(idx), field.dataType)))
-
       }
-
     }
     xdRow
   }

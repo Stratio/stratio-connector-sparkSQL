@@ -1,19 +1,29 @@
 package com.stratio.connector.sparksql.providers
 
+import com.stratio.connector.commons.Loggable
 import com.stratio.connector.sparksql.connection.Connection
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
+import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.types.StructType
 
 /**
  * Represents a custom SparkSQL Data Source.
  */
-trait Provider {
+trait Provider extends Loggable {
 
   /**
    * DefaultSource qualifed package name
    */
-  val datasource: String
+  val dataSource: String
+
+  /**
+   * Initialize current provider
+   * @param sc Driver SparkContext
+   */
+  def initialize(sc: SparkContext): Unit =
+    logger.debug(s"Initializing ${getClass.getSimpleName} provider")
 
   /**
    * How to create a connection from a cluster that uses

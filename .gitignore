@@ -35,3 +35,17 @@ target/
 *~
 connector-sparkSQL/metastore_db/
 metastore_db/
+
+
+# HDFS Config
+capacity-scheduler.xml
+hadoop-policy.xml
+httpfs-site.xml
+kms-acls.xml
+kms-site.xml
+mapred-site.xml
+yarn-site.xml
+
+#Drivers
+scripts/hbase/
+scripts/spark-cassandra-connector/
