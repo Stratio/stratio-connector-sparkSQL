@@ -1,12 +1,6 @@
 First Steps
 ***********
 
-SparkSQL Crossdata connector allows the integration between Crossdata and
-SparkSQL. Crossdata provides an easy and common language as well as the
-integration with several other databases. More information about
-Crossdata can be found at
-`Crossdata <https://github.com/Stratio/crossdata>`__
-
 Table of Contents
 =================
 
@@ -15,11 +9,11 @@ Table of Contents
    -  `Prerequisites <#prerequisites>`__
    -  `Configuration <#configuration>`__
 
--  `Registering the catalog and
-   collection <#registering-the-catalog-and-collection>`__
+-  `Registering the catalog and the
+   collection <#registering-the-catalog-and-the-collection>`__
 
-   -  `Step 1: Create the database <#step-1-create-the-database>`__
-   -  `Step 2: Create the collection <#step-2-create-the-collection>`__
+   -  `Step 1: Creating the catalog <#step-1-creating-the-catalog>`__
+   -  `Step 2: Registering the collection <#step-2-registering-the-collection>`__
 
 -  `Querying Data <#querying-data>`__
 
@@ -30,52 +24,22 @@ Before you start
 
 Prerequisites
 -------------
+- You need to install sbt and maven.
 
--  Basic knowledge of SQL like language.
--  First of all `Stratio Crossdata
-   0.3.0 <https://github.com/Stratio/crossdata>`__ is needed and must be
-   installed. The server and the shell must be running.
--  An existing and deployed
-   `Hive metastore <https://hive.apache.org/>`__.
--  Build a SparkSQLConnector executable and run it following this
-   `guide <https://github.com/Stratio/stratio-connector-sparkSQL#build-an-executable-sparksql-connector>`__.
+- `Stratio Crossdata <https://github.com/Stratio/crossdata>`__ is needed in order to interact with this connector.
+
+- An existing and deployed `Hive metastore <https://hive.apache.org/>`__.
+
+- Build a SparkSQLConnector executable and run it following this `guide <https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/about.rst>`__.
 
 Configuration
 -------------
 
-In the Crossdata Shell we need to add the Datastore Manifest.
+In the Stratio Crossdata Shell we need to add the Datastore Manifest.
 
 ::
 
        > add datastore "<path_to_manifest_folder>/HDFSDataStore.xml";
-
-The output must be:
-
-::
-
-       [INFO|Shell] CrossdataManifest added
-        DATASTORE
-        Name: hdfs
-        Version: 2.4.1
-        Required properties:
-        Property:
-            PropertyName: Hosts
-            Description: The list of hosts ips (csv). Example: host1,host2,host3
-        Property:
-            PropertyName: Port
-            Description: The list of ports (csv).
-        Property:
-            PropertyName: Partitions
-            Description: Structure of the HDFS
-        Property:
-            PropertyName: PartitionName
-            Description: Name of the File for the different partitions of the table.
-        Property:
-            PropertyName: Extension
-            Description: Extension of the file in HDFS.
-        Property:
-            PropertyName: FileSeparator
-            Description: Character to split the File lines
 
 Now we need to add the ConnectorManifest.
 
@@ -83,22 +47,7 @@ Now we need to add the ConnectorManifest.
 
        > add connector "<path_to_manifest_folder>/SparkSQLConnector.xml";
 
-The output must be:
-
-::
-
-       [INFO|Shell] CrossdataManifest added
-        CONNECTOR
-        ConnectorName: SparkSQLConnector
-       DataStores:
-        DataStoreName: hdfs
-        Version: 0.1.0
-        Supported operations:
-                                .
-                                .
-                                .
-
-At this point we have reported to Crossdata the connector options and
+At this point we have reported to Stratio Crossdata the connector options and
 operations. Now we configure the datastore cluster.
 
 ::
@@ -126,7 +75,7 @@ The output must be:
 
     CONNECTOR attached successfully
 
-To ensure that the connector is online we can execute the Crossdata
+To ensure that the connector is online we can execute the Stratio Crossdata
 Shell command:
 
 ::
@@ -139,11 +88,11 @@ And the output must show a message similar to:
 
     Connector: connector.sparkSQLConnector  ONLINE  []  [datastore.hdfs]    akka.tcp://CrossdataServerCluster@127.0.0.1:46646/user/ConnectorActor/
 
-Registering the catalog and collection
+Registering the catalog and the collection
 ======================================
 
-Step 1: Create the catalog
---------------------------
+Step 1: Creating the catalog
+----------------------------
 
 Now we will create the catalog and the table which we will use later in
 the next steps.
@@ -158,12 +107,12 @@ The output must be:
 
 ::
 
-    CATALOG created successfully;
+    CATALOG created successfully
 
-Step 2: Register the collection
--------------------------------
+Step 2: Registering the collection
+----------------------------------
 
-To register the table, remember it has to be registered in our Hive metastore (this will provide SparkSQL
+To register the table, remember it has to be registered in our Hive metastore (this will provide SparkSQL (Apache Spark)
 enough info to find out which datasource and some other options are needed to retrieve data).
 Having assured that, we must execute the next command.
 
@@ -171,7 +120,7 @@ Having assured that, we must execute the next command.
 
       > REGISTER TABLE metastore.students ON CLUSTER hdfsCluster (id int PRIMARY KEY, name text, age int, enrolled boolean);
 
-In case table wasn't previously registered in Hive metastore, we can register it by adding associated Datasource prameters.
+In case the table was not previously registered in Hive metastore, we can register it by adding associated Datasource parameters.
 ::
 
       > REGISTER TABLE metastore.students ON CLUSTER hdfsCluster (id int PRIMARY KEY, name text, age int, enrolled boolean) WITH {'path' : 'my-table-path'};
@@ -185,18 +134,16 @@ And the output must show something like:
 Querying Data
 =============
 
-All we have to do now is launching our query in Crossdata shell.
+All we have to do now is launching our query in the Stratio Crossdata Shell.
 
 ::
 
       >  SELECT * FROM metastore.students;
 
 
-And after that, query output will be displayed asynchronously on Crossdata shell.
+And after that, the query output will be displayed asynchronously on the Stratio Crossdata Shell.
 
 Where to go from here
 =====================
 
-To learn more about Stratio Crossdata, we recommend to visit the
-`Crossdata
-Reference <https://github.com/Stratio/crossdata/tree/master/_doc/meta-reference.md>`__.
+To learn more about Stratio Crossdata, we recommend you to visit the `Stratio Crossdata Reference <https://github.com/Stratio/crossdata/tree/master/_doc/meta-reference.md>`__.
