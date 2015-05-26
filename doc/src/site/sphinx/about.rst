@@ -1,14 +1,14 @@
 About
 =====
-The Stratio Connector-SparkSQL allows to interact with SparkSQL (Apache Spark) from [Stratio Crossdata] (<https://github.com/Stratio/crossdata>).
+The Stratio Connector-SparkSQL allows to interact with SparkSQL (Apache Spark) from `Stratio Crossdata <https://github.com/Stratio/crossdata>`__.
 
 Requirements
 ------------
 - You need to install sbt and maven.
 
-- [Stratio Crossdata] (<https://github.com/Stratio/crossdata>) is needed in order to interact with this connector.
+- `Stratio Crossdata <https://github.com/Stratio/crossdata>`__ is needed in order to interact with this connector.
 
-- An existing and deployed [Hive metastore] (<https://hive.apache.org/>).
+- An existing and deployed `Hive metastore <https://hive.apache.org/>`__.
 
 Compiling, building and generating the executable for Stratio Connector-SparkSQL
 --------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ In the stratio-connector-sparkSQL/ directory:
 
     > sh scripts/installconnector.sh
 
-This connector might be used for querying Parquet HDFS files, so it should use HDFSDatastore, defined as well in [Stratio HDFS][] :
+This connector might be used for querying Parquet HDFS files, so it should use HDFSDatastore, defined as well in `Stratio HDFS]<https://github.com/Stratio/stratio-connector-hdfs/tree/master/connector-hdfs/src/main/config>`__ :
 
 The file called HDFSDataStore.xml contains some properties.
 
@@ -45,7 +45,7 @@ There are some points that must be taken into acount in order to run the connect
         - spark-hive_2.10-1.3.1.jar
         - guava-14.0.1.jar
 
-    Jars needed for the [Spark-Cassandra Provider] (<https://github.com/Stratio/spark-cassandra-connector>)
+    Jars needed for the `Spark-Cassandra Provider <https://github.com/Stratio/spark-cassandra-connector>`__
 
         - cassandra-driver-core-2.1.5.jar
         - cassandra-thrift-2.1.3.jar
@@ -126,9 +126,9 @@ Now to start/stop the connector:
 How to use the Stratio Connector-SparkSQL
 -----------------------------------------
 
-A complete tutorial is available [here](<https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/First_Steps.rst>). The basic commands are described below.
+A complete tutorial is available `here <https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/First_Steps.rst>`__. The basic commands are described below.
 
-1.  Start [crossdata-server and then crossdata-shell](<https://github.com/Stratio/crossdata>).
+1.  Start `crossdata-server and then crossdata-shell](<https://github.com/Stratio/crossdata>`__.
 
 2.  Start SparkSQL Connector as explained before.
 

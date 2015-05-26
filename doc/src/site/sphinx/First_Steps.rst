@@ -10,7 +10,7 @@ Table of Contents
    -  `Configuration <#configuration>`__
 
 -  `Registering the catalog and the
-   collection <#registering-the-catalog-and-collection>`__
+   collection <#registering-the-catalog-and-the-collection>`__
 
    -  `Step 1: Creating the catalog <#step-1-creating-the-catalog>`__
    -  `Step 2: Registering the collection <#step-2-registering-the-collection>`__
@@ -26,11 +26,11 @@ Prerequisites
 -------------
 - You need to install sbt and maven.
 
-- [Stratio Crossdata] (<https://github.com/Stratio/crossdata>) is needed in order to interact with this connector.
+- `Stratio Crossdata <https://github.com/Stratio/crossdata>)`__ is needed in order to interact with this connector.
 
-- An existing and deployed [Hive metastore] (<https://hive.apache.org/>).
+- An existing and deployed `Hive metastore <https://hive.apache.org/>`__.
 
-- Build a SparkSQLConnector executable and run it following this [guide] (<https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/about.rst>).
+- Build a SparkSQLConnector executable and run it following this `guide <https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/about.rst>`__.
 
 Configuration
 -------------
@@ -146,4 +146,4 @@ And after that, the query output will be displayed asynchronously on the Stratio
 Where to go from here
 =====================
 
-To learn more about Stratio Crossdata, we recommend you to visit the [Crossdata Reference] (<https://github.com/Stratio/crossdata/tree/master/_doc/meta-reference.md>).
+To learn more about Stratio Crossdata, we recommend you to visit the `Crossdata Reference <https://github.com/Stratio/crossdata/tree/master/_doc/meta-reference.md>`__.
