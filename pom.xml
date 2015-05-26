@@ -19,9 +19,9 @@
     <artifactId>stratio-connector-sparksql-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <url>http://www.stratio.com</url>
-    <name>Stratio SparkSQL connector parent</name>
+    <name>Stratio SparkSQL connector</name>
     <packaging>pom</packaging>
-    <description>Stratio SparkSQL connector parent</description>
+    <description>The Stratio SparkSQL Crossdata connector</description>
     <properties>
         <version.connector.commons>0.5.0-RC2</version.connector.commons>
         <version.crossdata>0.3.0-RC2</version.crossdata>
@@ -141,6 +141,15 @@
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
+                        <configuration>
+                            <archive>
+                                <index>true</index>
+                                <manifestEntries>
+                                    <version>${project.version}</version>
+                                    <projectName>${project.name}</projectName>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -185,68 +194,7 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-            <groupId>com.stratio.mojo.unix</groupId>
-            <artifactId>unix-maven-plugin</artifactId>
-            <version>1.1.2</version>
-            <extensions>true</extensions>
-            <configuration>
-            <contact><![CDATA[Stratio <jmgomez@stratio.com>]]></contact>
-            <contactEmail>jmgomez@stratio.com</contactEmail>
-            <size>2048</size>
-            <deb>
-                <section>devel</section>
-            </deb>
-            <rpm>
-                <group>stratio</group>
-            </rpm>
-            <assembly>
-            <mkdirs>
-                <paths>
-                    <path>etc/sds/stratio-connector-sparksql</path>
-                    <path>etc/default</path>
-                </paths>
-                <attributes>
-                    <user>stratio</user>
-                    <group>stratio</group>
-                    <mode>644</mode>
-                </attributes>
-            </mkdirs>
-            <copyDirectory>
-                <from>connector-sparkSQL/target/stratio-connector-sparksql-${project.version}/bin</from>
-                <to>opt/sds/stratio-connector-sparksql/bin</to>
-            </copyDirectory>
-            <copyDirectory>
-                <from>connector-sparkSQL/target/stratio-connector-sparksql-${project.version}/lib</from>
-                <to>opt/sds/stratio-connector-sparksql/lib</to>
-            </copyDirectory>
-            <copyDirectory>
-                <from>connector-sparkSQL/target/stratio-connector-sparksql-${project.version}/conf</from>
-                <to>opt/sds/stratio-connector-sparksql/conf</to>
-            </copyDirectory>
-            <copyDirectory>
-                <from>src/main/template</from>
-                <to>opt/sds/stratio-connector-sparksql/template</to>
-            </copyDirectory>
-                <copyDirectory>
-                    <from>connector-sparkSQL/src/main/config</from>
-                    <to>etc/sds/stratio-connector-sparksql</to>
-                </copyDirectory>
-                <copyDirectory>
-                    <from>src/main/unix/files_and_dirs/etc/default</from>
-                    <to>etc/default</to>
-                </copyDirectory>
-                <copyFile>
-                    <path>connector-sparkSQL/src/main/include/LICENSE</path>
-                    <toFile>opt/sds/stratio-connector-sparksql/LICENSE</toFile>
-                </copyFile>
-                <copyFile>
-                    <path>connector-sparkSQL/src/main/include/NOTICE</path>
-                    <toFile>opt/sds/stratio-connector-sparksql/NOTICE</toFile>
-                </copyFile>
-            </assembly>
-            </configuration>
-            </plugin>
+
         </plugins>
     </build>
 </project>
