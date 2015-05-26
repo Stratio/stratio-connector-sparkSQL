@@ -128,29 +128,29 @@ How to use the Stratio Connector-SparkSQL
 
 A complete tutorial is available `here <https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/First_Steps.rst>`__. The basic commands are described below.
 
-1.  Start `crossdata-server and then crossdata-shell](<https://github.com/Stratio/crossdata>`__.
+1.  Start `Stratio Crossdata Server and then Stratio Crossdata Shell <https://github.com/Stratio/crossdata>`__.
 
-2.  Start SparkSQL Connector as explained before.
+2.  Start the Stratio Connector-SparkSQL as explained before.
 
-3.  In the crossdata-shell:
+3.  In the Stratio Crossdata Shell:
 
     Add a datastore with this command. We need to specified the XML manifest that defines the data store. The XML manifest can be found in the path of the HDFS Connector in target/stratio-connector-sparksql-[version]/conf/HDFSDataStore.xml
 
         xdsh:user>  ADD DATASTORE "<Absolute path to HDFS Datastore manifest>";
 
-    Attach cluster on that datastore. The datastore name must be the same as the defined in the Datastore manifest. Remember that defined options at this manifest will be ignored as SparkSQL Connector doesn’t need them.
+    Attach cluster on that datastore. The datastore name must be the same as the defined in the Datastore manifest. Remember that defined options at this manifest will be ignored as Stratio Connector-SparkSQL doesn’t need them.
 
         xdsh:user>  ATTACH CLUSTER <cluster_name> ON DATASTORE <datastore_name> WITH OPTIONS {'hosts': '', 'user': '', 'path': '', 'highavailability' : ''};
 
-    Add the connector manifest. The XML with the manifest can be found in the path of the SparkSQL Connector in target/stratio-connector-sparksql-[version]/conf/SparkSQLConnector.xml
+    Add the connector manifest. The XML with the manifest can be found in the path of the Stratio Connector-SparkSQL in target/stratio-connector-sparksql-[version]/conf/SparkSQLConnector.xml
 
-        xdsh:user>  ADD CONNECTOR "<Path to SparkSQL Connector Manifest>";
+        xdsh:user>  ADD CONNECTOR "<Path to Stratio Connector-SparkSQL Manifest>";
 
     Attach the connector to the previously defined cluster. The connector name must match the one defined in the Connector Manifest.
 
         xdsh:user>  ATTACH CONNECTOR <connector name> TO <cluster name> WITH OPTIONS {'DefaultLimit':<LimitSize>};
 
-    At this point, we can start to send queries in the Stratio Crossdata shell.
+    At this point, we can start to send queries in the Stratio Crossdata Shell.
 
 License
 =======

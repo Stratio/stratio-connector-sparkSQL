@@ -26,7 +26,7 @@ Prerequisites
 -------------
 - You need to install sbt and maven.
 
-- `Stratio Crossdata <https://github.com/Stratio/crossdata>)`__ is needed in order to interact with this connector.
+- `Stratio Crossdata <https://github.com/Stratio/crossdata>`__ is needed in order to interact with this connector.
 
 - An existing and deployed `Hive metastore <https://hive.apache.org/>`__.
 
@@ -35,7 +35,7 @@ Prerequisites
 Configuration
 -------------
 
-In the Crossdata Shell we need to add the Datastore Manifest.
+In the Stratio Crossdata Shell we need to add the Datastore Manifest.
 
 ::
 
@@ -47,7 +47,7 @@ Now we need to add the ConnectorManifest.
 
        > add connector "<path_to_manifest_folder>/SparkSQLConnector.xml";
 
-At this point we have reported to Crossdata the connector options and
+At this point we have reported to Stratio Crossdata the connector options and
 operations. Now we configure the datastore cluster.
 
 ::
@@ -75,7 +75,7 @@ The output must be:
 
     CONNECTOR attached successfully
 
-To ensure that the connector is online we can execute the Crossdata
+To ensure that the connector is online we can execute the Stratio Crossdata
 Shell command:
 
 ::
@@ -112,7 +112,7 @@ The output must be:
 Step 2: Registering the collection
 ----------------------------------
 
-To register the table, remember it has to be registered in our Hive metastore (this will provide SparkSQL
+To register the table, remember it has to be registered in our Hive metastore (this will provide SparkSQL (Apache Spark)
 enough info to find out which datasource and some other options are needed to retrieve data).
 Having assured that, we must execute the next command.
 
@@ -134,16 +134,16 @@ And the output must show something like:
 Querying Data
 =============
 
-All we have to do now is launching our query in the Stratio Crossdata shell.
+All we have to do now is launching our query in the Stratio Crossdata Shell.
 
 ::
 
       >  SELECT * FROM metastore.students;
 
 
-And after that, the query output will be displayed asynchronously on the Stratio Crossdata shell.
+And after that, the query output will be displayed asynchronously on the Stratio Crossdata Shell.
 
 Where to go from here
 =====================
 
-To learn more about Stratio Crossdata, we recommend you to visit the `Crossdata Reference <https://github.com/Stratio/crossdata/tree/master/_doc/meta-reference.md>`__.
+To learn more about Stratio Crossdata, we recommend you to visit the `Stratio Crossdata Reference <https://github.com/Stratio/crossdata/tree/master/_doc/meta-reference.md>`__.
