@@ -4,9 +4,11 @@ The Stratio Connector-SparkSQL allows to interact with SparkSQL (Apache Spark) f
 
 Requirements
 ------------
-You need to install sbt and maven.
+- You need to install sbt and maven.
 
-[Stratio Crossdata] (<https://github.com/Stratio/crossdata>) is needed in order to interact with this connector.
+- [Stratio Crossdata] (<https://github.com/Stratio/crossdata>) is needed in order to interact with this connector.
+
+- An existing and deployed [Hive metastore] (<https://hive.apache.org/>).
 
 Compiling, building and generating the executable for Stratio Connector-SparkSQL
 --------------------------------------------------------------------------------
@@ -21,41 +23,6 @@ This connector might be used for querying Parquet HDFS files, so it should use H
 The file called HDFSDataStore.xml contains some properties.
 
 Assuming all HDFS files correspond directly to a Hive table, and we’re using a configured Hive metastore, these parameters should be ignored when HDFS Datastore is being used with SparkSQL Connector.
-
-There exists other possibility to compile, build and generate the executable without using the script, doing it step by step. It is explained below.
-
-Compiling Stratio Connector-SparkSQL
-------------------------------------
-First of all, in the shell where the connector will be running, it is necessary to execute:
-
-::
-
-      > export MAVEN_OPTS="-XX:MaxPermSize=512m -Xmx3072m"
-
-If you are compiling the connector from Mac OS X instead of the previous command, run this other command:
-
-::
-
-      > export MAVEN_OPTS="-Xms512m -Xmx3072m"
-
-To automatically build execute the following command:
-
-::
-
-       > mvn clean compile install
-
-Build an executable Stratio Connector-SparkSQL
-----------------------------------------------
-
-To generate the executable, execute the following command in
-
-::
-
-       stratio-connector-sparkSQL/connector-sparkSQL/
-
-::
-
-       > mvn crossdata-connector:install
 
 Preparing the environment to run the Stratio Connector-SparkSQL
 ---------------------------------------------------------------
@@ -145,11 +112,11 @@ Once the package it’s created, execute this commands to install:
 
 RPM Package:
 
-    > rpm -i target/stratio-connector-sparksql-0.1.0-SNAPSHOT.rpm
+    > rpm -i target/stratio-connector-sparksql-[version].rpm
 
 DEB Package:
 
-    > dpkg -i target/stratio-connector-sparksql-0.1.0-SNAPSHOT.deb
+    > dpkg -i target/stratio-connector-sparksql-[version].deb
 
 Now to start/stop the connector:
 
