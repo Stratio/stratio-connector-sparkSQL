@@ -17,14 +17,10 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
-import java.util
 
-import akka.testkit.TestProbe
-import com.stratio.connector.sparksql.Test
 import com.stratio.connector.sparksql.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.engine.query.QueryManager.{AsyncExecute, PagedExecute, Stop}
-import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.data.{ClusterName, ColumnName, TableName}
 import com.stratio.crossdata.common.logicalplan._
@@ -42,10 +38,6 @@ class PartialResultProcesorTest extends FlatSpec with Matchers {
   val workflow = new LogicalWorkflow(List())
   val resultHandler = None.orNull[IResultHandler]
   val connectionHandler = None.orNull[ConnectionHandler]
-  val provider = new Provider {
-    val datasource = "my-provider"
-  }
-
 
 
   def CATALOG= "CATALOG"

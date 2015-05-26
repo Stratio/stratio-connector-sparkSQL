@@ -34,11 +34,10 @@
     </property>
 
     <property>
-        <name>datanucleus.autoCreateSchema</name>
-        <value>true</value>
+        <name>hive.metastore.warehouse.dir</name>
+        <value>/tmp</value>
+        <description>location of default database for the warehouse</description>
     </property>
 
 
 </configuration>
-
-

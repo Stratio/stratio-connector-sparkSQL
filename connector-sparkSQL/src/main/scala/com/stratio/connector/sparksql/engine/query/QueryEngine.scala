@@ -35,10 +35,11 @@ import com.stratio.connector.commons.timer
 import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.providers.{CustomContextProvider, Provider}
-import com.stratio.connector.sparksql.{SparkSQLConnector, SparkSQLContext, providers}
+import com.stratio.connector.sparksql._
 import com.stratio.connector.sparksql.CrossdataConverters._
-import com.stratio.connector.sparksql.providers
 import com.stratio.connector.sparksql.engine.query.QueryManager._
+
+import scala.util.Try
 
 /**
  * Query engine that support async., paged or sync. queries
@@ -167,7 +168,7 @@ object QueryEngine extends Loggable with Metrics {
       }
 
       val partialResultsFormatted = timeFor("SparkSQL query after partial results format:   ") {
-        sparkSQLFormat(providersFormatted, catalogsPartialResult.toList)
+        sparkSQLFormat(formattedQuery, catalogsPartialResult.toList)
       }
       logger.info(s"SparkSQL query after result set format: [$partialResultsFormatted]")
 
