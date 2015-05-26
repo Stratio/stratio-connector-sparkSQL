@@ -24,7 +24,7 @@
     <groupId>com.stratio.connector</groupId>
     <artifactId>stratio-connector-sparksql</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <description>Stratio SparkSQL connector</description>
+    <description>Stratio SparkSQL connector core</description>
     <url>http://www.stratio.com</url>
     <parent>
         <groupId>com.stratio.connector</groupId>
@@ -306,18 +306,25 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <artifactId>crossdata-connector-maven-plugin</artifactId>
                 <groupId>com.stratio.crossdata</groupId>
                 <version>${version.crossdata}</version>
-                <configuration>
-                    <mainClass>
-                        com.stratio.connector.sparksql.SparkSQLConnector
-                    </mainClass>
-                    <jmxPort>7185</jmxPort>
-                    <javaOpts>-XX:MaxPermSize=512M</javaOpts>
-                </configuration>
+                <!--  <executions>
+               <execution>
+                      <id>crossdata-plugin</id>
+                      <phase>install</phase>
+                      <goals>
+                          <goal>install
+                          </goal>
+                      </goals> -->
+                        <configuration>
+                            <mainClass>com.stratio.connector.sparksql.SparkSQLConnector</mainClass>
+                            <jmxPort>7185</jmxPort>
+                            <javaOpts>-XX:MaxPermSize=512M</javaOpts>
+                        </configuration>
+                    <!--</execution>
+                </executions> -->
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -334,5 +341,85 @@
             </plugin>
         </plugins>
     </build>
-
+    <profiles>
+        <profile>
+            <id>package</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.stratio.mojo.unix</groupId>
+                        <artifactId>unix-maven-plugin</artifactId>
+                        <version>1.1.2</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>deb</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>package-deb</goal>
+                                    <goal>package-rpm</goal>
+                                </goals>
+                                <configuration>
+                                    <contact><![CDATA[Stratio <jmgomez@stratio.com>]]></contact>
+                                    <contactEmail>jmgomez@stratio.com</contactEmail>
+                                    <size>1</size>
+                                    <deb>
+                                        <section>devel</section>
+                                    </deb>
+                                    <rpm>
+                                        <group>stratio</group>
+                                    </rpm>
+                                    <assembly>
+                                        <mkdirs>
+                                            <paths>
+                                                <path>etc/sds/stratio-connector-sparksql</path>
+                                                <path>etc/default</path>
+                                            </paths>
+                                            <attributes>
+                                                <user>stratio</user>
+                                                <group>stratio</group>
+                                                <mode>644</mode>
+                                            </attributes>
+                                        </mkdirs>
+                                        <copyDirectory>
+                                            <from>connector-sparkSQL/target/stratio-connector-sparksql-${project.version}/bin</from>
+                                            <to>opt/sds/stratio-connector-sparksql/bin</to>
+                                        </copyDirectory>
+                                        <copyDirectory>
+                                            <from>connector-sparkSQL/target/stratio-connector-sparksql-${project.version}/lib</from>
+                                            <to>opt/sds/stratio-connector-sparksql/lib</to>
+                                        </copyDirectory>
+                                        <copyDirectory>
+                                            <from>connector-sparkSQL/target/stratio-connector-sparksql-${project.version}/conf</from>
+                                            <to>opt/sds/stratio-connector-sparksql/conf</to>
+                                        </copyDirectory>
+                                        <copyDirectory>
+                                            <from>src/main/template</from>
+                                            <to>opt/sds/stratio-connector-sparksql/template</to>
+                                        </copyDirectory>
+                                        <copyDirectory>
+                                            <from>connector-sparkSQL/src/main/config</from>
+                                            <to>etc/sds/stratio-connector-sparksql</to>
+                                        </copyDirectory>
+                                        <copyDirectory>
+                                            <from>src/main/unix/files_and_dirs/etc/default</from>
+                                            <to>etc/default</to>
+                                        </copyDirectory>
+                                        <copyFile>
+                                            <path>connector-sparkSQL/src/main/include/LICENSE</path>
+                                            <toFile>opt/sds/stratio-connector-sparksql/LICENSE</toFile>
+                                        </copyFile>
+                                        <copyFile>
+                                            <path>connector-sparkSQL/src/main/include/NOTICE</path>
+                                            <toFile>opt/sds/stratio-connector-sparksql/NOTICE</toFile>
+                                        </copyFile>
+                                    </assembly>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
