@@ -18,7 +18,7 @@ In the stratio-connector-sparkSQL/ directory:
 
     > sh scripts/installconnector.sh
 
-This connector might be used for querying Parquet HDFS files, so it should use HDFSDatastore, defined as well in `Stratio HDFS <https://github.com/Stratio/stratio-connector-hdfs/tree/master/connector-hdfs/src/main/config>`__ :
+This connector might be used for querying Parquet HDFS files, so it should use HDFSDatastore, defined as well in `Stratio HDFS <https://github.com/Stratio/stratio-connector-hdfs/tree/master/connector-hdfs/src/main/config>`__:
 
 The file called HDFSDataStore.xml contains some properties.
 
@@ -29,44 +29,44 @@ Preparing the environment to run the Stratio Connector-SparkSQL
 
 There are some points that must be taken into acount in order to run the connector properly.
 
- In the directory stratio-connector-sparkSQL/connector-sparkSQL/src/main/config/ you will find a file called connector-application.conf
+In the directory stratio-connector-sparkSQL/connector-sparkSQL/src/main/config/ you will find a file called connector-application.conf
 
- In this file you need to set:
+In this file you need to set:
 
- 1) The Spark Master. In the variable "spark.master" you can choose if you want to run Spark in your local (e.g. spark.master = local[4]) or in a cluster (e.g. spark.master = "spark://...").
+1) The Spark Master. In the variable "spark.master" you can choose if you want to run Spark in your local (e.g. spark.master = local[4]) or in a cluster (e.g. spark.master = "spark://...").
 
- 2) The dependencies. In the variable "spark.jars" you must write the path to some jars located in your local after compiling the connector. These jars are:
+2) The dependencies. In the variable "spark.jars" you must write the path to some jars located in your local after compiling the connector. These jars are:
 
-    Jars needed for the Stratio Connector-SparkSQL:
+   Jars needed for the Stratio Connector-SparkSQL:
 
-        - stratio-connector-sparksql-[connector_version].jar
-        - crossdata-common-[crossdata_version].jar
-        - stratio-connector-commons-[connector_commons_version].jar
-        - spark-hive_2.10-1.3.1.jar
-        - guava-14.0.1.jar
+       - stratio-connector-sparksql-[connector_version].jar
+       - crossdata-common-[crossdata_version].jar
+       - stratio-connector-commons-[connector_commons_version].jar
+       - spark-hive_2.10-1.3.1.jar
+       - guava-14.0.1.jar
 
-    Jars needed for the `Spark-Cassandra Provider <https://github.com/Stratio/spark-cassandra-connector>`__
+   Jars needed for the `Spark-Cassandra Provider <https://github.com/Stratio/spark-cassandra-connector>`__
 
-        - cassandra-driver-core-2.1.5.jar
-        - cassandra-thrift-2.1.3.jar
-        - mysql-connector-java-5.1.34.jar
-        - spark-cassandra-connector[spark-cassandra_provider_version].jar
+       - cassandra-driver-core-2.1.5.jar
+       - cassandra-thrift-2.1.3.jar
+       - mysql-connector-java-5.1.34.jar
+       - spark-cassandra-connector[spark-cassandra_provider_version].jar
 
-  3) Memory dedicated to the driver and the executor as well as the number of cores required. In the variables "spark.driver.memory","spark.executor.memory" and "spark.cores.max" you can set these properties.
+3) Memory dedicated to the driver and the executor as well as the number of cores required. In the variables "spark.driver.memory","spark.executor.memory" and "spark.cores.max" you can set these properties.
 
-  4) The Spark home. In the variable "spark.home" you need to write the path to the directory where spark is installed.
+4) The Spark home. In the variable "spark.home" you need to write the path to the directory where spark is installed.
 
-  In the same directory there is another file called core-site.xml. Here you need to set the HDFS namenode.
+In the same directory there is another file called core-site.xml. Here you need to set the HDFS namenode.
 
-  In the cluster the following services must be installed and running:
+In the cluster the following services must be installed and running:
 
-  1) HDFS (version 2.4.1 or higher)
+1) HDFS (version 2.4.1 or higher)
 
-  2) MySQL (version 14.14 or higher)
+2) MySQL (version 14.14 or higher)
 
-  3) Spark (version 1.3.0 or higher)
+3) Spark (version 1.3.0 or higher)
 
-  4) Cassandra (version 2.0.0 or higher)
+4) Cassandra (version 2.0.0 or higher)
 
 
 Running the Stratio Connector-SparkSQL
