@@ -18,7 +18,7 @@ In the stratio-connector-sparkSQL/ directory:
 
     > sh scripts/installconnector.sh
 
-This connector might be used for querying Parquet HDFS files, so it should use HDFSDatastore, defined as well in `Stratio HDFS]<https://github.com/Stratio/stratio-connector-hdfs/tree/master/connector-hdfs/src/main/config>`__ :
+This connector might be used for querying Parquet HDFS files, so it should use HDFSDatastore, defined as well in `Stratio HDFS <https://github.com/Stratio/stratio-connector-hdfs/tree/master/connector-hdfs/src/main/config>`__ :
 
 The file called HDFSDataStore.xml contains some properties.
 
