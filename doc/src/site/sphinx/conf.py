@@ -109,7 +109,7 @@ html_theme = 'stratio'
 html_theme_options = {    
     'versions' : ['0.1.0-SNAPSHOT'],
     'github' : 'https://github.com/Stratio/stratio-connector-sparkSQL.git',
-    'jira' : '',
+    'jira' : 'https://github.com/Stratio/stratio-connector-sparkSQL/issues',
     'module_name' : 'SparkSQL Connector'
 }
 
