@@ -14,6 +14,7 @@ Table of Contents
 
    -  `Step 1: Creating the catalog <#step-1-creating-the-catalog>`__
    -  `Step 2: Registering the collection <#step-2-registering-the-collection>`__
+   -  `Step 3: Select FROM <#step-3-select-from>`__
 
 -  `Querying Data <#querying-data>`__
 
@@ -89,7 +90,7 @@ And the output must show a message similar to:
     Connector: connector.sparkSQLConnector  ONLINE  []  [datastore.hdfs]    akka.tcp://CrossdataServerCluster@127.0.0.1:46646/user/ConnectorActor/
 
 Registering the catalog and the collection
-======================================
+===========================================
 
 Step 1: Creating the catalog
 ----------------------------
@@ -134,14 +135,203 @@ And the output must show something like:
 Querying Data
 =============
 
+Step 3: Select FROM
+----------------------------------
+
+-  `Before you start <#before-you-start>`__
+
+   -  `Prerequisites <#prerequisites>`__
+   -  `Configuration <#configuration>`__
+
 All we have to do now is launching our query in the Stratio Crossdata Shell.
 
 ::
 
       >  SELECT * FROM metastore.students;
 
+Now we execute a set of queries and we will show the expected results.
 
-And after that, the query output will be displayed asynchronously on the Stratio Crossdata Shell.
+Select all
+----------------------------------
+
+::
+
+     > SELECT * FROM metastore.students;
+
+      Partial result: true
+      ----------------------------------
+      | age | name     | id | enrolled |
+      ----------------------------------
+      | 16  | Jhon     | 1  | true     |
+      | 20  | Eva      | 2  | true     |
+      | 18  | Lucie    | 3  | true     |
+      | 16  | Cole     | 4  | true     |
+      | 17  | Finn     | 5  | false    |
+      | 21  | Violet   | 6  | false    |
+      | 18  | Beatrice | 7  | true     |
+      | 16  | Henry    | 8  | false    |
+      | 17  | Tommy    | 9  | true     |
+      | 20  | Betty    | 10 | true     |
+      ----------------------------------
+
+Select with primary key
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+      > SELECT name, enrolled FROM metastore.students where id = 1;
+
+      Partial result: true
+      -------------------
+      | name | enrolled |
+      -------------------
+      | Jhon | true     |
+      -------------------
+
+Select with alias
+~~~~~~~~~~~~~~~~~
+
+::
+
+       >  SELECT name as the_name, enrolled  as is_enrolled FROM metastore.students;
+
+      Partial result: true
+      --------------------------
+      | the_name | is_enrolled |
+      --------------------------
+      | Jhon     | true        |
+      | Eva      | true        |
+      | Lucie    | true        |
+      | Cole     | true        |
+      | Finn     | false       |
+      | Violet   | false       |
+      | Beatrice | true        |
+      | Henry    | false       |
+      | Tommy    | true        |
+      | Betty    | true        |
+    --------------------------
+
+Select with limit
+~~~~~~~~~~~~~~~~~
+
+::
+
+      Partial result: true
+      -------------------------------
+      | age | name  | id | enrolled |
+      -------------------------------
+      | 16  | Jhon  | 1  | true     |
+      | 20  | Eva   | 2  | true     |
+      | 18  | Lucie | 3  | true     |
+      -------------------------------
+
+Select with several where clauses
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+      >  SELECT * FROM metastore.students WHERE age > 19 AND enrolled = true;
+
+      Partial result: true
+      -------------------------------
+      | age | name  | id | enrolled |
+      -------------------------------
+      | 20  | Eva   | 2  | true     |
+      | 20  | Betty | 10 | true     |
+      -------------------------------
+
+Select with groupby
+~~~~~~~~~~~~~~~~~~~
+
+::
+
+      >  SELECT age FROM metastore.students GROUP BY age;
+
+      Partial result: true
+      -------
+      | age |
+      -------
+      | 21  |
+      | 17  |
+      | 18  |
+      | 20  |
+      | 16  |
+      -------
+
+
+Select with orderby
+~~~~~~~~~~~~~~~~~~~
+
+::
+
+      >  SELECT age FROM metastore.students GROUP BY age ORDER BY age ASC;
+
+      Partial result: true
+        -------
+        | age |
+        -------
+        | 16  |
+        | 17  |
+        | 18  |
+        | 20  |
+        | 21  |
+        -------
+
+Select Inner JOIN
+~~~~~~~~~~~~~~~~~
+
+...
+
+::
+
+    > SELECT students.id, students.age, students2.name FROM catalogTest.students
+            INNER JOIN catalogTest.students2  ON students.id = students2.id;
+
+the output must be:
+
+::
+
+       Partial result: true
+      -----------------------
+      | id | age | name     |
+      +----------------------
+      | 1  |     | Jhon     |
+      | 2  |     | Eva      |
+      | 3  |     | Lucie    |
+      | 4  |     | Cole     |
+      | 5  |     | Finn     |
+      | 6  |     | Violet   |
+      | 7  |     | Beatrice |
+      | 8  |     | Henry    |
+      -----------------------
+
+Select Inner JOIN With Streaming
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+...
+
+::
+
+    > SELECT students.id, students.age, students2.name FROM catalogTest.students
+            INNER JOIN catalogTest.students2  ON students.id = students2.id;
+
+the output must be:
+
+::
+
+       Partial result: true
+      -----------------------
+      | id | age | name     |
+      +----------------------
+      | 1  |     | Jhon     |
+      | 2  |     | Eva      |
+      | 3  |     | Lucie    |
+      | 4  |     | Cole     |
+      | 5  |     | Finn     |
+      | 6  |     | Violet   |
+      | 7  |     | Beatrice |
+      | 8  |     | Henry    |
+      -----------------------
 
 Where to go from here
 =====================
