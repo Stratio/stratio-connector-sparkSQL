@@ -112,7 +112,7 @@ The output must be:
 Step 2: Registering the collection
 ----------------------------------
 
-To register the table, remember it has to be registered in our Hive metastore (this will provide SparkSQL (Apache Spark)
+To register the table, remember it has to be registered in our Hive metastore (this will provide Spark SQL
 enough info to find out which datasource and some other options are needed to retrieve data).
 Having assured that, we must execute the next command.
 
