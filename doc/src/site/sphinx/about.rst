@@ -1,6 +1,6 @@
 About
 =====
-The Stratio Connector-SparkSQL allows to interact with SparkSQL (Apache Spark) from `Stratio Crossdata <https://github.com/Stratio/crossdata>`__.
+The Stratio Connector-SparkSQL allows `Stratio Crossdata <https://github.com/Stratio/crossdata>`__ to interact with Spark SQL (Apache Spark).
 
 Requirements
 ------------
