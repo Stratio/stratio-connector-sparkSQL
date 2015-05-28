@@ -216,6 +216,8 @@ Select with limit
 
 ::
 
+      >  SELECT * FROM metastore.students LIMIT 3;
+
       Partial result: true
       -------------------------------
       | age | name  | id | enrolled |
@@ -280,58 +282,67 @@ Select with orderby
 Select Inner JOIN
 ~~~~~~~~~~~~~~~~~
 
-...
-
 ::
 
-    > SELECT students.id, students.age, students2.name FROM catalogTest.students
-            INNER JOIN catalogTest.students2  ON students.id = students2.id;
+    > SELECT students.id, students.age, students2.name FROM metastore.students
+            INNER JOIN metastore.students2  ON students.id = students2.id;
 
-the output must be:
 
-::
-
-       Partial result: true
-      -----------------------
-      | id | age | name     |
-      +----------------------
-      | 1  |     | Jhon     |
-      | 2  |     | Eva      |
-      | 3  |     | Lucie    |
-      | 4  |     | Cole     |
-      | 5  |     | Finn     |
-      | 6  |     | Violet   |
-      | 7  |     | Beatrice |
-      | 8  |     | Henry    |
-      -----------------------
+        Partial result: true
+        -----------------------
+        | id | age | name     |
+        +----------------------
+        | 1  |  16 | Jhon     |
+        | 2  |  20 | Eva      |
+        | 3  |  18 | Lucie    |
+        | 4  |  16 | Cole     |
+        | 5  |  17 | Finn     |
+        | 6  |  21 | Violet   |
+        | 7  |  18 | Beatrice |
+        | 8  |  20 | Henry    |
+        -----------------------
 
 Select Inner JOIN With Streaming
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-...
+You can also join tables with a streaming table. We show an example using `Crossdata-Connector-Twitter <https://github.com/Stratio/crossdata/tree/master/crossdata-connector-twitter>`__.
 
 ::
 
-    > SELECT students.id, students.age, students2.name FROM catalogTest.students
-            INNER JOIN catalogTest.students2  ON students.id = students2.id;
+    > SELECT twitterCatalog.table.id AS twitterID, testmetastore.peopleTest.id AS peopleID,
+            testmetastore.people.name, twitterCatalog.twitterPeople.Lang FROM twitterCatalog.table
+            WITH WINDOW 5 sec INNER JOIN testmetastore.peopleTest ON
+            testmetastore.peopleTest.lang=twitterCatalog.table.Lang;
 
-the output must be:
 
-::
+      Partial result: true
+      -----------------------------------------------
+      | twitterID          | peopleID | name | Lang |
+      -----------------------------------------------
+      | 603823152263778305 | 0        | Jhon  | es  |
+      | 603823152263778305 | 1        | Eva   | es  |
+      | 603823152775372803 | 0        | Jhon  | es  |
+      | 603823152775372803 | 1        | Eva   | es  |
+      | 603823157129150464 | 0        | Jhon  | es  |
+      | 603823157129150464 | 1        | Eva   | es  |
+      | 603823157162676224 | 0        | Jhon  | es  |
+      | 603823157162676224 | 1        | Eva   | es  |
+      | 603823159553486848 | 0        | Jhon  | es  |
+      | 603823159553486848 | 1        | Eva   | es  |
+      | 603823168160190464 | 0        | Eva   | es  |
+      | 603823168160190464 | 1        | Lucie | es  |
+      | 603823144495878145 | 0        | Eva   | es  |
+      | 603823144495878145 | 1        | Lucie | es  |
+      | 603823149973573632 | 0        | Cole  | es  |
+      | 603823149973573632 | 1        | Lucie | es  |
+      | 603823150837714944 | 0        | Jhon  | es  |
+      | 603823150837714944 | 1        | Cole  | es  |
+      | 603823143392825345 | 0        | Lucie | es  |
+      | 603823143392825345 | 1        | Cole  | es  |
+      | 603823143501828096 | 0        | Jhon  | es  |
+      | 603823143501828096 | 1        | Jhon  | es  |
+      -----------------------------------------------
 
-       Partial result: true
-      -----------------------
-      | id | age | name     |
-      +----------------------
-      | 1  |     | Jhon     |
-      | 2  |     | Eva      |
-      | 3  |     | Lucie    |
-      | 4  |     | Cole     |
-      | 5  |     | Finn     |
-      | 6  |     | Violet   |
-      | 7  |     | Beatrice |
-      | 8  |     | Henry    |
-      -----------------------
 
 Where to go from here
 =====================
