@@ -86,6 +86,8 @@ with Metrics {
         stopCurrentJob()
       }
 
+    case other => logger.error(s"[${other.getClass} Unhandled message : $other]")
+
   }
 
   //  Helpers
@@ -123,6 +125,14 @@ with Metrics {
               .grouped(pageSize)
               .map(_.iterator)
               .zipWithIndex
+            if (repartitioned.partitions.length==0){
+              val result = QueryResult.createQueryResult(
+                toResultSet(List().toIterator, dataFrame.schema, toColumnMetadata(job.workflow)),
+                0,
+                true)
+              result.setQueryId(job.queryId)
+              job.resultHandler.processResult(result)
+            }
           }
         }
       } else {
@@ -178,10 +188,12 @@ with Metrics {
           idx,
           isLast)
         result.setQueryId(job.queryId)
-        logger.debug(s"Query result [$idx] for query ${job.queryId} sent to resultHandler")
+        logger.info(s"Query result [$idx] for query ${job.queryId} sent to resultHandler")
         result
       }
+
     }
+
   }
 
   /**
