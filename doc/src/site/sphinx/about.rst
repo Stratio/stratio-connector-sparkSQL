@@ -155,7 +155,7 @@ At this point, we can start to send queries in the Stratio Crossdata Shell.
 License
 =======
 
-Stratio Crossdata is licensed as
+Stratio Connector-SparkSQL is licensed as
 `Apache2 <http://www.apache.org/licenses/LICENSE-2.0.txt>`__
 
 Licensed to STRATIO (C) under one or more contributor license
