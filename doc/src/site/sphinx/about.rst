@@ -150,7 +150,7 @@ A complete tutorial is available `here <https://github.com/Stratio/stratio-conne
 
         xdsh:user>  ATTACH CONNECTOR <connector name> TO <cluster name> WITH OPTIONS {'DefaultLimit':<LimitSize>};
 
-    At this point, we can start to send queries in the Stratio Crossdata Shell.
+At this point, we can start to send queries in the Stratio Crossdata Shell.
 
 License
 =======
