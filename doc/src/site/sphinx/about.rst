@@ -56,7 +56,9 @@ In this file you need to set:
 
 4) The Spark home. In the variable "spark.home" you need to write the path to the directory where spark is installed.
 
-In the same directory there is another file called core-site.xml. Here you need to set the HDFS namenode.
+.. warning::
+
+You must add core-site.xml and hdfs-site.xml into the config folder (src/main/config) if you require high availability. If these folders are added in the config folder, the connector will take this configuration by default.
 
 In the cluster the following services must be installed and running:
 
