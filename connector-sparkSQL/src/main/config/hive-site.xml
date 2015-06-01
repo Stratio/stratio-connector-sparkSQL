@@ -13,7 +13,7 @@
 
     <property>
         <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:mysql://[IP]/testmetastore?createDatabaseIfNotExist=true</value>
+        <value>jdbc:mysql://conectores05/testmetastore?createDatabaseIfNotExist=true</value>
         <description>JDBC connect string for a JDBC metastore</description>
     </property>
 
@@ -25,12 +25,12 @@
 
     <property>
         <name>javax.jdo.option.ConnectionUserName</name>
-        <value>user</value>
+        <value>stratio</value>
     </property>
 
     <property>
         <name>javax.jdo.option.ConnectionPassword</name>
-        <value>password</value>
+        <value>stratio</value>
     </property>
 
     <property>
