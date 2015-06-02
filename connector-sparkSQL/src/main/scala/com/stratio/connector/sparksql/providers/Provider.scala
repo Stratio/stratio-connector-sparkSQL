@@ -14,7 +14,7 @@ import org.apache.spark.sql.types.StructType
 trait Provider extends Loggable {
 
   /**
-   * DefaultSource qualifed package name
+   * DefaultSource qualified package name
    */
   val dataSource: String
 

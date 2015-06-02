@@ -5,6 +5,7 @@
         <DataStoreName>hdfs</DataStoreName>
         <DataStoreName>cassandra</DataStoreName>
         <DataStoreName>hbase</DataStoreName>
+        <DataStoreName>mongo</DataStoreName>
     </DataStores>
     <Version>0.1.0</Version>
     <RequiredProperties>

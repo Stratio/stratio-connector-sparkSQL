@@ -20,7 +20,15 @@ sbt publishM2
 
 cd ..
 
-## Instaling sparkSQL connector
+git clone https://github.com/Stratio/spark-mongodb.git
+
+cd spark-mongodb/
+
+mvn clean install -DskipTests
+
+cd ..
+
+## Installing sparkSQL connector
 mvn clean install -DskipTests
 
 cd connector-sparkSQL/
@@ -30,4 +38,4 @@ mvn crossdata-connector:install -DskipTests
 ## Cleaning repositories
 cd ..	
 
-rm -rf hbase/ spark-cassandra-connector/
+rm -rf hbase/ spark-cassandra-connector/ spark-mongodb/
