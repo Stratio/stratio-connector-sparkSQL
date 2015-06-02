@@ -187,8 +187,7 @@ object CrossdataConverters extends Loggable {
         StructField(name, BooleanType, nullable=true)
       case (value, name, BIGINT) =>
         StructField(name, IntegerType, nullable=true)
-        // TODO More cases
-        //
+
     }
     val row = SparkSQLRow.fromSeq(rowsMap.toSeq)
     val sparkSQLType = StructType(schemaMap.toList)
