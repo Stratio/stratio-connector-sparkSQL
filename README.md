@@ -1,10 +1,10 @@
 Stratio-Connector-SparkSQL
-==========================
+===========================
 
 The Stratio Connector-SparkSQL allows [Stratio Crossdata] (<https://github.com/Stratio/crossdata>) to interact with Spark SQL (Apache Spark).
 
 How to use Stratio-Connector-SparkSQL
-=================================
+=====================================
 
 Requirements, installation and use of the connector can be found in [about.rst] (<https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/about.rst>)
 
