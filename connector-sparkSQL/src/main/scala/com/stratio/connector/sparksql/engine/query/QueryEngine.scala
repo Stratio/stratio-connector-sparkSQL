@@ -275,8 +275,10 @@ object QueryEngine extends Loggable with Metrics {
       provider: Provider,
       options: Map[String, String],
       temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
-      if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
+      if (sqlContext.getCatalog.tableExists(Seq("default", tableName))) {
         logger.warn(s"Tried to register $tableName table but it already exists!")
+        unregisterTable(tableName, sqlContext)
+      }
       else {
         logger.debug(s"Registering table [$tableName]")
         val statement = createTable(
@@ -322,8 +324,9 @@ object QueryEngine extends Loggable with Metrics {
     if (!sqlContext.getCatalog.tableExists(seqName))
       logger.warn(s"Tried to unregister $tableName table but it already exists!")
     else {
-      logger.debug(s"Un-registering table [$tableName]")
-      sqlContext.getCatalog.unregisterTable(seqName)
+      logger.info(s"Un-registering table [$tableName]")
+      sqlContext.sql(s"DROP TABLE $tableName")
+      //sqlContext.getCatalog.unregisterTable(seqName)
     }
   }
 
