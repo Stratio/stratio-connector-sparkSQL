@@ -278,6 +278,7 @@ object QueryEngine extends Loggable with Metrics {
       if (sqlContext.getCatalog.tableExists(Seq("default", tableName))) {
         logger.warn(s"Tried to register $tableName table but it already exists!")
         unregisterTable(tableName, sqlContext)
+        register(tableName, sqlContext, provider, options)
       }
       else {
         logger.debug(s"Registering table [$tableName]")
