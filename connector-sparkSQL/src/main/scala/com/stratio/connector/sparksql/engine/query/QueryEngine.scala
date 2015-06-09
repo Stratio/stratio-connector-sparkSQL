@@ -22,12 +22,12 @@ import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
 import org.apache.spark.partial.PartialResult
 import org.apache.spark.sql.hive.HiveContext
-
+import com.stratio.connector.sparksql.providers._
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
 import com.stratio.crossdata.common.data.{ClusterName, TableName}
-import com.stratio.crossdata.common.metadata.ColumnMetadata
+import com.stratio.crossdata.common.metadata.{TableMetadata, ColumnMetadata}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
@@ -330,13 +330,28 @@ object QueryEngine extends Loggable with Metrics {
   type DataStore = String
   type GlobalOptions = Map[String, String]
 
+
+
+
   /**
    * Combine both connector and cluster options in a single map.
    * @param config Connector cluster configuration
    * @return The combined map
    */
-  def globalOptions(config: ConnectorClusterConfig): GlobalOptions =
-    config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
+  def globalOptions(config: ConnectorClusterConfig): GlobalOptions = {
+config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
+  }
+
+  /**
+   * Combine both connector and cluster options in a single map.
+   * @param config Connector cluster configuration
+   * @param tableMetadata the table metadata
+   * @return The combined map
+   */
+  def globalOptions(config: ConnectorClusterConfig, tableMetadata : TableMetadata): GlobalOptions = {
+    val map = globalOptions(config) + ("c_table" -> tableMetadata.getName.getName) + ("keyspace" ->tableMetadata.getName.getCatalogName.getName)
+    map
+  }
 
   /**
    * Retrieves project info and metadata options from given project and connection
@@ -374,14 +389,27 @@ object QueryEngine extends Loggable with Metrics {
    */
   private def createTable(
     table: String,
+
     provider: Provider,
     options: Map[String, String],
-    temporary: Boolean = false): String =
-    s"""
-       |CREATE ${if (temporary) "TEMPORARY" else ""} TABLE $table
+    temporary: Boolean = false): String = {
+
+    val register = s"""
+                      |CREATE ${if (temporary) "TEMPORARY" else ""} TABLE $table
+
         |USING ${provider.dataSource}
+
         |OPTIONS (${options.map { case (k, v) => s"$k '$v'" }.mkString(",")})
-       """.stripMargin
+       """
+
+      .stripMargin
+
+        logger. info(register)
+        register
+}
+
+
+
 
   /**
    * Execute some statements assuring that current job will be started

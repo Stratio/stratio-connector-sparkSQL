@@ -72,9 +72,9 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
           qualified(tableName),
           sqlContext,
           provider,
-          globalOptions(connection.config) ++ tableMetadata.getOptions.toMap.map {
+          globalOptions(connection.config,tableMetadata) ++ tableMetadata.getOptions.toMap.map {
             case (k, v) => k.getStringValue -> v.getStringValue
-          })
+          } )
         logger.info(s"Register table $tableRegister")
       }
     }
