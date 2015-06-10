@@ -25,14 +25,9 @@ import org.apache.spark.sql.SQLContext
 
 case object MongoDB extends Provider with Constants{
 
-  override val dataSource: String = "com.stratio.deep.mongodb"
+  override val dataSource: String = "com.stratio.deep.mongodb.DefaultSource"
 
-  val DefaultPort = "27017"
+  //val DefaultPort = "27017"
 
-  override def createConnection(
-    config: ConnectorClusterConfig,
-    sqlContext: SQLContext,
-    credentials: Option[ICredentials]): Connection = {
 
-  }
 }

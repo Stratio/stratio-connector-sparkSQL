@@ -25,17 +25,20 @@ object `package` {
   val ParquetProvider = "hdfs"
   val CassandraProvider = "Cassandra"
   val HBaseProvider = "hbase"
+  val MongoProvider = "Mongo"
 
   val all = List(
     ParquetProvider,
     CassandraProvider,
-    HBaseProvider
+    HBaseProvider,
+    MongoProvider
   )
 
   def apply(providerName: String): Option[Provider] = providerName match {
     case ParquetProvider => Some(Parquet)
     case CassandraProvider => Some(Cassandra)
     case HBaseProvider => Some(HBase)
+    case MongoProvider => Some (MongoDB)
     case _ => None
   }
 

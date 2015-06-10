@@ -37,8 +37,9 @@ trait Provider extends Loggable {
   def createConnection(
     config: ConnectorClusterConfig,
     sqlContext: SQLContext,
-    credentials: Option[ICredentials] = None): Connection =
-    new Connection(config,credentials)
+    credentials: Option[ICredentials] = None): Connection = {
+    new Connection(config, credentials)
+    }
 
   /**
    * It formats given SQL statement, adapting it to
