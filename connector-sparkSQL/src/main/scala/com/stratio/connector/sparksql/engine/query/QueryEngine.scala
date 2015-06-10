@@ -21,6 +21,7 @@ import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
 import org.apache.spark.partial.PartialResult
+import org.apache.spark.sql.hive.HiveContext
 
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
@@ -151,12 +152,13 @@ object QueryEngine extends Loggable with Metrics {
       logger.info(s"Query after general format: [$formattedQuery]")
       logger.info("Find for partialResults")
       val partialsResults = PartialResultProcessor().recoveredPartialResult(workflow)
-
+      logger.info(("Creating new hive context"))
+      val hiveContext = new HiveContext(sqlContext.sparkContext) with Catalog
       // if partial results have found, register temp table
       val catalogsPartialResult = partialsResults.map {
         case (pr) => {
           val resultSet = pr.getResults
-          val df = CrossdataConverters.toSchemaRDD(resultSet, sqlContext)
+          val df = CrossdataConverters.toSchemaRDD(resultSet, hiveContext)
           val cm = resultSet.getColumnMetadata.get(0).getName
           val catalogName = cm.getTableName.getCatalogName.getName
 
@@ -174,7 +176,7 @@ object QueryEngine extends Loggable with Metrics {
 
       logger.info(s"SparkSQL query after providers format: [$partialResultsFormatted]")
       //  Execute actual query ...
-      val dataframe = sqlContext.sql(partialResultsFormatted)
+      val dataframe = hiveContext.sql(partialResultsFormatted)
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(dataframe.schema.treeString)
       //Return dataFrame
