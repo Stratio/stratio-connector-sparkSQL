@@ -376,6 +376,12 @@ object QueryEngine extends Loggable with Metrics {
           ("keyspace" ->tableMetadata.getName.getCatalogName.getName)
         map
       }
+      case "hdfs" => {
+        val tablePath = s"""${config.getClusterOptions.get("path")}/${tableMetadata.getName.getCatalogName.getName}/${tableMetadata.getName.getName}"""
+        val map =globalOptions(config) +
+          ("path" -> tablePath)
+        map
+      }
 
     }
   }
