@@ -17,29 +17,17 @@
  */
 package com.stratio.connector.sparksql.providers
 
-/**
- * Router for every single supported provider.
- */
-object `package` {
+import com.stratio.connector.sparksql.Constants
+import com.stratio.connector.sparksql.connection.Connection
+import com.stratio.crossdata.common.connector.ConnectorClusterConfig
+import com.stratio.crossdata.common.security.ICredentials
+import org.apache.spark.sql.SQLContext
 
-  val ParquetProvider = "hdfs"
-  val CassandraProvider = "Cassandra"
-  val HBaseProvider = "hbase"
-  val MongoProvider = "Mongo"
+case object MongoDB extends Provider with Constants{
 
-  val all = List(
-    ParquetProvider,
-    CassandraProvider,
-    HBaseProvider,
-    MongoProvider
-  )
+  override val dataSource: String = "com.stratio.deep.mongodb.DefaultSource"
 
-  def apply(providerName: String): Option[Provider] = providerName match {
-    case ParquetProvider => Some(Parquet)
-    case CassandraProvider => Some(Cassandra)
-    case HBaseProvider => Some(HBase)
-    case MongoProvider => Some (MongoDB)
-    case _ => None
-  }
+  //val DefaultPort = "27017"
+
 
 }

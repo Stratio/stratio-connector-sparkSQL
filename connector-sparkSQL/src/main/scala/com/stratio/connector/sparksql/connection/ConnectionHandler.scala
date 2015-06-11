@@ -45,6 +45,8 @@ class ConnectionHandler extends Loggable with Constants{
         None
       }
       else {
+        val dataStoreName = config.getDataStoreName.getName
+        logger.info(s"Datastore name: $dataStoreName")
         providers.apply(config.getDataStoreName.getName).map{ provider =>
           val connection = provider.createConnection(config,sqlContext,credentials)
           connections += (connectionId -> connection)

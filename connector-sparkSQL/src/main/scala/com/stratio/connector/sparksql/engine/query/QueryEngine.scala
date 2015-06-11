@@ -26,7 +26,7 @@ import com.stratio.connector.sparksql.providers._
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
-import com.stratio.crossdata.common.data.{ClusterName, TableName}
+import com.stratio.crossdata.common.data.{DataStoreName, ClusterName, TableName}
 import com.stratio.crossdata.common.metadata.{TableMetadata, ColumnMetadata}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
@@ -343,7 +343,7 @@ object QueryEngine extends Loggable with Metrics {
    * @return The combined map
    */
   def globalOptions(config: ConnectorClusterConfig): GlobalOptions = {
-config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
+    config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
   }
 
   /**
@@ -354,10 +354,30 @@ config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
    */
   def globalOptions(config: ConnectorClusterConfig, tableMetadata : TableMetadata): GlobalOptions = {
 
-    val tablePath = s"""${config.getClusterOptions.get("path")}/${tableMetadata.getName.getCatalogName.getName}/${tableMetadata.getName.getName}"""
+    val dataStore = config.getDataStoreName.getName
+    logger.info(s"Registering in ${tableMetadata.getName.getCatalogName.getName}.${tableMetadata.getName.getName} in datastore $dataStore")
+    dataStore match {
+      case "Mongo" => {
+        val ports = config.getClusterOptions.get("Port").replace("[","").replace("]","").split(',')
 
-    val map = globalOptions(config) + ("c_table" -> tableMetadata.getName.getName) + ("keyspace" ->tableMetadata.getName.getCatalogName.getName) + ("path" -> tablePath)
-    map
+        val hostPortList: String = config.getClusterOptions.get("Hosts").replace("[","").replace("]","").split(",").zipWithIndex.map{
+          case (host:String, pos:Int) if pos ==  ports.length-1 => s"$host:${ports(pos)}"
+          case (host:String, pos:Int) => s"$host:${ports(pos)},"
+        }.reduce(_+_)
+        val map: Map[String, Query] = globalOptions(config) +
+          ("Host" -> hostPortList) +
+          ("Database" ->tableMetadata.getName.getCatalogName.getName) +
+          ("Collection" -> tableMetadata.getName.getName)
+        map
+      }
+      case "Cassandra" => {
+        val map: Map[String, Query] = globalOptions(config) +
+          ("c_table" -> tableMetadata.getName.getName) +
+          ("keyspace" ->tableMetadata.getName.getCatalogName.getName)
+        map
+      }
+
+    }
   }
 
   /**
@@ -411,9 +431,9 @@ config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
 
       .stripMargin
 
-        logger. info(register)
-        register
-}
+    logger. info(register)
+    register
+  }
 
 
 

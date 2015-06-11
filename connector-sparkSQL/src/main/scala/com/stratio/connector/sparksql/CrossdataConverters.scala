@@ -17,9 +17,6 @@
  */
 package com.stratio.connector.sparksql
 
-import java.math.BigInteger
-
-import com.datastax.spark.connector.types.IntType
 import com.stratio.connector.commons.Loggable
 import com.stratio.crossdata.common.data.{Cell, ResultSet, Row => XDRow}
 import com.stratio.crossdata.common.metadata.{ColumnMetadata, ColumnType}
@@ -29,7 +26,6 @@ import org.apache.spark.sql.{DataFrame, Row => SparkSQLRow}
 
 import com.stratio.crossdata.common.metadata.{DataType => XDdataType}
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
 import scala.util.Try

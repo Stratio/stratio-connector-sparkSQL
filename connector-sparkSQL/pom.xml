@@ -23,13 +23,13 @@
     <name>Stratio SparkSQL connector</name>
     <groupId>com.stratio.connector</groupId>
     <artifactId>stratio-connector-sparksql</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
     <description>Stratio SparkSQL connector core</description>
     <url>http://www.stratio.com</url>
     <parent>
         <groupId>com.stratio.connector</groupId>
         <artifactId>stratio-connector-sparksql-parent</artifactId>
-        <version>0.1.3</version>
+        <version>0.1.4</version>
     </parent>
 
     <dependencies>
@@ -122,6 +122,11 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-hbase_${scala.binary.version}</artifactId>
             <version>1.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.stratio</groupId>
+            <artifactId>spark-mongodb</artifactId>
+            <version>0.8.0</version>
         </dependency>
         <dependency>
             <groupId>org.scalacheck</groupId>

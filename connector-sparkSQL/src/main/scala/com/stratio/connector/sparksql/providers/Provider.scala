@@ -14,7 +14,7 @@ import org.apache.spark.sql.types.StructType
 trait Provider extends Loggable {
 
   /**
-   * DefaultSource qualifed package name
+   * DefaultSource qualified package name
    */
   val dataSource: String
 
@@ -37,8 +37,9 @@ trait Provider extends Loggable {
   def createConnection(
     config: ConnectorClusterConfig,
     sqlContext: SQLContext,
-    credentials: Option[ICredentials] = None): Connection =
-    new Connection(config,credentials)
+    credentials: Option[ICredentials] = None): Connection = {
+    new Connection(config, credentials)
+    }
 
   /**
    * It formats given SQL statement, adapting it to
@@ -49,6 +50,6 @@ trait Provider extends Loggable {
    */
   def formatSQL(
     statement: String,
-    options: Map[String,String] = Map()): String = statement
+    options: Map[String,Any] = Map()): String = statement
 
 }

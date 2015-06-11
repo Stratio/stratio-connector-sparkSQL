@@ -5,6 +5,7 @@
         <DataStoreName>hdfs</DataStoreName>
         <DataStoreName>cassandra</DataStoreName>
         <DataStoreName>hbase</DataStoreName>
+        <DataStoreName>Mongo</DataStoreName>
     </DataStores>
     <Version>0.1.0</Version>
     <RequiredProperties>
@@ -24,7 +25,6 @@
         <operation>SELECT_ORDER_BY</operation>
         <operation>SELECT_FUNCTIONS</operation>
         <operation>SELECT_INNER_JOIN_PARTIALS_RESULTS</operation>
-
 
         <operation>FILTER_PK_EQ</operation>
         <operation>FILTER_PK_GT</operation>
@@ -87,6 +87,7 @@
         <operation>SELECT_RIGHT_OUTER_JOIN_PARTIALS_RESULTS</operation>
         <operation>SELECT_FULL_OUTER_JOIN_PARTIALS_RESULTS</operation>
         <operation>SELECT_CROSS_JOIN_PARTIALS_RESULTS</operation>
+
         <operation>SELECT_LEFT_OUTER_JOIN</operation>
         <operation>SELECT_RIGHT_OUTER_JOIN</operation>
         <operation>SELECT_FULL_OUTER_JOIN</operation>
