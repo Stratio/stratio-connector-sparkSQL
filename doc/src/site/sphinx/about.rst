@@ -142,7 +142,7 @@ A complete tutorial is available `here <https://github.com/Stratio/stratio-conne
 
     Attach cluster on that datastore. The datastore name must be the same as the defined in the Datastore manifest. Remember that defined options at this manifest will be ignored as Stratio Connector-SparkSQL doesn’t need them.
 
-        xdsh:user>  ATTACH CLUSTER <cluster_name> ON DATASTORE <datastore_name> WITH OPTIONS {'hosts': '', 'user': '', 'path': '', 'highavailability' : ''};
+        xdsh:user>  ATTACH CLUSTER <cluster_name> ON DATASTORE <datastore_name> WITH OPTIONS {'hosts': '', 'path': '/path', 'highavailability' : ''};
 
     Add the connector manifest. The XML with the manifest can be found in the path of the Stratio Connector-SparkSQL in target/stratio-connector-sparksql-[version]/conf/SparkSQLConnector.xml
 

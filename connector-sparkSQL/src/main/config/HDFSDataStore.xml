@@ -27,11 +27,6 @@
         </Property>
 
         <Property>
-            <PropertyName>user</PropertyName>
-            <Description>The user name</Description>
-        </Property>
-
-        <Property>
             <PropertyName>path</PropertyName>
             <Description>Base path to HDFS root directory</Description>
         </Property>

@@ -53,7 +53,7 @@ operations. Now we configure the datastore cluster.
 
 ::
 
-    >  ATTACH CLUSTER hdfsCluster ON DATASTORE hdfs WITH OPTIONS {'hosts': '', 'user': '', 'path': '', 'highavailability' : ''};
+    >  ATTACH CLUSTER hdfsCluster ON DATASTORE hdfs WITH OPTIONS {'hosts': '', 'path': '/path', 'highavailability' : ''};
 
 The output must be similar to:
 
