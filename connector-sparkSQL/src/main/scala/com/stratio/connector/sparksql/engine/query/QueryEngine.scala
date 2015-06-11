@@ -353,7 +353,10 @@ config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
    * @return The combined map
    */
   def globalOptions(config: ConnectorClusterConfig, tableMetadata : TableMetadata): GlobalOptions = {
-    val map = globalOptions(config) + ("c_table" -> tableMetadata.getName.getName) + ("keyspace" ->tableMetadata.getName.getCatalogName.getName)
+
+    val tablePath = s"""${config.getClusterOptions.get("path")}/${tableMetadata.getName.getCatalogName.getName}/${tableMetadata.getName.getName}"""
+
+    val map = globalOptions(config) + ("c_table" -> tableMetadata.getName.getName) + ("keyspace" ->tableMetadata.getName.getCatalogName.getName) + ("path" -> tablePath)
     map
   }
 
