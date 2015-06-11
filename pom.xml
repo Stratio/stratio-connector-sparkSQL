@@ -17,7 +17,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.stratio.connector</groupId>
     <artifactId>stratio-connector-sparksql-parent</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
     <url>http://www.stratio.com</url>
     <name>Stratio SparkSQL connector</name>
     <packaging>pom</packaging>
