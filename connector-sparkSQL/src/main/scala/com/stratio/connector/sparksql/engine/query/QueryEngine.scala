@@ -22,12 +22,12 @@ import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
 import org.apache.spark.partial.PartialResult
 import org.apache.spark.sql.hive.HiveContext
-
+import com.stratio.connector.sparksql.providers._
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import org.apache.spark.sql.DataFrame
-import com.stratio.crossdata.common.data.{ClusterName, TableName}
-import com.stratio.crossdata.common.metadata.ColumnMetadata
+import com.stratio.crossdata.common.data.{DataStoreName, ClusterName, TableName}
+import com.stratio.crossdata.common.metadata.{TableMetadata, ColumnMetadata}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
@@ -275,8 +275,11 @@ object QueryEngine extends Loggable with Metrics {
       provider: Provider,
       options: Map[String, String],
       temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
-      if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
+      if (sqlContext.getCatalog.tableExists(Seq("default", tableName))) {
         logger.warn(s"Tried to register $tableName table but it already exists!")
+        unregisterTable(tableName, sqlContext)
+        register(tableName, sqlContext, provider, options)
+      }
       else {
         logger.debug(s"Registering table [$tableName]")
         val statement = createTable(
@@ -322,21 +325,61 @@ object QueryEngine extends Loggable with Metrics {
     if (!sqlContext.getCatalog.tableExists(seqName))
       logger.warn(s"Tried to unregister $tableName table but it already exists!")
     else {
-      logger.debug(s"Un-registering table [$tableName]")
-      sqlContext.getCatalog.unregisterTable(seqName)
+      logger.info(s"Un-registering table [$tableName]")
+      sqlContext.sql(s"DROP TABLE $tableName")
+      //sqlContext.getCatalog.unregisterTable(seqName)
     }
   }
 
   type DataStore = String
   type GlobalOptions = Map[String, String]
 
+
+
+
   /**
    * Combine both connector and cluster options in a single map.
    * @param config Connector cluster configuration
    * @return The combined map
    */
-  def globalOptions(config: ConnectorClusterConfig): GlobalOptions =
+  def globalOptions(config: ConnectorClusterConfig): GlobalOptions = {
     config.getClusterOptions.toMap ++ config.getConnectorOptions.toMap
+  }
+
+  /**
+   * Combine both connector and cluster options in a single map.
+   * @param config Connector cluster configuration
+   * @param tableMetadata the table metadata
+   * @return The combined map
+   */
+  def globalOptions(config: ConnectorClusterConfig, tableMetadata : TableMetadata): GlobalOptions = {
+
+    val dataStore = config.getDataStoreName.getName
+    logger.info(s"Registering in ${tableMetadata.getName.getCatalogName.getName}.${tableMetadata.getName.getName} in datastore $dataStore")
+    dataStore match {
+      case "Mongo" => {
+        val ports = config.getClusterOptions.get("Port").replace("[","").replace("]","").split(',')
+
+        val hostPortList: String = config.getClusterOptions.get("Hosts").replace("[","").replace("]","").split(",").zipWithIndex.map{
+          case (host:String, pos:Int) if pos ==  ports.length-1 => s"$host:${ports(pos)}"
+          case (host:String, pos:Int) => s"$host:${ports(pos)},"
+        }.reduce(_+_)
+        val map: Map[String, Query] = globalOptions(config) +
+          ("Host" -> hostPortList) +
+          ("Database" ->tableMetadata.getName.getCatalogName.getName) +
+          ("Collection" -> tableMetadata.getName.getName)
+        map
+      }
+      case "Cassandra" => {
+        val map: Map[String, Query] = globalOptions(config) +
+          ("c_table" -> tableMetadata.getName.getName) +
+          ("keyspace" ->tableMetadata.getName.getCatalogName.getName)
+        map
+      }
+
+    }
+
+  }
 
   /**
    * Retrieves project info and metadata options from given project and connection
@@ -374,14 +417,27 @@ object QueryEngine extends Loggable with Metrics {
    */
   private def createTable(
     table: String,
+
     provider: Provider,
     options: Map[String, String],
-    temporary: Boolean = false): String =
-    s"""
-       |CREATE ${if (temporary) "TEMPORARY" else ""} TABLE $table
+    temporary: Boolean = false): String = {
+
+    val register = s"""
+                      |CREATE ${if (temporary) "TEMPORARY" else ""} TABLE $table
+
         |USING ${provider.dataSource}
+
         |OPTIONS (${options.map { case (k, v) => s"$k '$v'" }.mkString(",")})
-       """.stripMargin
+       """
+
+      .stripMargin
+
+    logger. info(register)
+    register
+  }
+
+
+
 
   /**
    * Execute some statements assuring that current job will be started

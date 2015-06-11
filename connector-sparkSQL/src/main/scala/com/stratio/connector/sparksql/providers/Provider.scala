@@ -50,6 +50,6 @@ trait Provider extends Loggable {
    */
   def formatSQL(
     statement: String,
-    options: Map[String,String] = Map()): String = statement
+    options: Map[String,Any] = Map()): String = statement
 
 }
