@@ -24,16 +24,16 @@ import com.stratio.connector.sparksql.engine.query.QueryManager.{Finished, Async
 import com.stratio.connector.sparksql.{Catalog, Test}
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.exceptions.ExecutionException
-import com.stratio.crossdata.common.logicalplan.{Project, LogicalStep, LogicalWorkflow}
+import com.stratio.crossdata.common.logicalplan.{Project, LogicalWorkflow}
 import com.stratio.crossdata.common.metadata.Operations
 import com.stratio.crossdata.common.result.QueryResult
 import org.apache.spark.sql.hive.HiveContext
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{SaveMode, DataFrame, SQLContext}
+import org.scalatest.Ignore
 import scala.collection.JavaConversions._
 import com.stratio.crossdata.common.data.{Row => XDRow, ClusterName, TableName}
 
-class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
+@Ignore class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
   //  Prepare workspace properties
 
@@ -61,17 +61,24 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
   val amount = 150
 
+  val catalogName = "testscatalog"
+  val tableName = s"students_${System.currentTimeMillis()}"
+
+
+  sqlContext.sql(s"CREATE DATABASE IF NOT EXISTS $catalogName COMMENT '$catalogName'")
+  sqlContext.sql(s"USE $catalogName")
+
   generate(amount)(sqlContext).saveAsTable(
-  "students",
+  tableName,
   "org.apache.spark.sql.parquet",
       SaveMode.Overwrite,
-      Map("path" -> "/tmp/students"))
+      Map("path" -> s"/tmp/$tableName"))
 
 
   //  Test definition ...
 
   val (queryId,query) =
-    "query-1" -> "SELECT catalog.students.id, catalog.students.name FROM catalog.students"
+    "query-1" -> s"SELECT $catalogName.$tableName.id, $catalogName.$tableName.name FROM $catalogName.$tableName"
 
 
   it should "execute an async stopable job with same-sized chunks" in {
@@ -81,7 +88,7 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
     val lw = new LogicalWorkflow(List(
         new Project(
           Set[Operations](),
-          new TableName("catalog","table"),
+          new TableName(catalogName,tableName),
           new ClusterName("cluster1"))
       )
     )
@@ -113,7 +120,7 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
     val lw = new LogicalWorkflow(List(
       new Project(
         Set[Operations](),
-        new TableName("catalog","table"),
+        new TableName(catalogName,tableName),
         new ClusterName("cluster1"))
     ))
     lw.setSqlDirectQuery(query)
@@ -144,7 +151,7 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
     val lw = new LogicalWorkflow(List(
       new Project(
         Set[Operations](),
-        new TableName("catalog","table"),
+        new TableName(s"$catalogName","table"),
         new ClusterName("cluster1"))
     ))
     lw.setSqlDirectQuery(query)
