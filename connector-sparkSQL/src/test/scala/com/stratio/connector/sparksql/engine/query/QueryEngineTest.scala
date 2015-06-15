@@ -132,14 +132,6 @@ class QueryEngineTest extends Test("QueryEngine") {
 
   )
 
-  it should "format Crossdata query for adapting it to SparkSQL format" in {
-
-    queryTranslation.foreach{
-      case(k,v)=>  QueryEngine.sparkSQLFormat(k.stripMargin,List("tpcc","catalog", "precatalog")) should equal(v.stripMargin)
-    }
-
-  }
-
   it should "begin and end a job in connectionHandler when using 'withClusters'" in {
     val ch = new ConnectionHandler {
       type EnableAction = (ConnectionId, Boolean)
