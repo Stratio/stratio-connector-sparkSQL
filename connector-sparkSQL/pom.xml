@@ -22,13 +22,13 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Stratio SparkSQL connector</name>
     <groupId>com.stratio.connector</groupId>
-    <artifactId>stratio-connector-sparksql</artifactId>
+    <artifactId>stratio-connector-sparksql-core</artifactId>
     <version>0.2.0-SNAPSHOT</version>
     <description>Stratio SparkSQL connector core</description>
     <url>http://www.stratio.com</url>
     <parent>
         <groupId>com.stratio.connector</groupId>
-        <artifactId>stratio-connector-sparksql-parent</artifactId>
+        <artifactId>stratio-connector-sparksql</artifactId>
         <version>0.2.0-SNAPSHOT</version>
     </parent>
 
@@ -237,7 +237,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.7</version>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <argLine>-Xmx3072m -XX:MaxPermSize=512m</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -275,7 +275,7 @@
                         <configuration>
                             <mainClass>com.stratio.connector.sparksql.SparkSQLConnector</mainClass>
                             <jmxPort>7185</jmxPort>
-                            <javaOpts>-XX:MaxPermSize=512M</javaOpts>
+                            <javaOpts>-XX:MaxPermSize=512M -Xmx3072m</javaOpts>
                         </configuration>
                     <!--</execution>
                 </executions> -->

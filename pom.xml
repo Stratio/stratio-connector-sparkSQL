@@ -30,7 +30,7 @@
         <java.version>1.7.0</java.version>
         <akka.version>2.3.4</akka.version>
         <scala.version>2.10.4</scala.version>
-        <spark.version>1.3.1</spark.version>
+        <spark.version>1.4.0</spark.version>
         <scala.test.version>2.2.1</scala.test.version>
         <scala.binary.version>2.10</scala.binary.version>
         <scala.mock.version>3.2.1</scala.mock.version>
@@ -77,6 +77,15 @@
             <id>ccaballero</id>
             <name>Cristian Caballero</name>
             <email>ccaballero@stratio.com</email>
+            <roles>
+                <role>developer</role>
+                <role>maintainer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>lfernandez</id>
+            <name>Loreto Fernández Costas</name>
+            <email>lfernandez@stratio.com</email>
             <roles>
                 <role>developer</role>
                 <role>maintainer</role>
