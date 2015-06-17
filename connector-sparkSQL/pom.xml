@@ -119,7 +119,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-hbase_${scala.binary.version}</artifactId>
+            <artifactId>spark-hbase_2.10</artifactId>
             <version>1.3.0</version>
         </dependency>
         <dependency>
