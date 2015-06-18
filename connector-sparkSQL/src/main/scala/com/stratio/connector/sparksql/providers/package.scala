@@ -37,7 +37,7 @@ object `package` {
   def apply(providerName: String): Option[Provider] = providerName match {
     case ParquetProvider => Some(Parquet)
     case CassandraProvider => Some(Cassandra)
-    case HBaseProvider => Some(HBase)
+//    case HBaseProvider => Some(HBase)
     case MongoProvider => Some (MongoDB)
     case _ => None
   }

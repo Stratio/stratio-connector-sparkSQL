@@ -269,44 +269,47 @@ object QueryEngine extends Loggable with Metrics {
     provider: Provider,
     options: Map[String, String]): Unit = {
 
-    //Aux register method, generic for no mather what SQLContext is being used
-    def register(
-                  tableName: String,
-                  sqlContext: SparkSQLContext,
-                  provider: Provider,
-                  options: Map[String, String],
-                  temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
-      if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
-        logger.warn(s"Tried to register $tableName table but it already exists!")
-      else {
-        logger.debug(s"Registering table [$tableName]")
-        val statement = createTable(
-          tableName,
-          provider,
-          options,
-          temporaryTable)
-        logger.debug(s"Statement: $statement")
-        sqlContext.sql(statement)
-      }
-    }.recover {
-      case t: Throwable =>
-        logger.error(s"Error at registering table '$tableName' : ${t.getMessage}")
-    }
+    logger.info(s"""Table to register: $tableName"""")
 
+//    //Aux register method, generic for no mather what SQLContext is being used
+//    def register(
+//                  tableName: String,
+//                  sqlContext: SparkSQLContext,
+//                  provider: Provider,
+//                  options: Map[String, String],
+//                  temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
+//      if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
+//        logger.warn(s"Tried to register $tableName table but it already exists!")
+//      else {
+//        logger.info(s"Registering table [$tableName]")
+//        val statement = createTable(
+//          tableName,
+//          provider,
+//          options,
+//          temporaryTable)
+//        logger.info(s"Statement: $statement")
+//        sqlContext.sql(statement)
+//      }
+//    }.recover {
+//      case t: Throwable =>
+//        logger.error(s"Error at registering table '$tableName' : ${t.getMessage}")
+//    }
+//    logger.error("Entra aqui11")
     provider match {
       case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
         provider.sqlContext.foreach { context =>
-          logger.debug(s"Registering [$catalogName].[$tableName] into '${provider.dataSource}' specific context")
+          logger.info(s"Registering [$catalogName].[$tableName] into '${provider.dataSource}' specific context")
           genRegister(catalogName, tableName, context, provider, options, !provider.catalogPersistence)
-          logger.debug(s"Retrieving table [$catalogName].[$tableName] as dataFrame")
+          logger.info(s"Retrieving table [$catalogName].[$tableName] as dataFrame")
           val tableFullName = s"$catalogName.$tableName"
           val dataFrame = context.table(tableFullName)
-          logger.debug(s"Registering dataFrame with schema ${dataFrame.schema} into common context'")
+          logger.info(s"Registering dataFrame with schema ${dataFrame.schema} into common context'")
           sqlContext.createDataFrame(dataFrame.rdd, dataFrame.schema).registerTempTable(tableName)
         }
       case simpleProvider =>
         logger.debug(s"Registering $tableName into regular context")
         genRegister(catalogName, tableName, sqlContext, provider, options)
+
     }
   }
 
@@ -319,25 +322,41 @@ object QueryEngine extends Loggable with Metrics {
     options: Map[String, String],
     temporaryTable: Boolean = false): Try[Unit] = {
     val tableFullName = s"$catalogName.$tableName"
+
     (for {
       _ <- Try {
         //Register catalog
-        logger.debug(s"Registering catalog [$catalogName]")
+        logger.info(s"Registering catalog [$catalogName]")
         sqlContext.sql(createCatalog(catalogName))
       }
       _ <- Try {
         //Register table
-        if (sqlContext.getCatalog.tableExists(Seq(catalogName, tableName)))
+        if (sqlContext.getCatalog.tableExists(Seq(catalogName, tableName))){
           logger.warn(s"Tried to register $tableFullName table but it already exists!")
+          unregisterTable(tableName, sqlContext)
+
+
+          //          sqlContext.sql(s"USE $catalogName")
+//
+      }
         else {
-          logger.debug(s"Registering table [$tableFullName]")
+          logger.info(s"Registering table [$tableFullName]")
           val statement = createTable(
-              tableFullName,
+              tableName,
               provider,
               options,
               temporaryTable)
-          logger.debug(s"Statement: $statement")
-          sqlContext.sql(s"USE $catalogName;$statement")
+
+
+//          sqlContext.sql(s"""DROP TABLE $tableFullName""")
+//          logger.info(s"Dropping $tableFullName")
+          unregisterTable(tableName, sqlContext)
+          sqlContext.sql(s"""USE $catalogName""")
+          logger.info(s"Using $catalogName")
+
+          sqlContext.sql(statement)
+          logger.info(s"Parsing command: $statement")
+
         }
       }
     } yield ()).recover {
@@ -356,8 +375,10 @@ object QueryEngine extends Loggable with Metrics {
     tableName: String,
     sqlContext: SparkSQLContext): Unit = {
     val seqName = Seq(tableName)
-    if (!sqlContext.getCatalog.tableExists(seqName))
-      logger.warn(s"Tried to unregister $tableName table but it already exists!")
+    if (!sqlContext.getCatalog.tableExists(seqName)) {
+      logger.warn(s"Tried to unregister $tableName table but it doen't exists!")
+      //sqlContext.sql(s"DROP TABLE $tableName")
+    }
     else {
       logger.info(s"Un-registering table [$tableName]")
       sqlContext.sql(s"DROP TABLE $tableName")
