@@ -19,12 +19,14 @@ package com.stratio.connector.sparksql.connection
 
 import com.stratio.connector.sparksql.Test
 import org.apache.spark.sql.SQLContext
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 import scala.language.implicitConversions
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.data.{DataStoreName, ClusterName}
 
-
+@RunWith(classOf[JUnitRunner])
 class ConnectionHandlerTest extends Test("ConnectionHandler")
 with ConnectionHandlerSampleValues {
 

@@ -33,8 +33,6 @@ mvn clean install -DskipTests
 
 cd connector-sparkSQL/
 
-mvn crossdata-connector:install -DskipTests
-
 ## Cleaning repositories
 cd ..	
 

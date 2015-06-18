@@ -26,8 +26,11 @@ import com.stratio.crossdata.common.data.{ClusterName, ColumnName, TableName}
 import com.stratio.crossdata.common.logicalplan._
 import com.stratio.crossdata.common.metadata.{ColumnMetadata, ColumnType, DataType, Operations}
 import com.stratio.crossdata.common.statements.structures.{AsteriskSelector, Selector}
+import org.junit.runner.RunWith
 import org.scalatest._
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class PartialResultProcesorTest extends FlatSpec with Matchers {
 
   behavior of "PartialResultProcessor"

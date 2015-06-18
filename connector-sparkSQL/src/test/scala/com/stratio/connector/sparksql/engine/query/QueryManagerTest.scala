@@ -25,7 +25,10 @@ import com.stratio.connector.sparksql.engine.query.QueryExecutor.DataFrameProvid
 import com.stratio.connector.sparksql.engine.query.QueryManager.{Finished, Stop, AsyncExecute}
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class QueryManagerTest extends Test("QueryManager") {
 
   val fakeSqlContext = None.orNull[SparkSQLContext]

@@ -21,6 +21,8 @@ import com.stratio.connector.sparksql.CrossdataConverters.XDCell
 import com.stratio.crossdata.common.data.{ColumnName, Cell, Row}
 import com.stratio.crossdata.common.metadata.{ColumnType, ColumnMetadata}
 import org.apache.spark.sql.catalyst.expressions.GenericRow
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
@@ -28,6 +30,7 @@ import org.apache.spark.sql.types._
 
 import scala.util.{Failure, Success}
 
+@RunWith(classOf[JUnitRunner])
 class CrossdataConvertersTest extends Test("CrossdataConverters") {
 
   it should "convert any value in a SparkSQLRow into a Crossdata cell value" in {

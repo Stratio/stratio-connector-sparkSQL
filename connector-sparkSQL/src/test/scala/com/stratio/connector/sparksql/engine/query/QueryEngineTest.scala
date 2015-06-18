@@ -28,7 +28,10 @@ import com.stratio.crossdata.common.data.{ColumnName, TableName, ClusterName}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalStep, LogicalWorkflow}
 import com.stratio.crossdata.common.metadata.{DataType, ColumnType, Operations, ColumnMetadata}
 import com.stratio.crossdata.common.statements.structures.{AsteriskSelector, Selector}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class QueryEngineTest extends Test("QueryEngine") {
 
   import scala.collection.JavaConversions._

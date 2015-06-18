@@ -30,9 +30,11 @@ import com.stratio.crossdata.common.result.QueryResult
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{SaveMode, DataFrame, SQLContext}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 import scala.collection.JavaConversions._
 import com.stratio.crossdata.common.data.{Row => XDRow, ClusterName, TableName}
-
+@RunWith(classOf[JUnitRunner])
 class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
   //  Prepare workspace properties
