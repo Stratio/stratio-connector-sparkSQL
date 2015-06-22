@@ -59,7 +59,7 @@ with Metrics {
   import QueryEngine._
   import timer._
 
-  override def execute(workflow: LogicalWorkflow): QueryResult = {
+  override def execute(queryId:String, workflow: LogicalWorkflow): QueryResult = {
 
     logger.info(s"Execute workflow [$workflow]. The direct query is [${workflow.getSqlDirectQuery}]")
 

@@ -17,7 +17,7 @@ case class PartialResultProcessor() extends  Loggable{
   import scala.collection.JavaConverters._
 
 
-  val partialResultType = Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS,Operations.PARTIAL_RESULTS,Operations.SELECT_FULL_OUTER_JOIN_PARTIALS_RESULTS,Operations.SELECT_INNER_JOIN_PARTIALS_RESULTS,Operations.SELECT_LEFT_OUTER_JOIN_PARTIALS_RESULTS,Operations.SELECT_RIGHT_OUTER_JOIN_PARTIALS_RESULTS)
+  val partialResultType = Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS,Operations.PARTIAL_RESULTS,Operations.SELECT_FULL_OUTER_JOIN_PARTIAL_RESULTS,Operations.SELECT_INNER_JOIN_PARTIAL_RESULTS,Operations.SELECT_LEFT_OUTER_JOIN_PARTIAL_RESULTS,Operations.SELECT_RIGHT_OUTER_JOIN_PARTIAL_RESULTS)
   def findPartialResutltInProject(list: List[PartialResults],logicalStep: LogicalStep): List[PartialResults] = {
     def isPartialResult(p: Join): Boolean = {
       p.getOperations.asScala.subsetOf(partialResultType)

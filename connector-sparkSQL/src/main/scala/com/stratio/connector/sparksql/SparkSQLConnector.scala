@@ -86,7 +86,7 @@ with Metrics {
 
   //  IConnector implemented methods
 
-  override def getConnectorName: String =
+ /* override def getConnectorName: String =
     connectorConfigFile.get.child
       .find(_.label == ConnectorName)
       .map(_.text)
@@ -100,8 +100,11 @@ with Metrics {
       .map(_.child.map(_.text).toArray)
       .getOrElse(
         throw new NoSuchElementException(
-          s"Property $DataStoreName was not set"))
+          s"Property $DataStoreName was not set"))*/
 
+  override def getConnectorManifestPath(): String = ???
+  override def getDatastoreManifestPath(): Array[String] = ???
+  override def restart(): Unit = ???
   override def init(configuration: IConfiguration): Unit =
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("All providers are initialized") {

@@ -70,10 +70,13 @@ def executeQuery( command : String,sparkSQLConnector: SparkSQLConnector): Unit =
     val mod = 10000000;
     (1 to 1).toList.map(_.toString).map(x => new Thread(
       new Runnable {
+
+        var queryId: String = ???
+
         def run() {
           val timeInit = System.currentTimeMillis() % mod
           println(s"Query $x: Start: $timeInit");
-          println(s"------------------->>> Filas devueltas ${sparkSQLConnector.getQueryEngine.execute(workFlow).getResultSet.size()}")
+          println(s"------------------->>> Filas devueltas ${sparkSQLConnector.getQueryEngine.execute(queryId, workFlow).getResultSet.size()}")
           (1 to 2).foreach(_ => println((1 to 200).map(_ => "*").mkString("")))
           val timeFinish = System.currentTimeMillis() % mod
           println(s"Query $x: Finish: $timeFinish")

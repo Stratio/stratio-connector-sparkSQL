@@ -17,6 +17,8 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
+import java.util
+
 import akka.testkit.TestProbe
 import com.stratio.connector.sparksql.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.connection.ConnectionHandler
@@ -71,6 +73,8 @@ class QueryEngineTest extends Test("QueryEngine") {
     QueryEngine.toColumnMetadata(wf) should equal(List.empty[ColumnMetadata])
   }
 
+  val options: util.Map[Selector, Selector] = collection.mutable.Map[Selector, Selector]()
+
   it should "get metadata from workflow" in {
     val selector = {
       val s = new AsteriskSelector(new TableName("catalog", "table"))
@@ -85,7 +89,7 @@ class QueryEngineTest extends Test("QueryEngine") {
         "field1" -> new ColumnType(DataType.TEXT)),
       Map[Selector, ColumnType]()
     )
-    val wf = new LogicalWorkflow(List(), lastStep, 0)
+    val wf = new LogicalWorkflow(List(), lastStep, 0, options)
     val metadata = QueryEngine.toColumnMetadata(wf)
     val expectedMetadata = List(
       new ColumnMetadata(
@@ -103,11 +107,11 @@ class QueryEngineTest extends Test("QueryEngine") {
 
 
   val queryTranslation = Map(s"""
-                    |SELECT catalog.table.field1, catalog.table.field2
-                    |FROM catalog.table;""" ->
-                  s"""
-                      |SELECT table.field1, table.field2
-                      |FROM table;""",
+                                |SELECT catalog.table.field1, catalog.table.field2
+                                |FROM catalog.table;""" ->
+    s"""
+       |SELECT table.field1, table.field2
+       |FROM table;""",
     s"""
        |select OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun,avg(OL.ol_amount) as average
        |from (select d_id,d_w_id, avg(ol_amount) as AVG_Amoun
@@ -122,14 +126,14 @@ class QueryEngineTest extends Test("QueryEngine") {
          |where D.d_id=OL_A.ol_d_id and D.d_w_id=OL_A.ol_w_id and d_id=3 and d_w_id=241 group by d_id,d_w_id ) A, order_line OL
          |where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241
          |group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc""",
-  s"""select catalog.catalog.catalog as column, catalog.catalog.other as catalog, precatalog.table.column as other from catalog.catalog where catalog.catalog.catalog = 10""" ->
-    s"""select catalog.catalog as column, catalog.other as catalog, table.column as other from catalog where catalog.catalog = 10""",
-  s"""select catalog.table.column1 from table where column2 = \" catalog.\""""" ->
-  s"""select table.column1 from table where column2 = \" catalog.\""""",
+    s"""select catalog.catalog.catalog as column, catalog.catalog.other as catalog, precatalog.table.column as other from catalog.catalog where catalog.catalog.catalog = 10""" ->
+      s"""select catalog.catalog as column, catalog.other as catalog, table.column as other from catalog where catalog.catalog = 10""",
+    s"""select catalog.table.column1 from table where column2 = \" catalog.\""""" ->
+      s"""select table.column1 from table where column2 = \" catalog.\""""",
     s"""select catalog.table.column1 from table where column2 = ' catalog.'"""" ->
       s"""select table.column1 from table where column2 = ' catalog.'"""",
-  s"""select catalog.table.column1 from table where column2 = ' The catalog. name'"""" ->
-    s"""select table.column1 from table where column2 = ' The catalog. name'"""",
+    s"""select catalog.table.column1 from table where column2 = ' The catalog. name'"""" ->
+      s"""select table.column1 from table where column2 = ' The catalog. name'"""",
     s"""select catalog.table.column1 from table where column2 = \" The catalog. name\""""" ->
       s"""select table.column1 from table where column2 = \" The catalog. name\"""""
 

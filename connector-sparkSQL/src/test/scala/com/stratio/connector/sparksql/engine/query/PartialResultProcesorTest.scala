@@ -53,9 +53,9 @@ class PartialResultProcesorTest extends FlatSpec with Matchers {
 
   it should "return the partial result in a logical workflow with crossJoin" in {
 
-    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
+    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
     val partialResult: LogicalStep = new PartialResults(Set(Operations.PARTIAL_RESULTS))
-    val join = new Join(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS),"id")
+    val join = new Join(Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS),"id")
     join.setPreviousSteps(List(partialResult))
     project.setNextStep(join)
 
@@ -77,9 +77,9 @@ class PartialResultProcesorTest extends FlatSpec with Matchers {
   it should "return the partial result in a logical workflow with full outer" in {
 
 
-    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
+    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
     val partialResult: LogicalStep = new PartialResults(Set(Operations.PARTIAL_RESULTS))
-    val join = new Join(Set(Operations.SELECT_FULL_OUTER_JOIN_PARTIALS_RESULTS),"id")
+    val join = new Join(Set(Operations.SELECT_FULL_OUTER_JOIN_PARTIAL_RESULTS),"id")
     join.setPreviousSteps(List(partialResult))
     project.setNextStep(join)
 
@@ -100,9 +100,9 @@ class PartialResultProcesorTest extends FlatSpec with Matchers {
   it should "return the partial result in a logical workflow with inner join" in {
 
 
-    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
+    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
     val partialResult: LogicalStep = new PartialResults(Set(Operations.PARTIAL_RESULTS))
-    val join = new Join(Set(Operations.SELECT_INNER_JOIN_PARTIALS_RESULTS),"id")
+    val join = new Join(Set(Operations.SELECT_INNER_JOIN_PARTIAL_RESULTS),"id")
     join.setPreviousSteps(List(partialResult))
     project.setNextStep(join)
 
@@ -123,9 +123,9 @@ class PartialResultProcesorTest extends FlatSpec with Matchers {
   it should "return the partial result in a logical workflow with left outer" in {
 
 
-    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
+    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
     val partialResult: LogicalStep = new PartialResults(Set(Operations.PARTIAL_RESULTS))
-    val join = new Join(Set(Operations.SELECT_LEFT_OUTER_JOIN_PARTIALS_RESULTS),"id")
+    val join = new Join(Set(Operations.SELECT_LEFT_OUTER_JOIN_PARTIAL_RESULTS),"id")
     join.setPreviousSteps(List(partialResult))
     project.setNextStep(join)
 
@@ -146,9 +146,9 @@ class PartialResultProcesorTest extends FlatSpec with Matchers {
   it should "return the partial result in a logical workflow with right outer" in {
 
 
-    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
+    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
     val partialResult: LogicalStep = new PartialResults(Set(Operations.PARTIAL_RESULTS))
-    val join = new Join(Set(Operations.SELECT_RIGHT_OUTER_JOIN_PARTIALS_RESULTS),"id")
+    val join = new Join(Set(Operations.SELECT_RIGHT_OUTER_JOIN_PARTIAL_RESULTS),"id")
     join.setPreviousSteps(List(partialResult))
     project.setNextStep(join)
 
@@ -169,16 +169,16 @@ class PartialResultProcesorTest extends FlatSpec with Matchers {
   it should "return the partial result in a logical workflow with two partial result" in {
 
 
-    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
+    val project = new Project(Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS), new TableName(CATALOG, LEFT_TABLE_NAME), new ClusterName(CLUSTER_NAME))
     val partialResult1: LogicalStep = new PartialResults(Set(Operations.PARTIAL_RESULTS))
-    val join = new Join(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS),"id")
+    val join = new Join(Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS),"id")
     join.setPreviousSteps(List(partialResult1))
     project.setNextStep(join)
 
 
     val partialResult2: LogicalStep = new PartialResults(Set(Operations.PARTIAL_RESULTS))
 
-    val join2 = new Join(Set(Operations.SELECT_CROSS_JOIN_PARTIALS_RESULTS),"id 2")
+    val join2 = new Join(Set(Operations.SELECT_CROSS_JOIN_PARTIAL_RESULTS),"id 2")
     join2.setPreviousSteps(List(partialResult2))
     join.setNextStep(join2)
 
