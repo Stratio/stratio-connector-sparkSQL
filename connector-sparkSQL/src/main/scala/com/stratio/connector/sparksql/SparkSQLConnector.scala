@@ -26,7 +26,7 @@ import com.stratio.crossdata.common.exceptions.UnsupportedException
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
 import com.typesafe.config.Config
-import org.apache.spark.sql.hbase.HBaseSQLContext
+//import org.apache.spark.sql.hbase.HBaseSQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
@@ -106,7 +106,16 @@ with Metrics {
   }
 
   override def getDatastoreManifestPath(): Array[String] ={
-    com.stratio.connector.sparksql.providers.manifests.map(x => getClass.getClassLoader.getResource(x._1).getPath).toArray[String]
+    com.stratio.connector.sparksql.providers.manifests.map{
+      x => {
+        print (getClass.getClassLoader.getResource(x._2).getPath)
+      }
+    }
+    com.stratio.connector.sparksql.providers.manifests.map{
+      x => {
+        getClass.getClassLoader.getResource(x._2).getPath
+      }
+    }.toArray[String]
   }
   override def restart(): Unit = {
 
@@ -186,7 +195,7 @@ with Metrics {
                          contextType: String,
                          sc: SparkContext): SparkSQLContext =
     contextType match {
-      case HBaseContext => new HBaseSQLContext(sc) with Catalog
+//      case HBaseContext => new HBaseSQLContext(sc) with Catalog
       case HIVEContext => new HiveContext(sc) with Catalog
       case _ => new SQLContext(sc) with Catalog
     }
