@@ -35,8 +35,8 @@ import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener
 
 class SparkSQLConnector(
-  system: ActorRefFactory,
-  connectorApp: Option[ConnectorApp] = None) extends IConnector
+                         system: ActorRefFactory,
+                         connectorApp: Option[ConnectorApp] = None) extends IConnector
 with Loggable
 with Metrics {
 
@@ -86,25 +86,32 @@ with Metrics {
 
   //  IConnector implemented methods
 
- /* override def getConnectorName: String =
-    connectorConfigFile.get.child
-      .find(_.label == ConnectorName)
-      .map(_.text)
-      .getOrElse(
-        throw new NoSuchElementException(
-          s"Property $ConnectorName was not set"))
+  /* override def getConnectorName: String =
+     connectorConfigFile.get.child
+       .find(_.label == ConnectorName)
+       .map(_.text)
+       .getOrElse(
+         throw new NoSuchElementException(
+           s"Property $ConnectorName was not set"))
+   override def getDatastoreName: Array[String] =
+     connectorConfigFile.get.child
+       .find(_.label == DataStoreName)
+       .map(_.child.map(_.text).toArray)
+       .getOrElse(
+         throw new NoSuchElementException(
+           s"Property $DataStoreName was not set"))*/
 
-  override def getDatastoreName: Array[String] =
-    connectorConfigFile.get.child
-      .find(_.label == DataStoreName)
-      .map(_.child.map(_.text).toArray)
-      .getOrElse(
-        throw new NoSuchElementException(
-          s"Property $DataStoreName was not set"))*/
+  override def getConnectorManifestPath(): String = {
+    getClass().getClassLoader.getResource(ConnectorConfigFile).getPath()
+  }
 
-  override def getConnectorManifestPath(): String = ???
-  override def getDatastoreManifestPath(): Array[String] = ???
-  override def restart(): Unit = ???
+  override def getDatastoreManifestPath(): Array[String] ={
+    com.stratio.connector.sparksql.providers.manifests.map(x => getClass.getClassLoader.getResource(x._1).getPath).toArray[String]
+  }
+  override def restart(): Unit = {
+
+  }
+
   override def init(configuration: IConfiguration): Unit =
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("All providers are initialized") {
@@ -119,8 +126,8 @@ with Metrics {
     }
 
   override def connect(
-    credentials: ICredentials,
-    config: ConnectorClusterConfig): Unit =
+                        credentials: ICredentials,
+                        config: ConnectorClusterConfig): Unit =
     timeFor("Connected to SparkSQL connector") {
       connectionHandler.createConnection(config, sqlContext, Option(credentials))
     }
@@ -176,8 +183,8 @@ with Metrics {
    * @return A brand new SQLContext.
    */
   def sqlContextBuilder(
-    contextType: String,
-    sc: SparkContext): SparkSQLContext =
+                         contextType: String,
+                         sc: SparkContext): SparkSQLContext =
     contextType match {
       case HBaseContext => new HBaseSQLContext(sc) with Catalog
       case HIVEContext => new HiveContext(sc) with Catalog

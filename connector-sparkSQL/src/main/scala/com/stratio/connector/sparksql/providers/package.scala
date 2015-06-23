@@ -27,6 +27,13 @@ object `package` {
   val HBaseProvider = "hbase"
   val MongoProvider = "Mongo"
 
+  val manifests = Map(
+    ParquetProvider -> "HDFS",
+    CassandraProvider -> "Cassandra",
+    HBaseProvider -> "HBase",
+    MongoProvider -> "Mongo"
+  ).mapValues(name => s"${name}DataStore.xml")
+
   val all = List(
     ParquetProvider,
     CassandraProvider,
