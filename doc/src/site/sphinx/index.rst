@@ -5,3 +5,4 @@ Contents:
     :numbered:
     
     FirstSteps.rst
+    ConfHive.rst
