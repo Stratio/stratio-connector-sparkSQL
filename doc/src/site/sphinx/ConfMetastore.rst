@@ -24,15 +24,15 @@ Spark SQL needs to create the metadata, so we need to create an user with creden
 
 ::
 
-      > CREATE USER 'stratio'@'%' IDENTIFIED BY 'stratio';
+      > CREATE USER <user>@'%' IDENTIFIED BY <password>;
 
 ::
 
-      > REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'stratio'@'%';
+      > REVOKE ALL PRIVILEGES, GRANT OPTION FROM <user>@'%';
 
 ::
 
-      > GRANT SELECT,INSERT,UPDATE,DELETE,LOCK TABLES,EXECUTE,CREATE,INDEX,ALTER,DROP ON testmetastore.* TO 'stratio'@'%';
+      > GRANT SELECT,INSERT,UPDATE,DELETE,LOCK TABLES,EXECUTE,CREATE,INDEX,ALTER,DROP ON <catalog>.* TO <user>@'%';
 
 ::
 
@@ -54,7 +54,7 @@ Finally for initializing all, it is necessary to execute the following command:
 Step 4: Setting Spark files
 ---------------------------------
 
-In ${SPARK_HOME}/conf we need to modify the path of the database, the user and the password as we did with the parameters in the step 2.
+In ${SPARK_HOME}/conf we need to modify (as we did with the parameters in the step 2) the path of the catalog, user and password as the example:
 
 hive-site.xml
 .............
@@ -76,7 +76,7 @@ hive-site.xml
 
         <property>
            <name>javax.jdo.option.ConnectionURL</name>
-           <value>jdbc:mysql://aws01/testmetastore?createDatabaseIfNotExist=true</value>
+           <value>jdbc:mysql://<MySQLhost>/<catalog>?createDatabaseIfNotExist=true</value>
            <description>JDBC connect string for a JDBC metastore</description>
         </property>
 
@@ -88,12 +88,12 @@ hive-site.xml
 
         <property>
            <name>javax.jdo.option.ConnectionUserName</name>
-           <value>stratio</value>
+           <value><user></value>
         </property>
 
         <property>
            <name>javax.jdo.option.ConnectionPassword</name>
-           <value>stratio</value>
+           <value><password></value>
         </property>
 
         <property>
