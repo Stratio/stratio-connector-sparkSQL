@@ -17,6 +17,7 @@
  */
 package com.stratio.connector.sparksql
 
+
 import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
 import com.stratio.connector.sparksql.connection.ConnectionHandler
 import com.stratio.connector.sparksql.engine.query.{QueryManager, QueryEngine}
@@ -26,7 +27,7 @@ import com.stratio.crossdata.common.exceptions.UnsupportedException
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
 import com.typesafe.config.Config
-//import org.apache.spark.sql.hbase.HBaseSQLContext
+import org.apache.spark.sql.hbase.HBaseSQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
@@ -111,12 +112,13 @@ with Metrics {
         connectorApp.foreach(_.subscribeToMetadataUpdate(
           SparkSQLMetadataListener(
             sqlContext,
-            connectionHandler)))
+            connectionHandler,
+            queryManager)))
       }
     }
   }
 
-  override def init(configuration: IConfiguration): Unit =
+  def init(configuration: IConfiguration): Unit =
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("All providers are initialized") {
         providers.all.flatMap(providers.apply).foreach(_.initialize(sparkContext))
@@ -130,27 +132,27 @@ with Metrics {
       }
     }
 
-  override def connect(
+  def connect(
                         credentials: ICredentials,
                         config: ConnectorClusterConfig): Unit =
     timeFor("Connected to SparkSQL connector") {
       connectionHandler.createConnection(config, sqlContext, Option(credentials))
     }
 
-  override def getQueryEngine: IQueryEngine =
+  def getQueryEngine: IQueryEngine =
     queryEngine
 
-  override def isConnected(name: ClusterName): Boolean =
+  def isConnected(name: ClusterName): Boolean =
     connectionHandler.isConnected(name.getName)
 
-  override def close(name: ClusterName): Unit = {
+  def close(name: ClusterName): Unit = {
     logger.info(s"Connection to $name cluster was closed")
     timeFor(s"Connection  cluster closed") {
       connectionHandler.closeConnection(name.getName)
     }
   }
 
-  override def shutdown(): Unit =
+  def shutdown(): Unit =
     timeFor("Connector has been shut down...") {
       logger.debug("Disposing QueryManager")
       queryManager ! Kill
@@ -191,17 +193,17 @@ with Metrics {
                          contextType: String,
                          sc: SparkContext): SparkSQLContext =
     contextType match {
-//      case HBaseContext => new HBaseSQLContext(sc) with Catalog
+      case HBaseContext => new HBaseSQLContext(sc) with Catalog
       case HIVEContext => new HiveContext(sc) with Catalog
       case _ => new SQLContext(sc) with Catalog
     }
 
   //  Unsupported methods
 
-  override def getStorageEngine: IStorageEngine =
+  def getStorageEngine: IStorageEngine =
     throw new UnsupportedException(SparkSQLConnector.MethodNotSupported)
 
-  override def getMetadataEngine: IMetadataEngine =
+  def getMetadataEngine: IMetadataEngine =
     throw new UnsupportedException(SparkSQLConnector.MethodNotSupported)
 
 }
