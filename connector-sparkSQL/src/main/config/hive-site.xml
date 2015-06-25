@@ -13,7 +13,7 @@
 
     <property>
         <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:mysql://aws01/testmetastore?createDatabaseIfNotExist=true</value>
+        <value>jdbc:mysql://ccaballero/testmetastore?createDatabaseIfNotExist=true</value>
         <description>JDBC connect string for a JDBC metastore</description>
     </property>
 
@@ -25,7 +25,7 @@
 
     <property>
         <name>javax.jdo.option.ConnectionUserName</name>
-        <value>hive</value>
+        <value>stratio</value>
     </property>
 
     <property>
