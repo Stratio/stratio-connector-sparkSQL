@@ -18,8 +18,12 @@
 package com.stratio.connector.sparksql
 
 import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
-import com.stratio.connector.sparksql.connection.ConnectionHandler
-import com.stratio.connector.sparksql.engine.query.{QueryManager, QueryEngine}
+import com.stratio.connector.sparksql.cassandra.CassandraConstants
+import com.stratio.connector.sparksql.core.connection.ConnectionHandler
+import com.stratio.connector.sparksql.core.engine.query.{QueryManager, QueryEngine}
+import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
+import com.stratio.connector.sparksql.core.providerConfig.{providers, Configuration, Catalog, Constants}
+import com.stratio.connector.sparksql.hbase.HBaseConstants
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
 import com.stratio.crossdata.common.exceptions.UnsupportedException
@@ -32,7 +36,7 @@ import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
 import com.stratio.connector.commons.{Loggable,Metrics}
 import com.stratio.connector.commons.timer
-import com.stratio.connector.sparksql.engine.SparkSQLMetadataListener
+import com.stratio.connector.sparksql.core.engine.SparkSQLMetadataListener
 
 class SparkSQLConnector(
                          system: ActorRefFactory,
@@ -105,9 +109,7 @@ with Metrics {
     getClass().getClassLoader.getResource(ConnectorConfigFile).getPath()
   }
 
-  override def getDatastoreManifestPath(): Array[String] ={
-    com.stratio.connector.sparksql.providers.manifests.map(x => getClass.getClassLoader.getResource(x._1).getPath).toArray[String]
-  }
+  override def getDatastoreManifestPath(): Array[String] = ???
   override def restart(): Unit = {
 
   }
@@ -203,6 +205,8 @@ with Metrics {
 
 object SparkSQLConnector extends App
 with Constants
+with CassandraConstants
+with HBaseConstants
 with Configuration
 with Loggable
 with Metrics {

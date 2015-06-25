@@ -7,6 +7,7 @@ package com.stratio.connector.sparksql
 import java.net.URL
 import java.util.Collections
 import com.stratio.connector.commons._
+import com.stratio.connector.sparksql.core.providerConfig.{Configuration, Constants}
 import scala.collection.JavaConversions._
 import akka.actor.{ActorSystem, ActorRefFactory}
 import com.stratio.connector.sparksql.SparkSQLConnector._
