@@ -23,6 +23,7 @@ import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.connector.sparksql.{SparkSQLContext, SparkSQLConnector}
 import com.stratio.connector.sparksql.engine.query.QueryExecutor.DataFrameProvider
 import com.stratio.crossdata.common.connector.IResultHandler
+import com.stratio.crossdata.common.data.TableName
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
 import com.stratio.connector.commons.timer
 
@@ -72,14 +73,29 @@ with Metrics {
     }
   }
 
+  /** Registered tables*/
+  var registeredTables: Set[TableName] = Set()
+
   override def receive: Receive = {
 
-    case job: JobCommand =>
+    case job @ SyncExecute(_,workflow) =>
       logger.info(s"[QueryManager] Processed job request : [$job]")
-      timeFor(s"[QueryManager] Processed job request.") {
-        if (busy) stash()
-        else assignJob(job)
+      val (registered,notRegistered) = QueryEngine
+        .involvedTables(workflow)
+        .partition(table => registeredTables.contains(table))
+      if (notRegistered.isEmpty){
+        val requester = sender()
+        executeJob(job,requester)
+      } else {
+        logger.warn(s"Not all involved tables are registered: $notRegistered")
+        self forward job
       }
+
+
+    case job: AsyncJob =>
+      logger.info(s"[QueryManager] Processed job request : [$job]")
+      val requester = sender()
+      executeJob(job,requester)
 
     case Stop(queryId) =>
       logger.info(s"[QueryManager] Stopped query [$queryId]")
@@ -93,9 +109,30 @@ with Metrics {
         finish(queryId)
       }
 
+    case Registered(table) =>
+      logger.info(s"[QueryManager] Registered table ${table.getQualifiedName}")
+      registeredTables += table
+
+    case Unregistered(table) =>
+      logger.info(s"[QueryManager] Unregistered table ${table.getQualifiedName}")
+      registeredTables -= table
+
+    case other => println(s"Unexpected: $other [${other.getClass}]")
   }
 
   //  Helpers
+
+  /**
+   * Assign any type of job to first free executor
+   * @param job Job to be executed
+   * @param requester ActorRef that requests this query execution.
+   */
+  def executeJob(job: Job,requester: ActorRef): Unit = {
+    timeFor(s"[QueryManager] Processed job request.") {
+      if (busy) stash()
+      else assignJob(job,requester)
+    }
+  }
 
   /**
    * Assign a new async query execution to some free executor.
@@ -104,7 +141,7 @@ with Metrics {
    *
    * @param msg The new async query to be executed
    */
-  def assignJob(msg: JobCommand): Unit = {
+  def assignJob(msg: Job,sender: ActorRef): Unit = {
     val (executor, rest) = freeExecutors.splitAt(1)
     freeExecutors = rest
     pendingQueries += (msg.queryId -> executor.head)
@@ -145,11 +182,15 @@ object QueryManager {
 
   //  Messages
 
-  sealed trait JobCommand {
+  sealed trait Job {
 
     def queryId: QueryManager#QueryId
 
     def workflow: LogicalWorkflow
+
+  }
+
+  sealed trait AsyncJob extends Job {
 
     def resultHandler: IResultHandler
 
@@ -157,23 +198,33 @@ object QueryManager {
 
   }
 
+  case class SyncExecute(
+    queryId: QueryManager#QueryId,
+    workflow: LogicalWorkflow) extends Job
+  
   case class PagedExecute(
     queryId: QueryManager#QueryId,
     workflow: LogicalWorkflow,
     resultHandler: IResultHandler,
-    pageSize: Int) extends JobCommand {
+    pageSize: Int) extends AsyncJob {
     override def currentChunk = Some(pageSize)
   }
 
   case class AsyncExecute(
     queryId: QueryManager#QueryId,
     workflow: LogicalWorkflow,
-    resultHandler: IResultHandler) extends JobCommand
+    resultHandler: IResultHandler) extends AsyncJob
 
   case class Stop(
     queryId: QueryManager#QueryId)
 
   case class Finished(
     queryId: QueryManager#QueryId)
+
+  case class Registered(
+    table: TableName)
+
+  case class Unregistered(
+    table: TableName)
 
 }

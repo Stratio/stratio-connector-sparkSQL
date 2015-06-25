@@ -17,17 +17,17 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
-import com.stratio.connector.sparksql.connection.ConnectionHandler
-import com.stratio.connector.sparksql.providers.Provider
-import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
-import org.apache.spark.partial.PartialResult
+
+import com.stratio.crossdata.common.data.TableName
 import org.apache.spark.sql.hive.HiveContext
-import com.stratio.connector.sparksql.providers._
+
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
+import akka.pattern.ask
 import org.apache.spark.sql.DataFrame
-import com.stratio.crossdata.common.data.{DataStoreName, ClusterName, TableName}
+
 import com.stratio.crossdata.common.metadata.{TableMetadata, ColumnMetadata}
+
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
 import com.stratio.crossdata.common.result.QueryResult
@@ -40,6 +40,8 @@ import com.stratio.connector.sparksql._
 import com.stratio.connector.sparksql.CrossdataConverters._
 import com.stratio.connector.sparksql.engine.query.QueryManager._
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.util.Try
 
 /**
@@ -52,24 +54,32 @@ import scala.util.Try
 case class QueryEngine(
   sqlContext: SparkSQLContext,
   queryManager: ActorRef,
-  connectionHandler: ConnectionHandler) extends IQueryEngine
+  connectionHandler: ConnectionHandler)(
+  implicit timeout: akka.util.Timeout = 3.seconds) extends IQueryEngine
 with Loggable
 with Metrics {
 
-  import QueryEngine._
   import timer._
 
   override def execute(queryId:String, workflow: LogicalWorkflow): QueryResult = {
 
-    logger.info(s"Execute workflow [$workflow]. The direct query is [${workflow.getSqlDirectQuery}]")
+    val plainQuery = workflow.getSqlDirectQuery
 
-    val dataFrame = timeFor(s"Sync. query executed.") {
-      executeQuery(workflow, sqlContext, connectionHandler)
+    /*TODO:
+     *      When QueryEngine API changes for 'execute' method,
+     *      add queryId to SyncExecute instead of an empty string.
+     */
+    val queryId = plainQuery
+
+    logger.info(s"Execute workflow [$workflow]. The direct query is [$plainQuery]")
+
+
+    timeFor(s"Sync query [$queryId] executed.") {
+      Await.result(
+        (queryManager ? SyncExecute("", workflow)).mapTo[QueryResult],
+        Duration.Inf)
     }
-    timeFor(s"Unique query result processed.") {
-      QueryResult.createQueryResult(
-        toResultSet(dataFrame, toColumnMetadata(workflow)), 0, true)
-    }
+
   }
 
   override def pagedExecute(
@@ -184,7 +194,6 @@ object QueryEngine extends Loggable with Metrics {
     }
   }
 
-
   /**
    * Get columns metadata from workflow.
    *
@@ -215,10 +224,19 @@ object QueryEngine extends Loggable with Metrics {
           Array(),
           columnTypes.getOrElse(s.getColumnName.getName, columnTypes(s.getAlias)))
     }
-
-
   }
 
+  /**
+   * Get involved tables in some query workflow.
+   *
+   * @param workflow Logical workflow
+   * @return
+   */
+  def involvedTables(workflow: LogicalWorkflow): Iterable[TableName] = {
+    workflow.getInitialSteps.map{
+      case p: Project => p.getTableName
+    }
+  }
 
 
   /**
@@ -237,21 +255,12 @@ object QueryEngine extends Loggable with Metrics {
     val withoutCatalog = (statement /: catalogs) {
       case (s, catalog) =>
         val regex = s"[\\s|(]$catalog\\.".r
-        regex.replaceAllIn(s,mtch =>
+        regex.replaceAllIn(s, mtch =>
           mtch.toString().dropRight(s"$catalog.".length))
     }
 
     withoutCatalog
   }
-
-  /**
-   * Converts name to canonical format.
-   *
-   * @param name Table name.
-   * @return Sequence of split parts from qualified name.
-   */
-  def qualified(name: TableName): String =
-    name.getName
 
   /**
    * Register a table with its options in sqlContext catalog.
@@ -266,40 +275,46 @@ object QueryEngine extends Loggable with Metrics {
     tableName: String,
     sqlContext: SparkSQLContext,
     provider: Provider,
-    options: Map[String, String]): Unit = {
-
-    //Aux register method, generic for no mather what SQLContext is being used
-    def register(
-      tableName: String,
-      sqlContext: SparkSQLContext,
-      provider: Provider,
-      options: Map[String, String],
-      temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
-      if (sqlContext.getCatalog.tableExists(Seq("default", tableName))) {
-        logger.warn(s"Tried to register $tableName table but it already exists!")
-        unregisterTable(tableName, sqlContext)
-        register(tableName, sqlContext, provider, options)
-      }
-      else {
-        logger.debug(s"Registering table [$tableName]")
-        val statement = createTable(
-          tableName,
-          provider,
-          options,
-          temporaryTable)
-        logger.debug(s"Statement: $statement")
-        sqlContext.sql(statement)
-      }
-    }.recover {
-      case t: Throwable =>
-        logger.error(s"Error at registering table '$tableName' : ${t.getMessage}")
-    }
-
+//<<<<<<< HEAD
+//    options: Map[String, String]): Unit = {
+//
+//    //Aux register method, generic for no mather what SQLContext is being used
+//    def register(
+//      tableName: String,
+//      sqlContext: SparkSQLContext,
+//      provider: Provider,
+//      options: Map[String, String],
+//      temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
+//      if (sqlContext.getCatalog.tableExists(Seq("default", tableName))) {
+//        logger.warn(s"Tried to register $tableName table but it already exists!")
+//        unregisterTable(tableName, sqlContext)
+//        register(tableName, sqlContext, provider, options)
+//      }
+//      else {
+//        logger.debug(s"Registering table [$tableName]")
+//        val statement = createTable(
+//          tableName,
+//          provider,
+//          options,
+//          temporaryTable)
+//        logger.debug(s"Statement: $statement")
+//        sqlContext.sql(statement)
+//      }
+//    }.recover {
+//      case t: Throwable =>
+//        logger.error(s"Error at registering table '$tableName' : ${t.getMessage}")
+//    }
+//
+//=======
+    options: Map[String, String]): Try[Unit] =
+//>>>>>>> origin/feature/syncRegister
     provider match {
       case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
-        provider.sqlContext.foreach { context =>
-          logger.debug(s"Registering $tableName into '${provider.dataSource}' specific context")
-          register(tableName, context, provider, options, !provider.catalogPersistence)
+        logger.debug(s"Registering $tableName into '${provider.dataSource}' specific context")
+        for {
+          context <- Try(provider.sqlContext.get)
+          _ <- genRegister(tableName, context, provider, options, !provider.catalogPersistence)
+        } yield {
           logger.debug(s"Retrieving table '$tableName' as dataFrame")
           val dataFrame = context.table(tableName)
           logger.debug(s"Registering dataFrame with schema ${dataFrame.schema} into common context'")
@@ -307,9 +322,44 @@ object QueryEngine extends Loggable with Metrics {
         }
       case simpleProvider =>
         logger.debug(s"Registering $tableName into regular context")
-        register(tableName, sqlContext, provider, options)
+        genRegister(tableName, sqlContext, provider, options)
     }
 
+  /**
+   * Generic register method, that registers a table
+   * ignoring which kind of SQLContext is being used.
+   *
+   * @param tableName Table name to be registered.
+   * @param sqlContext SQLContext in which the table will be registered.
+   * @param provider Provider that will be used for table registration.
+   * @param options Options map
+   * @param temporaryTable Is the table to be registered a temporary table?
+   * @return A try of registration.
+   */
+  def genRegister(
+    tableName: String,
+    sqlContext: SparkSQLContext,
+    provider: Provider,
+    options: Map[String, String],
+    temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
+    if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
+      logger.warn(s"Tried to register $tableName table but it already exists!")
+    else {
+      logger.debug(s"Registering table [$tableName]")
+      val statement = createTable(
+        tableName,
+        provider,
+        options,
+        temporaryTable)
+      logger.debug(s"Statement: $statement")
+      sqlContext.sql(statement)
+    }
+  }.recover {
+    case throwable: Throwable =>
+      logger.error(
+        s"Error at registering table '$tableName' : ${throwable.getMessage}",
+        throwable)
+      throw throwable
   }
 
   /**
@@ -333,8 +383,6 @@ object QueryEngine extends Loggable with Metrics {
 
   type DataStore = String
   type GlobalOptions = Map[String, String]
-
-
 
 
   /**
@@ -482,6 +530,11 @@ object QueryEngine extends Loggable with Metrics {
     })(f)
   }
 
+  /**
+   * Retrieve all implied catalogs in given logical workflow
+   * @param lw LogicalWorkflow where catalog names will be extracted from.
+   * @return A String Iterable that represents all catalog names.
+   */
   def catalogsFromWorkflow(lw: LogicalWorkflow): Iterable[String] = {
     lw.getInitialSteps.map {
       case project: Project =>

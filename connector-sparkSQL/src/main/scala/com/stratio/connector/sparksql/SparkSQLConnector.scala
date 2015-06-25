@@ -125,7 +125,8 @@ with Metrics {
         connectorApp.foreach(_.subscribeToMetadataUpdate(
           SparkSQLMetadataListener(
             sqlContext,
-            connectionHandler)))
+            connectionHandler,
+            queryManager)))
       }
     }
 
