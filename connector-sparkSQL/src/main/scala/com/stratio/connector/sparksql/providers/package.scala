@@ -24,27 +24,27 @@ object `package` {
 
   val ParquetProvider = "hdfs"
   val CassandraProvider = "Cassandra"
-//  val HBaseProvider = "hbase"
+  val HBaseProvider = "hbase"
   val MongoProvider = "Mongo"
 
   val manifests = Map(
     ParquetProvider -> "HDFS",
-    CassandraProvider -> "Cassandra"
-//    HBaseProvider -> "HBase",
-//    MongoProvider -> "Mongo"
+    CassandraProvider -> "Cassandra",
+    HBaseProvider -> "HBase",
+    MongoProvider -> "Mongo"
   ).mapValues(name => s"${name}DataStore.xml")
 
   val all = List(
     ParquetProvider,
     CassandraProvider,
-//    HBaseProvider,
+    HBaseProvider,
     MongoProvider
   )
 
   def apply(providerName: String): Option[Provider] = providerName match {
     case ParquetProvider => Some(Parquet)
     case CassandraProvider => Some(Cassandra)
-//    case HBaseProvider => Some(HBase)
+    case HBaseProvider => Some(HBase)
     case MongoProvider => Some (MongoDB)
     case _ => None
   }
