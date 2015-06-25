@@ -284,7 +284,7 @@
                                     <copyConfigurationDirectory>true</copyConfigurationDirectory>
                                     <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
                                     <assembleDirectory>${project.build.directory}/stratio-connector-sparkSQL</assembleDirectory>
-                                    <extraJvmArguments>$CONNECTOR_SPARKSQL_OPTS -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${jmx.port} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false</extraJvmArguments>
+                                    <extraJvmArguments>$CONNECTOR_SPARKSQL_OPTS -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${jmx.port} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -DXmx3072m -XX:MaxPermSize=512m</extraJvmArguments>
                                     <filterConfigurationDirectory>true</filterConfigurationDirectory>
                                     <platforms>
                                         <platform>windows</platform>
