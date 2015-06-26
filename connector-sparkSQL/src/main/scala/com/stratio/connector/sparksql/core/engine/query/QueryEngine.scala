@@ -19,6 +19,8 @@ package com.stratio.connector.sparksql.core.engine.query
 
 import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.core.providerConfig.{CustomContextProvider, Catalog, providers, Provider}
+import com.stratio.crossdata.common.data.TableName
+import org.apache.spark.sql.hive.HiveContext
 import scala.collection.JavaConversions._
 import akka.actor.ActorRef
 import akka.pattern.ask

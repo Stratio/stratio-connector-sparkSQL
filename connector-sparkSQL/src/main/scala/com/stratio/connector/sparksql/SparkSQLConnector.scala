@@ -96,12 +96,12 @@ with Metrics {
   }
 
   override def getDatastoreManifestPath(): Array[String] ={
-    com.stratio.connector.sparksql.providers.manifests.map{
+    com.stratio.connector.sparksql.core.providerConfig.providers.manifests.map{
       x => {
         print (getClass.getClassLoader.getResource(x._2).getPath)
       }
     }
-    com.stratio.connector.sparksql.providers.manifests.map{
+    com.stratio.connector.sparksql.core.providerConfig.providers.manifests.map{
       x => {
         getClass.getClassLoader.getResource(x._2).getPath
       }
