@@ -17,18 +17,22 @@
  */
 package com.stratio.connector.sparksql.core.engine.query
 
+
 import java.util
 
+import akka.actor.{Props, Actor}
 import akka.testkit.TestProbe
 import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.core.providerConfig.{providers, Provider}
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
 import com.stratio.connector.sparksql.core.engine.query.QueryManager.{Stop, PagedExecute, AsyncExecute}
+
 import com.stratio.connector.sparksql.Test
 import com.stratio.crossdata.common.connector.IResultHandler
-import com.stratio.crossdata.common.data.{ColumnName, TableName, ClusterName}
+import com.stratio.crossdata.common.data.{ResultSet, ColumnName, TableName, ClusterName}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalStep, LogicalWorkflow}
 import com.stratio.crossdata.common.metadata.{DataType, ColumnType, Operations, ColumnMetadata}
+import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.crossdata.common.statements.structures.{AsteriskSelector, Selector}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -40,10 +44,28 @@ class QueryEngineTest extends Test("QueryEngine") {
 
   val sqlContext = None.orNull[SparkSQLContext]
   val workflow = new LogicalWorkflow(List())
+  val queryId : String =""
   val resultHandler = None.orNull[IResultHandler]
   val connectionHandler = None.orNull[ConnectionHandler]
   val provider = new Provider {
     val dataSource = "my-provider"
+  }
+
+  it should "execute sync. queries" in {
+    val probe = TestProbe()
+    val queryManager = system.actorOf(Props(new Actor{
+      override def receive = {
+        case msg =>
+          val response = QueryResult.createQueryResult("",None.orNull[ResultSet],0,true)
+          sender ! response
+          probe.ref ! response
+      }
+    }))
+    val qe = new QueryEngine(sqlContext, queryManager, connectionHandler)
+    qe.execute(queryId, workflow)
+    probe.expectMsgClass(classOf[QueryResult])
+
+    //queryManager.expectMsgClass(classOf[SyncExecute])
   }
 
   it should "execute async. queries" in {

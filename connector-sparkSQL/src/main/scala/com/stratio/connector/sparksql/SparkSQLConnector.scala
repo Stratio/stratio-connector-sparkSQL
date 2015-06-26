@@ -17,6 +17,7 @@
  */
 package com.stratio.connector.sparksql
 
+
 import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
 import com.stratio.connector.sparksql.cassandra.CassandraConstants
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
@@ -90,31 +91,24 @@ with Metrics {
 
   //  IConnector implemented methods
 
-  /* override def getConnectorName: String =
-     connectorConfigFile.get.child
-       .find(_.label == ConnectorName)
-       .map(_.text)
-       .getOrElse(
-         throw new NoSuchElementException(
-           s"Property $ConnectorName was not set"))
-   override def getDatastoreName: Array[String] =
-     connectorConfigFile.get.child
-       .find(_.label == DataStoreName)
-       .map(_.child.map(_.text).toArray)
-       .getOrElse(
-         throw new NoSuchElementException(
-           s"Property $DataStoreName was not set"))*/
-
   override def getConnectorManifestPath(): String = {
     getClass().getClassLoader.getResource(ConnectorConfigFile).getPath()
   }
 
-  override def getDatastoreManifestPath(): Array[String] = ???
-  override def restart(): Unit = {
-
+  override def getDatastoreManifestPath(): Array[String] ={
+    com.stratio.connector.sparksql.providers.manifests.map{
+      x => {
+        print (getClass.getClassLoader.getResource(x._2).getPath)
+      }
+    }
+    com.stratio.connector.sparksql.providers.manifests.map{
+      x => {
+        getClass.getClassLoader.getResource(x._2).getPath
+      }
+    }.toArray[String]
   }
 
-  override def init(configuration: IConfiguration): Unit =
+  override def restart(): Unit = {
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("All providers are initialized") {
         providers.all.flatMap(providers.apply).foreach(_.initialize(sparkContext))
@@ -123,31 +117,47 @@ with Metrics {
         connectorApp.foreach(_.subscribeToMetadataUpdate(
           SparkSQLMetadataListener(
             sqlContext,
-            connectionHandler)))
+            connectionHandler,
+            queryManager)))
+      }
+    }
+  }
+
+  def init(configuration: IConfiguration): Unit =
+    timeFor(s"SparkSQL connector initialized.") {
+      timeFor("All providers are initialized") {
+        providers.all.flatMap(providers.apply).foreach(_.initialize(sparkContext))
+      }
+      timeFor("Subscribed to metadata updates.") {
+        connectorApp.foreach(_.subscribeToMetadataUpdate(
+          SparkSQLMetadataListener(
+            sqlContext,
+            connectionHandler,
+            queryManager)))
       }
     }
 
-  override def connect(
+  def connect(
                         credentials: ICredentials,
                         config: ConnectorClusterConfig): Unit =
     timeFor("Connected to SparkSQL connector") {
       connectionHandler.createConnection(config, sqlContext, Option(credentials))
     }
 
-  override def getQueryEngine: IQueryEngine =
+  def getQueryEngine: IQueryEngine =
     queryEngine
 
-  override def isConnected(name: ClusterName): Boolean =
+  def isConnected(name: ClusterName): Boolean =
     connectionHandler.isConnected(name.getName)
 
-  override def close(name: ClusterName): Unit = {
+  def close(name: ClusterName): Unit = {
     logger.info(s"Connection to $name cluster was closed")
     timeFor(s"Connection  cluster closed") {
       connectionHandler.closeConnection(name.getName)
     }
   }
 
-  override def shutdown(): Unit =
+  def shutdown(): Unit =
     timeFor("Connector has been shut down...") {
       logger.debug("Disposing QueryManager")
       queryManager ! Kill
@@ -195,10 +205,10 @@ with Metrics {
 
   //  Unsupported methods
 
-  override def getStorageEngine: IStorageEngine =
+  def getStorageEngine: IStorageEngine =
     throw new UnsupportedException(SparkSQLConnector.MethodNotSupported)
 
-  override def getMetadataEngine: IMetadataEngine =
+  def getMetadataEngine: IMetadataEngine =
     throw new UnsupportedException(SparkSQLConnector.MethodNotSupported)
 
 }

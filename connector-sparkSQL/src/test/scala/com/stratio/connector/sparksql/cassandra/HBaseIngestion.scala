@@ -1,7 +1,7 @@
 package com.stratio.connector.sparksql.cassandra
 
 import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.spark.sql.hbase.HBaseSQLContext
+//import org.apache.spark.sql.hbase.HBaseSQLContext
 import org.scalacheck.Gen
 
 object HBaseIngestion extends App with Generators{
@@ -13,7 +13,7 @@ object HBaseIngestion extends App with Generators{
 
   lazy val sparkContext = new SparkContext(sparkConf)
 
-  lazy val hbaseContext: HBaseSQLContext = new HBaseSQLContext(sparkContext)
+//  lazy val hbaseContext: HBaseSQLContext = new HBaseSQLContext(sparkContext)
 
   val tableName = s"clientes"
 
@@ -21,14 +21,14 @@ object HBaseIngestion extends App with Generators{
 
   val sampleSize = 10
 
-  hbaseContext.sql(s"""CREATE TABLE $sparkTableName (id STRING, name STRING, surname STRING,
-                     age INTEGER, PRIMARY KEY (id))
-                    MAPPED BY ($tableName, COLS=[name=`data.name`, surname=`data.surname`, age=`data.age`])""")
-
-  Gen.listOfN(sampleSize,customerGen(sparkTableName)).sample.getOrElse(List())
-    .foreach { statement =>
-    hbaseContext.sql(statement)
-  }
+//  hbaseContext.sql(s"""CREATE TABLE $sparkTableName (id STRING, name STRING, surname STRING,
+//                     age INTEGER, PRIMARY KEY (id))
+//                    MAPPED BY ($tableName, COLS=[name=`data.name`, surname=`data.surname`, age=`data.age`])""")
+//
+//  Gen.listOfN(sampleSize,customerGen(sparkTableName)).sample.getOrElse(List())
+//    .foreach { statement =>
+//    hbaseContext.sql(statement)
+//  }
 
   sparkContext.stop()
 
