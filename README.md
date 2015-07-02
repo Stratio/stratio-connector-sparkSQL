@@ -8,7 +8,8 @@ How to use Stratio-Connector-SparkSQL
 
 Requirements, installation and use of the connector can be found in [about.rst] (<https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/about.rst>)
 
-There also exists a [First Steps] (<https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/First_Steps.rst>) document where through an easy example the main features of this connector are illustrated.
+There also exists a [First Steps]
+(<https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/FirstSteps.rst>) document where through an easy example the main features of this connector are illustrated.
 
 License
 =======
