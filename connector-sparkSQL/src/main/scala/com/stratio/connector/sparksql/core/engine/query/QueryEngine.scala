@@ -17,8 +17,8 @@
  */
 package com.stratio.connector.sparksql.core.engine.query
 
-import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
-import com.stratio.connector.sparksql.core.providerConfig.{CustomContextProvider, Catalog, providers, Provider}
+import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
+import com.stratio.connector.sparksql.core.providerConfig.{Catalog, providers, Provider}
 import com.stratio.crossdata.common.data.TableName
 import org.apache.spark.sql.hive.HiveContext
 import scala.collection.JavaConversions._
@@ -276,7 +276,7 @@ object QueryEngine extends Loggable with Metrics {
     provider: Provider,
     options: Map[String, String]): Try[Unit] =
     provider match {
-      case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
+/*      case provider: CustomContextProvider[SparkSQLContext@unchecked] =>
         logger.debug(s"Registering $tableName into '${provider.dataSource}' specific context")
         for {
           context <- Try(provider.sqlContext.get)
@@ -286,7 +286,7 @@ object QueryEngine extends Loggable with Metrics {
           val dataFrame = context.table(tableName)
           logger.debug(s"Registering dataFrame with schema ${dataFrame.schema} into common context'")
           sqlContext.createDataFrame(dataFrame.rdd, dataFrame.schema).registerTempTable(tableName)
-        }
+        }*/
       case simpleProvider =>
         logger.debug(s"Registering $tableName into regular context")
         genRegister(tableName, sqlContext, provider, options)

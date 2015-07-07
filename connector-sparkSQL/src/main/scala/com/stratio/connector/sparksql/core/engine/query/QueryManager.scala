@@ -22,7 +22,7 @@ import com.stratio.connector.sparksql.core.connection.ConnectionHandler
 import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.connector.sparksql.SparkSQLConnector
 import com.stratio.connector.sparksql.core.engine.query.QueryExecutor.DataFrameProvider
-import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
+import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
 import com.stratio.crossdata.common.connector.IResultHandler
 import com.stratio.crossdata.common.data.TableName
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow

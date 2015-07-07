@@ -18,7 +18,7 @@
 package com.stratio.connector.sparksql.core.engine.query
 
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
-import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
+import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
 import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.connector.commons.timer
 import org.apache.spark.sql.types.StructType

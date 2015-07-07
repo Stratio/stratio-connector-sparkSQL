@@ -15,30 +15,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.stratio.connector.sparksql.core.providerConfig
+package mongodb
 
-import org.apache.spark.SparkContext
+import com.stratio.connector.sparksql.core.providerConfig.{Constants, Provider}
 
-/**
- * A CustomContextProvider denotes a provider that owns a different SQLContext
- * than the common one.
- * @tparam Context
- */
-trait CustomContextProvider[Context <: SparkSQLContext] extends Provider {
+case object MongoDB extends Provider with Constants{
 
-  var sqlContext: Option[Context] = None
+  override val manifest: String = "MongoDataStore.xml"
 
-  /** Is this context's catalog persistent?*/
-  val catalogPersistence: Boolean
+  override val name: String = "Mongo"
 
-  def buildContext(sc: SparkContext): Context
-
-  def initializeContext(sc: SparkContext): Unit =
-    synchronized(sqlContext = Some(buildContext(sc)))
-
-  override def initialize(sc: SparkContext): Unit = {
-    super.initialize(sc)
-    initializeContext(sc)
-  }
+  override val dataSource: String = "com.stratio.deep.mongodb.DefaultSource"
 
 }

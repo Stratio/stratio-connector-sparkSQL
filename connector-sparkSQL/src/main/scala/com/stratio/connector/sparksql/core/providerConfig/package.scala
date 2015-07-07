@@ -19,10 +19,6 @@ package com.stratio.connector.sparksql.core.providerConfig
 
 import com.stratio.connector.commons.Loggable
 import com.stratio.connector.sparksql.SparkSQLConnector
-import com.stratio.connector.sparksql.cassandra.Cassandra
-import com.stratio.connector.sparksql.hbase.HBase
-import com.stratio.connector.sparksql.mongodb.MongoDB
-import com.stratio.connector.sparksql.parquet.Parquet
 import com.stratio.crossdata.common.exceptions.InitializationException
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.sql.SQLContext
@@ -30,45 +26,61 @@ import org.apache.spark.sql.SQLContext
 import scala.util.Try
 import scala.xml.{Elem, XML}
 
-object `package` {
+object sparkSQLContextAlias {
 
   type SparkSQLContext = SQLContext with Catalog
 
 }
 
 object providers {
+  
+  val providers: Array[AnyRef] = SparkSQLConnector.providersFromConfig
+  
+  def providerByName(name: String): Provider = {
+    val clazz = Class.forName(name + "$")
+    clazz.getField("MODULE$").get(clazz).asInstanceOf[Provider]
+  }
+  lazy val all: Array[Provider] = providers.map(providerByName)
 
-  val ParquetProvider = "hdfs"
-  val CassandraProvider = "Cassandra"
-  val HBaseProvider = "hbase"
-  val MongoProvider = "Mongo"
+  lazy val manifests = all.map(_.manifest)
+
+  def apply(name: String): Option[Provider] = {
+    all.map(p => p.name -> p).toMap.get(name)
+  }
+
+/*  val ParquetProvider = "hdfs"
 
   val manifests = Map(
-    ParquetProvider -> "HDFS",
-    CassandraProvider -> "Cassandra",
-    HBaseProvider -> "HBase",
-    MongoProvider -> "Mongo"
-  ).mapValues(name => s"${name}DataStore.xml")
+    ParquetProvider -> "HDFS").mapValues(name => s"${name}DataStore.xml")*/
 
-  val all = List(
-    ParquetProvider,
-    CassandraProvider,
-    HBaseProvider,
-    MongoProvider
-  )
+ // def apply(providerName: String): Option[Provider] = {
 
-  def apply(providerName: String): Option[Provider] = providerName match {
-    case ParquetProvider => Some(Parquet)
-    case CassandraProvider => Some(Cassandra)
-    case HBaseProvider => Some(HBase)
-    case MongoProvider => Some (MongoDB)
-    case _ => None
-  }
+//    providerName match {
+//    case ParquetProvider => Some(Parquet)
+//    case CassandraProvider => Some(Cassandra)
+//    case HBaseProvider => Some(HBase)
+//    case MongoProvider => Some (MongoDB)
+//    case _ => None
+ // }
+
+
+  //******************************************************
+
+
+  /*Array(
+    "MongoDB",
+    "HBase",
+    "Cassandra")*/
+
+  // val classes = getClass.getClassLoader
+  /*lazy val providersInUse = new{
+
+    val all: Array[Provider] = classes.map(provider => Class.forName(provider).newInstance().asInstanceOf[Provider])
+  }*/
 
 }
 
-
-private[sparksql] trait Constants {
+trait Constants {
   val ActorSystemName = "SparkSQLConnectorSystem"
   val ConfigurationFileConstant = "connector-application.conf"
   val SparkMaster = "spark.master"
@@ -89,6 +101,7 @@ private[sparksql] trait Constants {
   val CountApproxTimeout = "connector.count-approx-timeout"
   val QueryExecutorsAmount = "connector.query-executors.size"
   val SQLContextType = "connector.sql-context-type"
+  val ProvidersInUse = "datastore.providers"
   val AsyncStoppable = "connector.async-stoppable"
   val ChunkSize = "connector.query-executors.chunk-size"
   val CatalogTableSeparator = "_"

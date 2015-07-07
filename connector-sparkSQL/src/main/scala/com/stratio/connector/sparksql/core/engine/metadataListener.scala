@@ -21,8 +21,8 @@ import akka.actor.ActorRef
 import com.stratio.connector.commons.timer
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
 import com.stratio.connector.sparksql.core.engine.query.QueryManager.{Registered, Unregistered}
-import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.core.providerConfig.providers
+import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
 import com.stratio.crossdata.common.connector.IMetadataListener
 import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.crossdata.common.data.{TableName, Name}

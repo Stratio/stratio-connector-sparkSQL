@@ -16,6 +16,8 @@ trait Provider extends Loggable {
    * DefaultSource qualified package name
    */
   val dataSource: String
+  val manifest: String
+  val name: String
 
   /**
    * Initialize current provider
@@ -50,5 +52,6 @@ trait Provider extends Loggable {
   def formatSQL(
     statement: String,
     options: Map[String,Any] = Map()): String = statement
+
 
 }

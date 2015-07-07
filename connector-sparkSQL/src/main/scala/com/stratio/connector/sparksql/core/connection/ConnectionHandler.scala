@@ -19,7 +19,6 @@ package com.stratio.connector.sparksql.core.connection
 
 import com.stratio.connector.commons.Loggable
 import com.stratio.connector.sparksql.core.providerConfig.{Constants, providers}
-import com.stratio.connector.sparksql.cassandra
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
 import org.apache.spark.sql.SQLContext

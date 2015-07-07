@@ -18,20 +18,19 @@
 package com.stratio.connector.sparksql
 
 
+import java.util
+
 import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
-import com.stratio.connector.sparksql.cassandra.CassandraConstants
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
 import com.stratio.connector.sparksql.core.engine.query.{QueryManager, QueryEngine}
-import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
-import com.stratio.connector.sparksql.core.providerConfig.{providers, Configuration, Catalog, Constants}
-import com.stratio.connector.sparksql.hbase.HBaseConstants
+import com.stratio.connector.sparksql.core.providerConfig._
+import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
 import com.stratio.crossdata.common.exceptions.UnsupportedException
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
-import com.typesafe.config.Config
-import org.apache.spark.sql.hbase.HBaseSQLContext
+import com.typesafe.config.{ConfigList, Config}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
@@ -88,30 +87,19 @@ with Metrics {
 
   val sqlContextType: String =
     connectorConfig.get.getString(SQLContextType)
-
+  
   //  IConnector implemented methods
 
-  override def getConnectorManifestPath(): String = {
+  override def getConnectorManifestPath(): String =
     getClass().getClassLoader.getResource(ConnectorConfigFile).getPath()
-  }
 
-  override def getDatastoreManifestPath(): Array[String] ={
-    com.stratio.connector.sparksql.core.providerConfig.providers.manifests.map{
-      x => {
-        print (getClass.getClassLoader.getResource(x._2).getPath)
-      }
-    }
-    com.stratio.connector.sparksql.core.providerConfig.providers.manifests.map{
-      x => {
-        getClass.getClassLoader.getResource(x._2).getPath
-      }
-    }.toArray[String]
-  }
+  override def getDatastoreManifestPath(): Array[String] =
+    providersFromConfig.all.map(_.manifest)
 
   override def restart(): Unit = {
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("All providers are initialized") {
-        providers.all.flatMap(providers.apply).foreach(_.initialize(sparkContext))
+        providersFromConfig.all.foreach(_.initialize(sparkContext))
       }
       timeFor("Subscribed to metadata updates.") {
         connectorApp.foreach(_.subscribeToMetadataUpdate(
@@ -126,7 +114,7 @@ with Metrics {
   def init(configuration: IConfiguration): Unit =
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("All providers are initialized") {
-        providers.all.flatMap(providers.apply).foreach(_.initialize(sparkContext))
+        providersFromConfig.all.foreach(_.initialize(sparkContext))
       }
       timeFor("Subscribed to metadata updates.") {
         connectorApp.foreach(_.subscribeToMetadataUpdate(
@@ -182,8 +170,7 @@ with Metrics {
       .setAll(List(
       SparkDriverMemory,
       SparkExecutorMemory,
-      SparkCoresMax,
-      ZookeeperHosts).filter(config.hasPath).map(k => k -> config.getString(k))))
+      SparkCoresMax).filter(config.hasPath).map(k => k -> config.getString(k))))
   }
 
   /**
@@ -198,7 +185,6 @@ with Metrics {
                          contextType: String,
                          sc: SparkContext): SparkSQLContext =
     contextType match {
-      case HBaseContext => new HBaseSQLContext(sc) with Catalog
       case HIVEContext => new HiveContext(sc) with Catalog
       case _ => new SQLContext(sc) with Catalog
     }
@@ -215,13 +201,13 @@ with Metrics {
 
 object SparkSQLConnector extends App
 with Constants
-with CassandraConstants
-with HBaseConstants
 with Configuration
 with Loggable
 with Metrics {
 
   import timer._
+
+  val providersFromConfig = connectorConfig.get.getStringList(ProvidersInUse).toArray(String)
 
   val system = {
     logger.info(s"'$ActorSystemName' actor system has been initialized.")
