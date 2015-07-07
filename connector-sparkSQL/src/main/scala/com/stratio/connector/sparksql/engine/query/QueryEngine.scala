@@ -162,18 +162,11 @@ object QueryEngine extends Loggable with Metrics {
       logger.info(s"Query after general format: [$formattedQuery]")
       logger.info("Find for partialResults")
       val partialsResults = PartialResultProcessor().recoveredPartialResult(workflow)
-      logger.info(("Creating new hive context"))
-      val hiveContext = sqlContext
-//      val hiveContext = new HiveContext(sqlContext.sparkContext) with Catalog
-//      // importing conf from sql Context to hive context
-//      val sqlContextConfig = sqlContext.getAllConfs
-//      sqlContextConfig.map(x => hiveContext.setConf(x._1, x._2))
 
-      // if partial results have found, register temp table
       val catalogsPartialResult = partialsResults.map {
         case (pr) => {
           val resultSet = pr.getResults
-          val df = CrossdataConverters.toSchemaRDD(resultSet, hiveContext)
+          val df = CrossdataConverters.toSchemaRDD(resultSet, sqlContext)
           val cm = resultSet.getColumnMetadata.get(0).getName
           val catalogName = cm.getTableName.getCatalogName.getName
 
@@ -193,7 +186,7 @@ object QueryEngine extends Loggable with Metrics {
 
       //  Execute actual query ...
       val dataframe = timeFor("Execution finished"){
-        hiveContext.sql(partialResultsFormatted)
+        sqlContext.sql(partialResultsFormatted)
       }
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(dataframe.schema.treeString)
