@@ -69,6 +69,7 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
     val clusterName = tableMetadata.getClusterRef
     val tableName = tableMetadata.getName
     timeFor("Received updated table metadata.") {
+      logger.info(s"Registering table $tableName")
       for {
         connection <- connectionHandler.getConnection(clusterName.getName)
         provider <- providers.apply(connection.config.getDataStoreName.getName)

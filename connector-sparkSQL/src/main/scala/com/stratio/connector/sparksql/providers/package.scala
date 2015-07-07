@@ -20,7 +20,7 @@ package com.stratio.connector.sparksql.providers
 /**
  * Router for every single supported provider.
  */
-object `package` {
+object  `package` {
 
   val ParquetProvider = "hdfs"
   val CassandraProvider = "Cassandra"
@@ -31,20 +31,20 @@ object `package` {
     ParquetProvider -> "HDFS",
     CassandraProvider -> "Cassandra",
     HBaseProvider -> "HBase"
-    //,MongoProvider -> "Mongo"
+    ,MongoProvider -> "Mongo"
   ).mapValues(name => s"${name}DataStore.xml")
 
   val all = List(
     ParquetProvider,
     CassandraProvider,
     HBaseProvider
-    //, MongoProvider
+    , MongoProvider
   )
 
   def apply(providerName: String): Option[Provider] = providerName match {
     case ParquetProvider => Some(Parquet)
     case CassandraProvider => Some(Cassandra)
-    case HBaseProvider => Some(HBase)
+    //case HBaseProvider => Some(HBase)
     case MongoProvider => Some (MongoDB)
     case _ => None
   }

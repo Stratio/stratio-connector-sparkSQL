@@ -35,7 +35,7 @@ import org.scalatest.junit.JUnitRunner
 import scala.collection.JavaConversions._
 import com.stratio.crossdata.common.data.{Row => XDRow, ClusterName, TableName}
 @RunWith(classOf[JUnitRunner])
-class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
+class QueryExecutorFT extends Test("QueryExecutor") with Serializable {test =>
 
   //  Prepare workspace properties
 
@@ -63,11 +63,11 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
   val amount = 150
 
-  generate(amount)(sqlContext).saveAsTable(
-  "students",
-  "org.apache.spark.sql.parquet",
-      SaveMode.Overwrite,
-      Map("path" -> "/tmp/students"))
+  generate(amount)(sqlContext).write.
+    format("org.apache.spark.sql.parquet").
+    mode(SaveMode.Overwrite).
+    options(Map("path" -> "/tmp/students")).
+    saveAsTable("students")
 
 
   //  Test definition ...

@@ -17,54 +17,28 @@
  */
 package com.stratio.connector.sparksql.engine.query
 
-
-import java.util
-
-import akka.actor.{Props, Actor}
 import akka.testkit.TestProbe
 import com.stratio.connector.sparksql.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.connection.ConnectionHandler
-import com.stratio.connector.sparksql.engine.query.QueryManager._
+import com.stratio.connector.sparksql.engine.query.QueryManager.{Stop, PagedExecute, AsyncExecute}
 import com.stratio.connector.sparksql.Test
 import com.stratio.connector.sparksql.providers.Provider
 import com.stratio.crossdata.common.connector.IResultHandler
-import com.stratio.crossdata.common.data.{ResultSet, ColumnName, TableName, ClusterName}
+import com.stratio.crossdata.common.data.{ColumnName, TableName, ClusterName}
 import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalStep, LogicalWorkflow}
 import com.stratio.crossdata.common.metadata.{DataType, ColumnType, Operations, ColumnMetadata}
-import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.crossdata.common.statements.structures.{AsteriskSelector, Selector}
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class QueryEngineTest extends Test("QueryEngine") {
 
   import scala.collection.JavaConversions._
 
   val sqlContext = None.orNull[SparkSQLContext]
   val workflow = new LogicalWorkflow(List())
-  val queryId : String =""
   val resultHandler = None.orNull[IResultHandler]
   val connectionHandler = None.orNull[ConnectionHandler]
   val provider = new Provider {
     val dataSource = "my-provider"
-  }
-
-  it should "execute sync. queries" in {
-    val probe = TestProbe()
-    val queryManager = system.actorOf(Props(new Actor{
-      override def receive = {
-        case msg =>
-          val response = QueryResult.createQueryResult("",None.orNull[ResultSet],0,true)
-          sender ! response
-          probe.ref ! response
-      }
-    }))
-    val qe = new QueryEngine(sqlContext, queryManager, connectionHandler)
-    qe.execute(queryId, workflow)
-    probe.expectMsgClass(classOf[QueryResult])
-
-    //queryManager.expectMsgClass(classOf[SyncExecute])
   }
 
   it should "execute async. queries" in {
@@ -94,8 +68,6 @@ class QueryEngineTest extends Test("QueryEngine") {
     QueryEngine.toColumnMetadata(wf) should equal(List.empty[ColumnMetadata])
   }
 
-  val options: util.Map[Selector, Selector] = collection.mutable.Map[Selector, Selector]()
-
   it should "get metadata from workflow" in {
     val selector = {
       val s = new AsteriskSelector(new TableName("catalog", "table"))
@@ -110,7 +82,8 @@ class QueryEngineTest extends Test("QueryEngine") {
         "field1" -> new ColumnType(DataType.TEXT)),
       Map[Selector, ColumnType]()
     )
-    val wf = new LogicalWorkflow(List(), lastStep, 0, options)
+    val wf = new LogicalWorkflow(List[LogicalStep](), lastStep, 0, Map[Selector, Selector]())
+
     val metadata = QueryEngine.toColumnMetadata(wf)
     val expectedMetadata = List(
       new ColumnMetadata(
