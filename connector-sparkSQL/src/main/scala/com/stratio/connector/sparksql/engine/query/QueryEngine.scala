@@ -177,6 +177,7 @@ object QueryEngine extends Loggable with Metrics {
 
       }
 
+
       val partialResultsFormatted = timeFor("SparkSQL query after partial results format:   ") {
         sparkSQLFormat(formattedQuery, catalogsPartialResult.toList)
       }
