@@ -18,12 +18,15 @@
 package com.stratio.connector.sparksql
 
 
-import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
+import akka.actor.{ActorRef, ActorRefFactory, ActorSystem, Kill}
+import com.stratio.connector.commons.{Loggable, Metrics, timer}
 import com.stratio.connector.sparksql.cassandra.CassandraConstants
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
-import com.stratio.connector.sparksql.core.engine.query.{QueryManager, QueryEngine}
+import com.stratio.connector.sparksql.core.engine.SparkSQLMetadataListener
+import com.stratio.connector.sparksql.core.engine.query.QueryManager
 import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
-import com.stratio.connector.sparksql.core.providerConfig.{providers, Configuration, Catalog, Constants}
+import com.stratio.connector.sparksql.core.providerConfig.{Catalog, Configuration, Constants}
+import com.stratio.connector.sparksql.core.engine.query.QueryEngine
 import com.stratio.connector.sparksql.hbase.HBaseConstants
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
@@ -31,13 +34,11 @@ import com.stratio.crossdata.common.exceptions.UnsupportedException
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
 import com.typesafe.config.Config
-import org.apache.spark.sql.hbase.HBaseSQLContext
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.hbase.HBaseSQLContext
 import org.apache.spark.sql.hive.HiveContext
-import com.stratio.connector.commons.{Loggable,Metrics}
-import com.stratio.connector.commons.timer
-import com.stratio.connector.sparksql.core.engine.SparkSQLMetadataListener
+import org.apache.spark.{SparkConf, SparkContext}
+
 
 class SparkSQLConnector(
                          system: ActorRefFactory,
@@ -45,8 +46,8 @@ class SparkSQLConnector(
 with Loggable
 with Metrics {
 
-  import timer._
   import SparkSQLConnector._
+  import timer._
 
   val connectionHandler = new ConnectionHandler
 
@@ -59,6 +60,7 @@ with Metrics {
     timeFor(s"$sqlContextType created from SparkContext.") {
       sqlContextBuilder(sqlContextType, sparkContext)
     }
+
 
   lazy val queryManager: ActorRef =
     timeFor("QueryManager created.") {
@@ -73,6 +75,7 @@ with Metrics {
               sqlContext,
               connectionHandler)))
     }
+
 
   //  Engines
 
@@ -96,18 +99,13 @@ with Metrics {
   }
 
   override def getDatastoreManifestPath(): Array[String] ={
-    com.stratio.connector.sparksql.core.providerConfig.providers.manifests.map{
-      x => {
-        print (getClass.getClassLoader.getResource(x._2).getPath)
-      }
-    }
-    com.stratio.connector.sparksql.core.providerConfig.providers.manifests.map{
+    
+    com.stratio.connector.sparksql.providers.manifests.map{
       x => {
         getClass.getClassLoader.getResource(x._2).getPath
       }
     }.toArray[String]
   }
-
   override def restart(): Unit = {
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("All providers are initialized") {
@@ -219,7 +217,7 @@ with CassandraConstants
 with HBaseConstants
 with Configuration
 with Loggable
-with Metrics {
+with Metrics{
 
   import timer._
 

@@ -18,19 +18,18 @@
 package com.stratio.connector.sparksql.core.engine
 
 import akka.actor.ActorRef
-import com.stratio.connector.commons.timer
+import com.stratio.connector.commons.{Loggable, Metrics, timer}
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
 import com.stratio.connector.sparksql.core.engine.query.QueryManager.{Registered, Unregistered}
 import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.core.providerConfig.providers
 import com.stratio.crossdata.common.connector.IMetadataListener
-import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.crossdata.common.data.{TableName, Name}
-import com.stratio.crossdata.common.metadata.{CatalogMetadata, UpdatableMetadata, TableMetadata}
-import org.slf4j.Logger
+import com.stratio.crossdata.common.data.{Name, TableName}
+import com.stratio.crossdata.common.metadata.{CatalogMetadata, TableMetadata, UpdatableMetadata}
 import com.stratio.connector.sparksql.core.engine.query.QueryEngine._
-import scala.collection.JavaConversions._
+import org.slf4j.Logger
 
+import scala.collection.JavaConversions._
 /**
  * Hook for receiving metadata update events.
  */
@@ -69,6 +68,7 @@ object SparkSQLMetadataListener extends Loggable with Metrics {
     val clusterName = tableMetadata.getClusterRef
     val tableName = tableMetadata.getName
     timeFor("Received updated table metadata.") {
+      logger.info(s"Registering table $tableName")
       for {
         connection <- connectionHandler.getConnection(clusterName.getName)
         provider <- providers.apply(connection.config.getDataStoreName.getName)

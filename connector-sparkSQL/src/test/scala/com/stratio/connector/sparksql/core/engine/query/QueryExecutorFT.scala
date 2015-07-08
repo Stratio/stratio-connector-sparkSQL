@@ -18,25 +18,25 @@
 package com.stratio.connector.sparksql.core.engine.query
 
 import akka.actor.{Actor, ActorRef, Props}
+import com.stratio.connector.sparksql.Test
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
 import com.stratio.connector.sparksql.core.engine.query.QueryExecutor.DataFrameProvider
-import com.stratio.connector.sparksql.core.engine.query.QueryManager.{Finished, AsyncExecute}
-import com.stratio.connector.sparksql.Test
+import com.stratio.connector.sparksql.core.engine.query.QueryManager.{AsyncExecute, Finished}
 import com.stratio.connector.sparksql.core.providerConfig.Catalog
 import com.stratio.crossdata.common.connector.IResultHandler
+import com.stratio.crossdata.common.data.{ClusterName, Row => XDRow, TableName}
 import com.stratio.crossdata.common.exceptions.ExecutionException
-import com.stratio.crossdata.common.logicalplan.{Project, LogicalStep, LogicalWorkflow}
+import com.stratio.crossdata.common.logicalplan.{LogicalWorkflow, Project}
 import com.stratio.crossdata.common.metadata.Operations
 import com.stratio.crossdata.common.result.QueryResult
 import org.apache.spark.sql.hive.HiveContext
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.{SaveMode, DataFrame, SQLContext}
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import scala.collection.JavaConversions._
-import com.stratio.crossdata.common.data.{Row => XDRow, ClusterName, TableName}
 @RunWith(classOf[JUnitRunner])
-class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
+class QueryExecutorFT extends Test("QueryExecutor") with Serializable {test =>
 
   //  Prepare workspace properties
 
@@ -64,11 +64,11 @@ class QueryExecutorTest extends Test("QueryExecutor") with Serializable {test =>
 
   val amount = 150
 
-  generate(amount)(sqlContext).saveAsTable(
-  "students",
-  "org.apache.spark.sql.parquet",
-      SaveMode.Overwrite,
-      Map("path" -> "/tmp/students"))
+  generate(amount)(sqlContext).write.
+    format("org.apache.spark.sql.parquet").
+    mode(SaveMode.Overwrite).
+    options(Map("path" -> "/tmp/students")).
+    saveAsTable("students")
 
 
   //  Test definition ...

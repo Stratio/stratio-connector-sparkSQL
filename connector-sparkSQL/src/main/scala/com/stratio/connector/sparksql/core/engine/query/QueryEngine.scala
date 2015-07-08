@@ -17,28 +17,25 @@
  */
 package com.stratio.connector.sparksql.core.engine.query
 
-import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
-import com.stratio.connector.sparksql.core.providerConfig.{CustomContextProvider, Catalog, providers, Provider}
-import com.stratio.crossdata.common.data.TableName
-import org.apache.spark.sql.hive.HiveContext
-import scala.collection.JavaConversions._
+
 import akka.actor.ActorRef
 import akka.pattern.ask
-import org.apache.spark.sql.DataFrame
-
-import com.stratio.crossdata.common.metadata.{TableMetadata, ColumnMetadata}
-
+import com.stratio.connector.commons.{Loggable, Metrics, timer}
+import com.stratio.connector.sparksql.CrossdataConverters._
+import com.stratio.connector.sparksql._
+import com.stratio.connector.sparksql.core.connection.ConnectionHandler
+import com.stratio.connector.sparksql.core.engine.query.QueryManager._
+import com.stratio.connector.sparksql.core.providerConfig.`package`.SparkSQLContext
+import com.stratio.connector.sparksql.core.providerConfig.{CustomContextProvider, Provider, providers}
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
-import com.stratio.crossdata.common.logicalplan.{Project, Select, LogicalWorkflow}
+import com.stratio.crossdata.common.data.TableName
+import com.stratio.crossdata.common.logicalplan.{LogicalWorkflow, Project, Select}
+import com.stratio.crossdata.common.metadata.{ColumnMetadata, TableMetadata}
 import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
-import com.stratio.connector.commons.timer
-import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.connector.sparksql.core.connection.ConnectionHandler
-import com.stratio.connector.sparksql._
-import com.stratio.connector.sparksql.CrossdataConverters._
-import com.stratio.connector.sparksql.core.engine.query.QueryManager._
+import org.apache.spark.sql.DataFrame
 
+import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
@@ -161,13 +158,11 @@ object QueryEngine extends Loggable with Metrics {
       logger.info(s"Query after general format: [$formattedQuery]")
       logger.info("Find for partialResults")
       val partialsResults = PartialResultProcessor().recoveredPartialResult(workflow)
-      logger.info(("Creating new hive context"))
-      val hiveContext = new HiveContext(sqlContext.sparkContext) with Catalog
-      // if partial results have found, register temp table
+
       val catalogsPartialResult = partialsResults.map {
         case (pr) => {
           val resultSet = pr.getResults
-          val df = CrossdataConverters.toSchemaRDD(resultSet, hiveContext)
+          val df = CrossdataConverters.toSchemaRDD(resultSet, sqlContext)
           val cm = resultSet.getColumnMetadata.get(0).getName
           val catalogName = cm.getTableName.getCatalogName.getName
 
@@ -178,14 +173,18 @@ object QueryEngine extends Loggable with Metrics {
 
       }
 
+
       val partialResultsFormatted = timeFor("SparkSQL query after partial results format:   ") {
         sparkSQLFormat(formattedQuery, catalogsPartialResult.toList)
       }
       logger.info(s"SparkSQL query after result set format: [$partialResultsFormatted]")
 
       logger.info(s"SparkSQL query after providers format: [$partialResultsFormatted]")
+
       //  Execute actual query ...
-      val dataframe = hiveContext.sql(partialResultsFormatted)
+      val dataframe = timeFor("Execution finished"){
+        sqlContext.sql(partialResultsFormatted)
+      }
       logger.info("Spark has returned the execution to the SparkSQL Connector.")
       logger.debug(dataframe.schema.treeString)
       //Return dataFrame
@@ -200,8 +199,9 @@ object QueryEngine extends Loggable with Metrics {
    * @return List of ColumnMetadata
    */
   def toColumnMetadata(workflow: LogicalWorkflow): List[ColumnMetadata] = {
-    import scala.collection.JavaConversions._
     import com.stratio.connector.sparksql.core.engine.query.mappings.functionType
+
+    import scala.collection.JavaConversions._
     logger.debug("Getting column selectors from last step (SELECT)")
     val (columnTypes: ColumnTypeMap, selectors: List[Selector]) = workflow.getLastStep match {
       case s: Select => s.getTypeMap.toMap -> s.getOutputSelectorOrder.toList
@@ -309,9 +309,11 @@ object QueryEngine extends Loggable with Metrics {
     provider: Provider,
     options: Map[String, String],
     temporaryTable: Boolean = false): Try[Unit] = Try[Unit] {
-    if (sqlContext.getCatalog.tableExists(Seq("default", tableName)))
+    if (sqlContext.getCatalog.tableExists(Seq("default", tableName))){
       logger.warn(s"Tried to register $tableName table but it already exists!")
-    else {
+      unregisterTable(tableName, sqlContext)
+    }
+
       logger.debug(s"Registering table [$tableName]")
       val statement = createTable(
         tableName,
@@ -320,7 +322,7 @@ object QueryEngine extends Loggable with Metrics {
         temporaryTable)
       logger.debug(s"Statement: $statement")
       sqlContext.sql(statement)
-    }
+    
   }.recover {
     case throwable: Throwable =>
       logger.error(
@@ -339,8 +341,10 @@ object QueryEngine extends Loggable with Metrics {
     tableName: String,
     sqlContext: SparkSQLContext): Unit = {
     val seqName = Seq(tableName)
-    if (!sqlContext.getCatalog.tableExists(seqName))
+    if (!sqlContext.getCatalog.tableExists(seqName)){
       logger.warn(s"Tried to unregister $tableName table but it already exists!")
+       sqlContext.sql(s"DROP TABLE $tableName")
+    }
     else {
       logger.info(s"Un-registering table [$tableName]")
       sqlContext.sql(s"DROP TABLE $tableName")
@@ -387,7 +391,7 @@ object QueryEngine extends Loggable with Metrics {
       }
       case "Cassandra" => {
         val map: Map[String, Query] = globalOptions(config) +
-          ("c_table" -> tableMetadata.getName.getName) +
+          ("table" -> tableMetadata.getName.getName) +
           ("keyspace" ->tableMetadata.getName.getCatalogName.getName)
         map
       }

@@ -42,21 +42,19 @@ case object Cassandra extends Provider with CassandraConstants{
     val conf= sqlContext.sparkContext.getConf
     val clusterOptions = config.getClusterOptions.toMap
     val clusterName = clusterOptions("cluster")
+    val keyspace = "benchmark"
     val cassConfig = Map(
       CassandraConnectionHostProperty -> clusterOptions("Hosts").replaceAll("\\[","").replaceAll("\\]",""),
       CassandraConnectionNativePortProperty ->
         clusterOptions.getOrElse("Port", DefaultNativePort),
       CassandraConnectionRpcPortProperty ->
         clusterOptions.getOrElse("rpcPort", DefaultRPCPort))
-
-
-    sqlContext.addCassandraConnConf(
-      clusterName,
-      CassandraConnectorConf(conf.setAll(cassConfig)))
+    cassConfig.map{
+      prop => sqlContext.setConf(prop._1, prop._2)
+    }
+    sqlContext.setConf(s"$clusterName:$keyspace/spark.cassandra.connection.host", clusterOptions("Hosts").replaceAll("\\[","").replaceAll("\\]",""))
     logger.debug(s"The cache for [$clusterName] has been registering.")
-
     super.createConnection(config,sqlContext,credentials)
-
   }
 
 }
