@@ -21,6 +21,7 @@ import com.stratio.connector.sparksql.cassandra.Cassandra
 import com.stratio.connector.sparksql.core.providerConfig.Provider
 import com.stratio.connector.sparksql.mongodb.MongoDB
 import com.stratio.connector.sparksql.parquet.Parquet
+import com.stratio.connector.sparksql.elasticsearch.ElasticSearch
 
 /**
  * Router for every single supported provider.
@@ -31,26 +32,30 @@ object  `package` {
   val CassandraProvider = "Cassandra"
   val HBaseProvider = "hbase"
   val MongoProvider = "Mongo"
+  val ElasticsearchProvider = "elasticsearch"
 
   val manifests = Map(
     ParquetProvider -> "HDFS",
     CassandraProvider -> "Cassandra",
     HBaseProvider -> "HBase"
-    ,MongoProvider -> "Mongo"
+    ,MongoProvider -> "Mongo",
+    ElasticsearchProvider -> "Elasticsearch"
   ).mapValues(name => s"${name}DataStore.xml")
 
   val all = List(
     ParquetProvider,
     CassandraProvider,
-    HBaseProvider
-    , MongoProvider
-  )
+    HBaseProvider,
+    MongoProvider,
+    ElasticsearchProvider
+    )
 
   def apply(providerName: String): Option[Provider] = providerName match {
     case ParquetProvider => Some(Parquet)
     case CassandraProvider => Some(Cassandra)
     //case HBaseProvider => Some(HBase)
     case MongoProvider => Some (MongoDB)
+    case ElasticsearchProvider => Some(ElasticSearch)
     case _ => None
   }
 

@@ -1,8 +1,10 @@
 package com.stratio.connector.sparksql.elasticsearch
 
+import com.stratio.connector.sparksql.core.providerConfig.{Constants, Provider}
+
 /**
  * Created by pmadrigal on 29/06/15.
  */
-class ElasticSearch {
-
+case object ElasticSearch  extends Provider with Constants {
+  override val dataSource: String = "com.elasticsearch.spark.sql"
 }
