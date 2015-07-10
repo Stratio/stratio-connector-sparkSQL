@@ -21,6 +21,7 @@ import com.stratio.connector.commons.Loggable
 import com.stratio.connector.sparksql.SparkSQLConnector
 import com.stratio.connector.sparksql.cassandra.Cassandra
 import com.stratio.connector.sparksql.hbase.HBase
+import com.stratio.connector.sparksql.elasticsearch.ElasticSearch
 import com.stratio.connector.sparksql.mongodb.MongoDB
 import com.stratio.connector.sparksql.parquet.Parquet
 import com.stratio.crossdata.common.exceptions.InitializationException
@@ -65,7 +66,7 @@ object providers {
     case CassandraProvider => Some(Cassandra)
     case HBaseProvider => Some(HBase)
     case MongoProvider => Some (MongoDB)
-    case ElasticsearchProvider => Some(Elasticsearch)
+    case ElasticsearchProvider => Some(ElasticSearch)
     case _ => None
   }
 
