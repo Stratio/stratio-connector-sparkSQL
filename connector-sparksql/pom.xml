@@ -22,9 +22,9 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.stratio.connector</groupId>
     <artifactId>stratio-connector-sparksql-core</artifactId>
-    <description>Stratio SparkSQL connector core</description>
+    <description>Stratio Sparksql connector core</description>
     <url>http://www.stratio.com</url>
-    <name>Stratio SparkSQL connector core</name>
+    <name>Stratio Sparksql connector core</name>
     <packaging>jar</packaging>
     <parent>
         <groupId>com.stratio.connector</groupId>
@@ -299,7 +299,7 @@
                 <!--<configuration>-->
                     <!--<archive>-->
                         <!--<manifest>-->
-                            <!--<mainClass>com.stratio.connector.sparksql.SparkSQLConnector</mainClass>-->
+                            <!--<mainClass>com.stratio.connector.sparksql.SparksqlConnector</mainClass>-->
                         <!--</manifest>-->
                     <!--</archive>-->
                     <!--<descriptorRefs>-->
@@ -330,8 +330,8 @@
                                     <configurationDirectory>conf</configurationDirectory>
                                     <copyConfigurationDirectory>true</copyConfigurationDirectory>
                                     <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
-                                    <assembleDirectory>${project.build.directory}/stratio-connector-sparkSQL</assembleDirectory>
-                                    <extraJvmArguments>$CONNECTOR_SPARKSQL_OPTS -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${jmx.port} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -DXmx3072m -XX:MaxPermSize=512m</extraJvmArguments>
+                                    <assembleDirectory>${project.build.directory}/stratio-connector-sparksql</assembleDirectory>
+                                    <extraJvmArguments>$CONNECTOR_SPARKsql_OPTS -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${jmx.port} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -DXmx3072m -XX:MaxPermSize=512m</extraJvmArguments>
                                     <filterConfigurationDirectory>true</filterConfigurationDirectory>
                                     <platforms>
                                         <platform>windows</platform>
@@ -339,8 +339,8 @@
                                     </platforms>
                                     <programs>
                                         <program>
-                                            <mainClass>com.stratio.connector.sparksql.SparkSQLConnector</mainClass>
-                                            <id>stratio-connector-sparkSQL</id>
+                                            <mainClass>com.stratio.connector.sparksql.SparksqlConnector</mainClass>
+                                            <id>stratio-connector-sparksql</id>
                                         </program>
                                     </programs>
                                 </configuration>
@@ -355,7 +355,7 @@
                         <inherited>false</inherited>
                         <configuration>
                             <size>1</size>
-                            <outputFileName>stratio-connector-sparkSQL</outputFileName>
+                            <outputFileName>stratio-connector-sparksql</outputFileName>
                             <contact><![CDATA[Stratio <jmgomez@stratio.com>]]></contact>
                             <contactEmail>jmgomez@stratio.com</contactEmail>
                             <deb>
@@ -365,7 +365,7 @@
                                 <group>stratio</group>
                                 <requires>bash</requires>
                             </rpm>
-                            <name>connector-sparkSQL</name>
+                            <name>connector-sparksql</name>
                             <excludeDirectoryAttributes>
                                 <dir>/etc</dir>
                                 <dir>/etc/init.d</dir>
@@ -377,8 +377,8 @@
                             </excludeDirectoryAttributes>
                             <assembly>
                                 <copyFile>
-                                    <path>src/main/unix/files_and_dirs/etc/init.d/connector-sparkSQL</path>
-                                    <toFile>/etc/init.d/connector-sparkSQL</toFile>
+                                    <path>src/main/unix/files_and_dirs/etc/init.d/connector-sparksql</path>
+                                    <toFile>/etc/init.d/connector-sparksql</toFile>
                                     <attributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
@@ -386,7 +386,7 @@
                                     </attributes>
                                 </copyFile>
                                 <mkdirs>
-                                    <path>/opt/sds/connector-sparkSQL</path>
+                                    <path>/opt/sds/connector-sparksql</path>
                                     <attributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
@@ -400,24 +400,24 @@
                                     </attributes>
                                 </mkdirs>
                                 <copyDirectory>
-                                    <from>target/stratio-connector-sparkSQL/bin</from>
-                                    <to>/opt/sds/stratio-connector-sparkSQL/bin</to>
+                                    <from>target/stratio-connector-sparksql/bin</from>
+                                    <to>/opt/sds/stratio-connector-sparksql/bin</to>
                                     <directoryAttributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
                                     </directoryAttributes>
                                 </copyDirectory>
                                 <copyDirectory>
-                                    <from>target/stratio-connector-sparkSQL/repo</from>
-                                    <to>/opt/sds/stratio-connector-sparkSQL/repo</to>
+                                    <from>target/stratio-connector-sparksql/repo</from>
+                                    <to>/opt/sds/stratio-connector-sparksql/repo</to>
                                     <directoryAttributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
                                     </directoryAttributes>
                                 </copyDirectory>
                                 <copyDirectory>
-                                    <from>target/stratio-connector-sparkSQL/conf</from>
-                                    <to>/opt/sds/stratio-connector-sparkSQL/conf</to>
+                                    <from>target/stratio-connector-sparksql/conf</from>
+                                    <to>/opt/sds/stratio-connector-sparksql/conf</to>
                                     <directoryAttributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
@@ -425,7 +425,7 @@
                                 </copyDirectory>
                                 <copyDirectory>
                                     <from>src/main/template</from>
-                                    <to>/opt/sds/stratio-connector-sparkSQL/template</to>
+                                    <to>/opt/sds/stratio-connector-sparksql/template</to>
                                     <directoryAttributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
@@ -441,11 +441,11 @@
                                 </copyDirectory>
                                 <copyFile>
                                     <path>src/main/include/LICENSE</path>
-                                    <toFile>/opt/sds/stratio-connector-sparkSQL/LICENSE</toFile>
+                                    <toFile>/opt/sds/stratio-connector-sparksql/LICENSE</toFile>
                                 </copyFile>
                                 <copyFile>
                                     <path>src/main/include/NOTICE</path>
-                                    <toFile>/opt/sds/stratio-connector-sparkSQL/NOTICE</toFile>
+                                    <toFile>/opt/sds/stratio-connector-sparksql/NOTICE</toFile>
                                 </copyFile>
                             </assembly>
                             <defaults>
