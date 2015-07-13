@@ -1,0 +1,47 @@
+# tpc | SELECT *  FROM tpc30.stock  LIMIT 100
+
+
+#Q0 No funciona
+# tpcc | SELECT substr(c_state,1,1) AS country, count(*) AS numcust, sum(c_balance) AS totacctbal FROM ( SELECT avg(sub.c_balance) AS balance FROM tpcc.customer sub WHERE sub.c_balance > 0.00 AND substr(sub.c_phone,1,1) IN ['1','2','3','4','5','6','7'])  INNER JOIN tpcc.customer ON c_balance > y.balance  WHERE substr(c_phone,1,1) IN ['1','2','3','4','5','6','7'] GROUP BY substring(c_state,1,1) ORDER BY country
+
+#Q1
+
+# select OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun,avg(OL.ol_amount) as average from (select d_id,d_w_id, avg(ol_amount) as AVG_Amoun  from district D, order_line OL_A where D.d_id=OL_A.ol_d_id and D.d_w_id=OL_A.ol_w_id and d_id=3 and d_w_id=241 group by d_id,d_w_id ) A, order_line OL where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241 group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc
+
+# Esta es la original
+ tpcc |  select OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun,avg(OL.ol_amount) as average from (select d_id,d_w_id, avg(ol_amount) as AVG_Amoun  from district D, tpcc.order_line OL_A where D.d_id=OL_A.ol_d_id and D.d_w_id=OL_A.ol_w_id and d_id=3 and d_w_id=241 group by d_id,d_w_id ) A, tpcc.order_line OL where A.d_id=OL.ol_d_id and A.d_w_id=OL.ol_w_id and OL.ol_d_id=3 and OL.ol_w_id=241 group by OL.ol_w_id,OL.ol_d_id,OL.ol_o_id,AVG_Amoun having avg(OL.ol_amount) > AVG_Amoun order by average desc
+
+
+#Q3 Parquet does not support timestamp. See HIVE-6384
+# select c_d_id,c_credit,count(C_ID) from tpcc.customer,tpcc.orders where c_w_id=168 and c_d_id=o_d_id and c_w_id=o_w_id and o_c_id=c_id group by c_credit,c_d_id order by c_d_id, c_credit
+
+
+#Q5 SOPORTADA!!
+# select s_i_id,i_price, s_quantity, i_name,count(*) as numero_pedidos, sum(i_price*s_quantity) as venta_total from tpcc.stock, tpcc.item where i_id=s_i_id and i_name like 'af%' group by s_i_id,i_price, s_quantity, i_name order by venta_total desc LIMIT 100
+
+#Q6 SOPORTADA!!
+#SELECT s_w_id,count(*) FROM tpcc.stock where s_quantity>85 and  s_quantity <= 115 group by s_w_id
+
+#Q7  SOPORTADA!!
+# select max(ol_amount) from tpcc.order_line
+
+#Q8 SOPORTADA!!
+# select max(ol_amount),max(ol_quantity) from tpcc.order_line
+
+#Q9  cannot resolve 'h_date' given input columns _c0, _c1; line 1 pos 100
+# SELECT day(h_date), avg(h_amount) FROM tpcc.history WHERE h_c_w_id=245 GROUP BY day(h_date) ORDER BY day(h_date)
+
+#Q10 NoViableAltException
+# SELECT sum(ol_amount) AS revenue FROM tpcc.order_line, tpcc.item  WHERE (  ol_i_id = i_id  AND i_data LIKE '%a'  AND ol_quantity >= 4  AND ol_quantity <= 9  AND i_price between 1 AND 400000  AND ol_w_id in [1,2,3]  ) and (  ol_i_id = i_id  AND i_data LIKE '%b'  AND ol_quantity >= 4  AND ol_quantity <= 9  AND i_price between 1 AND 400000  AND ol_w_id in [1,2,4]  ) and (  ol_i_id = i_id  AND i_data LIKE '%c'  AND ol_quantity >= 4  AND ol_quantity <= 9  AND i_price between 1 AND 400000  AND ol_w_id in [1,5,3] )
+
+#Q11 org.apache.hadoop.hive.ql.exec.UDFArgumentLengthException: to_date() requires 1 argument, got 2
+
+# SELECT ol_number,  sum(ol_quantity) AS sum_qty,  sum(ol_amount) AS sum_amount,  avg(ol_quantity) AS avg_qty,  avg(ol_amount) AS avg_amount, count(*) AS count_order   FROM tpcc.order_line  WHERE ol_delivery_d > to_date('2013-10-05','YYYY-MM-DD')  GROUP BY ol_number ORDER BY sum(ol_quantity) desc LIMIT 100
+
+#Q13 org.apache.hadoop.hive.ql.exec.UDFArgumentLengthException: to_date() requires 1 argument, got 2 he tenido que cambiar el nombre de la tabla
+# SELECT o_ol_cnt,  sum(CASE WHEN o_carrier_id = 1 or o_carrier_id = 2 THEN 1 ELSE 0 END) AS high_line_count,  sum(CASE WHEN o_carrier_id <> 1 AND o_carrier_id <> 2 THEN 1 ELSE 0 END) AS low_line_count  FROM tpcc.orders INNER JOIN tpcc.order_line ON  ol_w_id = o_w_id  AND ol_d_id = o_d_id  AND ol_o_id = o_id  AND o_entry_d <= ol_delivery_d  WHERE ol_delivery_d < to_date('2013-07-09','YYYY-MM-DD')  GROUP BY o_ol_cnt  ORDER BY sum(CASE WHEN o_carrier_id = 1 or o_carrier_id = 2 THEN 1 ELSE 0 END) DESC, sum(CASE WHEN o_carrier_id <> 1 AND o_carrier_id <> 2 THEN 1 ELSE 0 END) LIMIT 10
+
+
+#Q14 org.apache.spark.sql.AnalysisException: cannot resolve 'custdist' given input columns c_count, custdist; line 1 pos 257
+
+#select c_count, count(*) as custdist from (select c_id, count(o_id) AS c_count from tpcc.customer left outer join tpcc.orders on  c_w_id = o_w_id  and c_d_id = o_d_id  and c_id = o_c_id  where o_carrier_id > 6  group by c_id ) as c_orders  group by c_count  order by custdist desc, c_count desc LIMIT 100

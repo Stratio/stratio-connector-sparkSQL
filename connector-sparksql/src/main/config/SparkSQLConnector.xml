@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Connector>
+    <ConnectorName>SparkSQLConnector</ConnectorName>
+    <DataStores>
+        <DataStoreName>hdfs</DataStoreName>
+        <DataStoreName>cassandra</DataStoreName>
+        <DataStoreName>hbase</DataStoreName>
+        <DataStoreName>Mongo</DataStoreName>
+    </DataStores>
+    <Version>0.1.0</Version>
+    <RequiredProperties>
+        <Property>
+            <PropertyName>DefaultLimit</PropertyName>
+            <Description>It is necessary to indicate the default limit for the queries</Description>
+        </Property>
+    </RequiredProperties>
+    <SupportedOperations>
+        <operation>PROJECT</operation>
+        <operation>ASYNC_QUERY</operation>
+        <operation>SELECT_OPERATOR</operation>
+        <operation>SELECT_INNER_JOIN</operation>
+        <operation>SELECT_LIMIT</operation>
+        <operation>SELECT_CASE_WHEN</operation>
+        <operation>SELECT_GROUP_BY</operation>
+        <operation>SELECT_ORDER_BY</operation>
+        <operation>SELECT_FUNCTIONS</operation>
+        <operation>SELECT_INNER_JOIN_PARTIAL_RESULTS</operation>
+
+        <operation>FILTER_PK_EQ</operation>
+        <operation>FILTER_PK_GT</operation>
+        <operation>FILTER_PK_LT</operation>
+        <operation>FILTER_PK_GET</operation>
+        <operation>FILTER_PK_LET</operation>
+        <operation>FILTER_PK_DISTINCT</operation>
+        <operation>FILTER_PK_LIKE</operation>
+        <operation>FILTER_PK_NOT_LIKE</operation>
+        <operation>FILTER_PK_IN</operation>
+        <operation>FILTER_PK_NOT_IN</operation>
+        <operation>FILTER_PK_BETWEEN</operation>
+        <operation>FILTER_PK_NOT_BETWEEN</operation>
+
+        <operation>FILTER_NON_INDEXED_EQ</operation>
+        <operation>FILTER_NON_INDEXED_GT</operation>
+        <operation>FILTER_NON_INDEXED_LT</operation>
+        <operation>FILTER_NON_INDEXED_GET</operation>
+        <operation>FILTER_NON_INDEXED_LET</operation>
+        <operation>FILTER_NON_INDEXED_DISTINCT</operation>
+        <operation>FILTER_NON_INDEXED_LIKE</operation>
+        <operation>FILTER_NON_INDEXED_NOT_LIKE</operation>
+        <operation>FILTER_NON_INDEXED_IN</operation>
+        <operation>FILTER_NON_INDEXED_NOT_IN</operation>
+        <operation>FILTER_NON_INDEXED_BETWEEN</operation>
+        <operation>FILTER_NON_INDEXED_NOT_BETWEEN</operation>
+
+        <operation>FILTER_INDEXED_EQ</operation>
+        <operation>FILTER_INDEXED_GT</operation>
+        <operation>FILTER_INDEXED_LT</operation>
+        <operation>FILTER_INDEXED_GET</operation>
+        <operation>FILTER_INDEXED_LET</operation>
+        <operation>FILTER_INDEXED_DISTINCT</operation>
+        <operation>FILTER_INDEXED_LIKE</operation>
+        <operation>FILTER_INDEXED_NOT_LIKE</operation>
+        <operation>FILTER_INDEXED_IN</operation>
+        <operation>FILTER_INDEXED_NOT_IN</operation>
+        <operation>FILTER_INDEXED_BETWEEN</operation>
+        <operation>FILTER_INDEXED_NOT_BETWEEN</operation>
+
+        <operation>FILTER_FUNCTION_EQ</operation>
+        <operation>FILTER_FUNCTION_GT</operation>
+        <operation>FILTER_FUNCTION_LT</operation>
+        <operation>FILTER_FUNCTION_GET</operation>
+        <operation>FILTER_FUNCTION_LET</operation>
+        <operation>FILTER_FUNCTION_DISTINCT</operation>
+        <operation>FILTER_FUNCTION_LIKE</operation>
+        <operation>FILTER_FUNCTION_NOT_LIKE</operation>
+        <operation>FILTER_FUNCTION_IN</operation>
+        <operation>FILTER_FUNCTION_NOT_IN</operation>
+        <operation>FILTER_FUNCTION_BETWEEEN</operation>
+        <operation>FILTER_FUNCTION_NOT_BETWEEEN</operation>
+
+        <operation>FILTER_DISJUNCTION</operation>
+        <operation>PAGINATION</operation>
+        <operation>SQL_DIRECT</operation>
+        <operation>PARTIAL_RESULTS</operation>
+        <operation>SELECT_LEFT_OUTER_JOIN_PARTIAL_RESULTS</operation>
+
+        <operation>SELECT_RIGHT_OUTER_JOIN_PARTIAL_RESULTS</operation>
+        <operation>SELECT_FULL_OUTER_JOIN_PARTIAL_RESULTS</operation>
+        <operation>SELECT_CROSS_JOIN_PARTIAL_RESULTS</operation>
+
+        <operation>SELECT_LEFT_OUTER_JOIN</operation>
+        <operation>SELECT_RIGHT_OUTER_JOIN</operation>
+        <operation>SELECT_FULL_OUTER_JOIN</operation>
+        <operation>SELECT_FULL_NATURAL_JOIN</operation>
+        <operation>SELECT_CROSS_JOIN</operation>
+        <operation>SELECT_SUBQUERY</operation>
+    </SupportedOperations>
+    <Functions>
+        <Function>
+            <FunctionName>sum</FunctionName>
+            <Signature>sum(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>aggregation</FunctionType>
+            <Description>Sum</Description>
+        </Function>
+        <Function>
+            <FunctionName>avg</FunctionName>
+            <Signature>avg(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>aggregation</FunctionType>
+            <Description>Average</Description>
+        </Function>
+        <Function>
+            <FunctionName>max</FunctionName>
+            <Signature>max(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>aggregation</FunctionType>
+            <Description>Maximum</Description>
+        </Function>
+        <Function>
+            <FunctionName>min</FunctionName>
+            <Signature>min(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>aggregation</FunctionType>
+            <Description>Minimum</Description>
+        </Function>
+        <Function>
+            <FunctionName>count</FunctionName>
+            <Signature>count(Tuple[Any*]):Tuple[Any]</Signature>
+            <FunctionType>aggregation</FunctionType>
+            <Description>Count</Description>
+        </Function>
+        <Function>
+            <FunctionName>substr</FunctionName>
+            <Signature>substr(Tuple[Text,Int,Int]):Tuple[Text]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the substring or slice of the byte array of A starting from start position till the end of string A</Description>
+        </Function>
+        <Function>
+            <FunctionName>substring</FunctionName>
+            <Signature>substring(Tuple[Text,Int,Int]):Tuple[Text]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the substring or slice of the byte array of A starting from start position till the end of string A</Description>
+        </Function>
+        <Function>
+            <FunctionName>to_date</FunctionName>
+            <Signature>to_date(Tuple[Any]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Change to date a text data</Description>
+        </Function>
+        <Function>
+            <FunctionName>datediff</FunctionName>
+            <Signature>datediff(Tuple[Any,Any]):Tuple[Int]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the difference between two dates</Description>
+        </Function>
+
+        <Function>
+            <FunctionName>year</FunctionName>
+            <Signature>year(Tuple[Any]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the year of the date</Description>
+        </Function>
+
+        <Function>
+            <FunctionName>month</FunctionName>
+            <Signature>month(Tuple[Any]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the month of the date</Description>
+        </Function>
+
+        <Function>
+            <FunctionName>day</FunctionName>
+            <Signature>day(Tuple[Any]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the day of the date</Description>
+        </Function>
+
+        <Function>
+            <FunctionName>date_add</FunctionName>
+            <Signature>date_add(Tuple[Any,Int]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the date after the addiction</Description>
+        </Function>
+
+        <Function>
+            <FunctionName>date_sub</FunctionName>
+            <Signature>date_sub(Tuple[Any,Int]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the date after the subtraction</Description>
+        </Function>
+
+    </Functions>
+</Connector>
