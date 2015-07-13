@@ -60,7 +60,7 @@
     </scm>
     <modules>
         <module>doc</module>
-        <module>connector-sparkSQL</module>
+        <module>connector-sparksql</module>
     </modules>
     <developers>
         <developer>
