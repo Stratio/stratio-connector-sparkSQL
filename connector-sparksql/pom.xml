@@ -246,31 +246,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.18.1</version>
-                <configuration>
-                    <forkCount>1</forkCount>
-                    <useFile>false</useFile>
-                    <reuseForks>false</reuseForks>
-                    <argLine>${jacoco-UT-argline} -Xmx3072m -XX:MaxPermSize=512m -Xms512m</argLine>
-                    <skipTests>${skipUTs}</skipTests>
-                </configuration>
             </plugin>
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.1.201405082137</version>
-                <executions>
-                    <execution>
-                        <id>pre-test</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                        <configuration>
-                            <destFile>${project.build.directory}/jacocoUT.exec</destFile>
-                            <propertyName>jacoco-UT-argline</propertyName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+		<groupId>org.jacoco</groupId>
+		<artifactId>jacoco-maven-plugin</artifactId>            
+	    </plugin>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
