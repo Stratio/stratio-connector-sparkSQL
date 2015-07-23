@@ -60,10 +60,11 @@
     </scm>
     <modules>
         <module>doc</module>
-        <module>connector-sparkSQL</module>
         <module>cassandraProvider</module>
         <module>mongodbProvider</module>
         <module>parquetProvider</module>
+        <module>connector-sparkSQL</module>
+        <module>stratio-connector-sparkSQL-executor</module>
     </modules>
     <developers>
         <developer>
@@ -115,7 +116,6 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>

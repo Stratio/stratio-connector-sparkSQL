@@ -18,12 +18,12 @@
 package com.stratio.connector.sparksql.core.connection
 
 import com.stratio.connector.commons.Loggable
-import com.stratio.connector.sparksql.core.providerConfig.{Constants, providers}
+import com.stratio.connector.sparksql.core.providers
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
 import org.apache.spark.sql.SQLContext
 
-class ConnectionHandler extends Loggable with Constants{
+class ConnectionHandler extends Loggable {
 
   type ConnectionId = String
 
@@ -46,7 +46,7 @@ class ConnectionHandler extends Loggable with Constants{
       else {
         val dataStoreName = config.getDataStoreName.getName
         logger.info(s"Datastore name: $dataStoreName")
-        providers.apply(config.getDataStoreName.getName).map{ provider =>
+        providers.apply(dataStoreName).map{ provider =>
           val connection = provider.createConnection(config,sqlContext,credentials)
           connections += (connectionId -> connection)
           logger.info(s"Connected to [$connectionId]")

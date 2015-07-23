@@ -15,11 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mongodb
+package com.stratio.connector.sparksql.mongodb
 
-import com.stratio.connector.sparksql.core.providerConfig.{Constants, Provider}
+import com.stratio.connector.sparksql.core.Provider
 
-case object MongoDB extends Provider with Constants{
+object MongoDB extends Provider {
 
   override val manifest: String = "MongoDataStore.xml"
 

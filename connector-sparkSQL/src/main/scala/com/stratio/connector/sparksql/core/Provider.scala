@@ -1,4 +1,4 @@
-package com.stratio.connector.sparksql.core.providerConfig
+package com.stratio.connector.sparksql.core
 
 import com.stratio.connector.commons.Loggable
 import com.stratio.connector.sparksql.core.connection.Connection
@@ -16,7 +16,9 @@ trait Provider extends Loggable {
    * DefaultSource qualified package name
    */
   val dataSource: String
+
   val manifest: String
+
   val name: String
 
   /**

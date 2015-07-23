@@ -19,16 +19,18 @@ package com.stratio.connector.sparksql.core.engine
 
 import akka.actor.ActorRef
 import com.stratio.connector.commons.timer
+import com.stratio.connector.sparksql.core.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
-import com.stratio.connector.sparksql.core.engine.query.QueryManager.{Registered, Unregistered}
-import com.stratio.connector.sparksql.core.providerConfig.providers
-import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
+import com.stratio.connector.sparksql.core.engine.query.QueryManager
+import com.stratio.connector.sparksql.core.engine.query.QueryEngine
+import QueryManager.{Registered, Unregistered}
+import com.stratio.connector.sparksql.core.providers
 import com.stratio.crossdata.common.connector.IMetadataListener
 import com.stratio.connector.commons.{Loggable, Metrics}
 import com.stratio.crossdata.common.data.{TableName, Name}
 import com.stratio.crossdata.common.metadata.{CatalogMetadata, UpdatableMetadata, TableMetadata}
 import org.slf4j.Logger
-import com.stratio.connector.sparksql.core.engine.query.QueryEngine._
+import QueryEngine._
 import scala.collection.JavaConversions._
 
 /**

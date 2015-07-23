@@ -19,6 +19,7 @@ package com.stratio.connector.sparksql.core.engine.query.mappings
 
 import com.stratio.crossdata.common.metadata.{DataType, ColumnType}
 
+
 /**
  * Function type helpers for getting column metadata from LogicalWorkflow.
  */

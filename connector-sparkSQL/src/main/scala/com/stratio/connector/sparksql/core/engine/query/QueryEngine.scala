@@ -17,8 +17,8 @@
  */
 package com.stratio.connector.sparksql.core.engine.query
 
-import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
-import com.stratio.connector.sparksql.core.providerConfig.{Catalog, providers, Provider}
+import com.stratio.connector.sparksql.core.`package`.SparkSQLContext
+import com.stratio.connector.sparksql.core._
 import com.stratio.crossdata.common.data.TableName
 import org.apache.spark.sql.hive.HiveContext
 import scala.collection.JavaConversions._
@@ -38,6 +38,7 @@ import com.stratio.connector.sparksql.core.connection.ConnectionHandler
 import com.stratio.connector.sparksql._
 import com.stratio.connector.sparksql.CrossdataConverters._
 import com.stratio.connector.sparksql.core.engine.query.QueryManager._
+import com.stratio.connector.sparksql.core.engine.query.mappings._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -201,7 +202,7 @@ object QueryEngine extends Loggable with Metrics {
    */
   def toColumnMetadata(workflow: LogicalWorkflow): List[ColumnMetadata] = {
     import scala.collection.JavaConversions._
-    import com.stratio.connector.sparksql.core.engine.query.mappings.functionType
+    import com.stratio.connector.sparksql.core.engine.query.mappings.`package`
     logger.debug("Getting column selectors from last step (SELECT)")
     val (columnTypes: ColumnTypeMap, selectors: List[Selector]) = workflow.getLastStep match {
       case s: Select => s.getTypeMap.toMap -> s.getOutputSelectorOrder.toList

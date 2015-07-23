@@ -15,10 +15,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.stratio.connector.sparksql.core.providerConfig
+package com.stratio.connector.sparksql.core
 
 import com.stratio.connector.commons.Loggable
-import com.stratio.connector.sparksql.SparkSQLConnector
 import com.stratio.crossdata.common.exceptions.InitializationException
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.sql.SQLContext
@@ -26,42 +25,47 @@ import org.apache.spark.sql.SQLContext
 import scala.util.Try
 import scala.xml.{Elem, XML}
 
-object sparkSQLContextAlias {
+object `package`{
 
   type SparkSQLContext = SQLContext with Catalog
 
 }
 
 object providers {
-  
-  val providers: Array[AnyRef] = SparkSQLConnector.providersFromConfig
-  
+
+  val providers: Array[String] = SparkSQLConnector.providersFromConfig
+
   def providerByName(name: String): Provider = {
     val clazz = Class.forName(name + "$")
     clazz.getField("MODULE$").get(clazz).asInstanceOf[Provider]
   }
+
   lazy val all: Array[Provider] = providers.map(providerByName)
 
-  lazy val manifests = all.map(_.manifest)
+  /*
+    def all: Array[Provider] = providers.map(providerByName)
+  */
+
+  def manifests = all.map(_.manifest)
 
   def apply(name: String): Option[Provider] = {
     all.map(p => p.name -> p).toMap.get(name)
   }
 
-/*  val ParquetProvider = "hdfs"
+  /*  val ParquetProvider = "hdfs"
 
-  val manifests = Map(
-    ParquetProvider -> "HDFS").mapValues(name => s"${name}DataStore.xml")*/
+    val manifests = Map(
+      ParquetProvider -> "HDFS").mapValues(name => s"${name}DataStore.xml")*/
 
- // def apply(providerName: String): Option[Provider] = {
+  // def apply(providerName: String): Option[Provider] = {
 
-//    providerName match {
-//    case ParquetProvider => Some(Parquet)
-//    case CassandraProvider => Some(Cassandra)
-//    case HBaseProvider => Some(HBase)
-//    case MongoProvider => Some (MongoDB)
-//    case _ => None
- // }
+  //    providerName match {
+  //    case ParquetProvider => Some(Parquet)
+  //    case CassandraProvider => Some(Cassandra)
+  //    case HBaseProvider => Some(HBase)
+  //    case MongoProvider => Some (MongoDB)
+  //    case _ => None
+  // }
 
 
   //******************************************************
@@ -80,7 +84,48 @@ object providers {
 
 }
 
+
+
+/**
+ * Provides an accessor to SQLContext catalog.
+ */
+trait Catalog {
+  _: SQLContext =>
+
+  def getCatalog = catalog
+
+}
+
+/**
+ * Configuration stuff related to SparkSQLConnector.
+ */
+trait Configuration extends Constants{
+  _: Loggable =>
+
+  //  References to 'connector-application'
+  val connectorConfig: Try[Config] = {
+    val input = Option(getClass.getClassLoader.getResourceAsStream(
+      ConfigurationFileConstant))
+    Try(input.fold {
+      val message = s"Sorry, unable to find [${
+        ConfigurationFileConstant
+      }]"
+      logger.error(message)
+      throw new InitializationException(message)
+    }(_ => ConfigFactory.load(ConfigurationFileConstant)))
+  }
+
+  //  References to 'SparkSQLConnector'
+  val connectorConfigFile: Try[Elem] =
+    Try(XML.load(
+      getClass.getClassLoader.getResourceAsStream(ConnectorConfigFile)))
+
+}
+
 trait Constants {
+
+  //  Constants
+
   val ActorSystemName = "SparkSQLConnectorSystem"
   val ConfigurationFileConstant = "connector-application.conf"
   val SparkMaster = "spark.master"
@@ -105,40 +150,5 @@ trait Constants {
   val AsyncStoppable = "connector.async-stoppable"
   val ChunkSize = "connector.query-executors.chunk-size"
   val CatalogTableSeparator = "_"
-}
-
-/**
- * Provides an accessor to SQLContext catalog.
- */
-trait Catalog {
-  _: SQLContext =>
-
-  def getCatalog = catalog
-
-}
-
-/**
- * Configuration stuff related to SparkSQLConnector.
- */
-trait Configuration {
-  _: Loggable =>
-
-  //  References to 'connector-application'
-  val connectorConfig: Try[Config] = {
-    val input = Option(getClass.getClassLoader.getResourceAsStream(
-      SparkSQLConnector.ConfigurationFileConstant))
-    Try(input.fold {
-      val message = s"Sorry, unable to find [${
-        SparkSQLConnector.ConfigurationFileConstant
-      }]"
-      logger.error(message)
-      throw new InitializationException(message)
-    }(_ => ConfigFactory.load(SparkSQLConnector.ConfigurationFileConstant)))
-  }
-
-  //  References to 'SparkSQLConnector'
-  val connectorConfigFile: Try[Elem] =
-    Try(XML.load(
-      getClass.getClassLoader.getResourceAsStream(SparkSQLConnector.ConnectorConfigFile)))
 
 }

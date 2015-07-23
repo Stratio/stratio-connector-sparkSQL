@@ -7,19 +7,17 @@ package com.stratio.connector.sparksql
 import java.net.URL
 import java.util.Collections
 import com.stratio.connector.commons._
-import com.stratio.connector.sparksql.core.providerConfig.{Configuration, Constants}
+import com.stratio.connector.sparksql.core._
 import scala.collection.JavaConversions._
-import akka.actor.{ActorSystem, ActorRefFactory}
-import com.stratio.connector.sparksql.SparkSQLConnector._
+import akka.actor.ActorSystem
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.data.{TableName, ClusterName}
 import com.stratio.crossdata.common.logicalplan.{Project, LogicalWorkflow}
 import com.stratio.crossdata.common.metadata.Operations
-import com.stratio.crossdata.connectors.ConnectorApp
 
 import scala.io.Source
 
-object Launcher extends App with Constants
+object Launcher extends App
 with Configuration
 with Loggable
 with Metrics {

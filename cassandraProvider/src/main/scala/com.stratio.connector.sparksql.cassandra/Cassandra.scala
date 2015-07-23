@@ -17,7 +17,6 @@
  */
 package com.stratio.connector.sparksql.cassandra
 
-import com.stratio.connector.sparksql.core.providerConfig.Provider
 import com.stratio.connector.sparksql.core.connection.Connection
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
@@ -25,15 +24,17 @@ import org.apache.spark.sql.SQLContext
 import scala.collection.JavaConversions._
 import org.apache.spark.sql.cassandra._
 import com.datastax.spark.connector.cql.CassandraConnectorConf
+import com.stratio.connector.sparksql.core.Provider
+
 
 
 case object Cassandra extends Provider with CassandraConstants{
 
+  override val dataSource: String = "org.apache.spark.sql.cassandra"
+
   override val manifest: String = "CassandraDatastore.xml"
 
   override val name: String = "Cassandra"
-
-  override val dataSource: String = "org.apache.spark.sql.cassandra"
 
   val DefaultNativePort = "9042"
 

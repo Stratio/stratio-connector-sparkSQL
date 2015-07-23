@@ -1,51 +1,27 @@
-/*
- * Licensed to STRATIO (C) under one or more contributor license agreements.
- * See the NOTICE file distributed with this work for additional information
- * regarding copyright ownership.  The STRATIO (C) licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-package com.stratio.connector.sparksql
+package com.stratio.connector.sparksql.core
 
-
-import java.util
-
-import akka.actor.{Kill, ActorRef, ActorRefFactory, ActorSystem}
+import akka.actor.{ActorSystem, Kill, ActorRef, ActorRefFactory}
+import com.stratio.connector.commons.timer._
+import com.stratio.connector.commons.{Metrics, Loggable}
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
-import com.stratio.connector.sparksql.core.engine.query.{QueryManager, QueryEngine}
-import com.stratio.connector.sparksql.core.providerConfig._
-import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
+import com.stratio.connector.sparksql.core.engine.SparkSQLMetadataListener
+import com.stratio.connector.sparksql.core.engine.query.{QueryEngine, QueryManager}
 import com.stratio.crossdata.common.connector._
 import com.stratio.crossdata.common.data.ClusterName
 import com.stratio.crossdata.common.exceptions.UnsupportedException
 import com.stratio.crossdata.common.security.ICredentials
 import com.stratio.crossdata.connectors.ConnectorApp
-import com.typesafe.config.{ConfigList, Config}
-import org.apache.spark.{SparkConf, SparkContext}
+import com.typesafe.config.Config
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveContext
-import com.stratio.connector.commons.{Loggable,Metrics}
-import com.stratio.connector.commons.timer
-import com.stratio.connector.sparksql.core.engine.SparkSQLMetadataListener
+import org.apache.spark.{SparkConf, SparkContext}
 
 class SparkSQLConnector(
-                         system: ActorRefFactory,
-                         connectorApp: Option[ConnectorApp] = None) extends IConnector
+  system: ActorRefFactory,
+  connectorApp: Option[ConnectorApp] = None) extends IConnector
 with Loggable
-with Metrics {
-
-  import timer._
-  import SparkSQLConnector._
+with Metrics
+with Configuration {
 
   val connectionHandler = new ConnectionHandler
 
@@ -87,19 +63,23 @@ with Metrics {
 
   val sqlContextType: String =
     connectorConfig.get.getString(SQLContextType)
-  
+
+
+
   //  IConnector implemented methods
 
   override def getConnectorManifestPath(): String =
-    getClass().getClassLoader.getResource(ConnectorConfigFile).getPath()
+    getClass.getClassLoader.getResource(ConnectorConfigFile).getPath()
 
   override def getDatastoreManifestPath(): Array[String] =
-    providersFromConfig.all.map(_.manifest)
+    providers.all.map(_.manifest)
+
+
 
   override def restart(): Unit = {
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("All providers are initialized") {
-        providersFromConfig.all.foreach(_.initialize(sparkContext))
+        providers.all.foreach(_.initialize(sparkContext))
       }
       timeFor("Subscribed to metadata updates.") {
         connectorApp.foreach(_.subscribeToMetadataUpdate(
@@ -114,7 +94,7 @@ with Metrics {
   def init(configuration: IConfiguration): Unit =
     timeFor(s"SparkSQL connector initialized.") {
       timeFor("All providers are initialized") {
-        providersFromConfig.all.foreach(_.initialize(sparkContext))
+        providers.all.foreach(_.initialize(sparkContext))
       }
       timeFor("Subscribed to metadata updates.") {
         connectorApp.foreach(_.subscribeToMetadataUpdate(
@@ -126,8 +106,8 @@ with Metrics {
     }
 
   def connect(
-                        credentials: ICredentials,
-                        config: ConnectorClusterConfig): Unit =
+    credentials: ICredentials,
+    config: ConnectorClusterConfig): Unit =
     timeFor("Connected to SparkSQL connector") {
       connectionHandler.createConnection(config, sqlContext, Option(credentials))
     }
@@ -161,12 +141,11 @@ with Metrics {
    * @return A new Spark context
    */
   def initContext(config: Config): SparkContext = {
-    import scala.collection.JavaConversions._
     new SparkContext(new SparkConf()
-      .setAppName(SparkSQLConnector.SparkSQLConnectorJobConstant)
+      .setAppName(SparkSQLConnectorJobConstant)
       .setSparkHome(config.getString(SparkHome))
       .setMaster(config.getString(SparkMaster))
-      .setJars(config.getConfig(Spark).getStringList(SparkJars))
+      .setJars(config.getConfig(Spark).getStringList(SparkJars).toArray().map(_.toString))
       .setAll(List(
       SparkDriverMemory,
       SparkExecutorMemory,
@@ -182,8 +161,8 @@ with Metrics {
    * @return A brand new SQLContext.
    */
   def sqlContextBuilder(
-                         contextType: String,
-                         sc: SparkContext): SparkSQLContext =
+    contextType: String,
+    sc: SparkContext): SparkSQLContext =
     contextType match {
       case HIVEContext => new HiveContext(sc) with Catalog
       case _ => new SQLContext(sc) with Catalog
@@ -192,22 +171,20 @@ with Metrics {
   //  Unsupported methods
 
   def getStorageEngine: IStorageEngine =
-    throw new UnsupportedException(SparkSQLConnector.MethodNotSupported)
+    throw new UnsupportedException(MethodNotSupported)
 
   def getMetadataEngine: IMetadataEngine =
-    throw new UnsupportedException(SparkSQLConnector.MethodNotSupported)
+    throw new UnsupportedException(MethodNotSupported)
 
 }
 
+
 object SparkSQLConnector extends App
-with Constants
 with Configuration
 with Loggable
-with Metrics {
+with Metrics { connector =>
 
-  import timer._
-
-  val providersFromConfig = connectorConfig.get.getStringList(ProvidersInUse).toArray(String)
+  implicit lazy val _ = connector
 
   val system = {
     logger.info(s"'$ActorSystemName' actor system has been initialized.")
@@ -235,5 +212,7 @@ with Metrics {
       sparkSQLConnector.shutdown()
     }
   }
+  def providersFromConfig: Array[String] =
+    connectorConfig.get.getStringList(ProvidersInUse).toArray.map(_.toString)
 
 }

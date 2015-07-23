@@ -18,7 +18,7 @@
 package com.stratio.connector.sparksql
 
 import com.stratio.connector.commons.Loggable
-import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
+import com.stratio.connector.sparksql.core.`package`.SparkSQLContext
 import com.stratio.crossdata.common.data.{Cell, ResultSet, Row => XDRow}
 import com.stratio.crossdata.common.metadata.{ColumnMetadata, ColumnType}
 import org.apache.spark.sql.catalyst.expressions.GenericRow

@@ -17,15 +17,15 @@
  */
 package com.stratio.connector.sparksql.core.engine.query
 
+import com.stratio.connector.sparksql.core.Configuration
+import com.stratio.connector.sparksql.core.`package`.SparkSQLContext
 import com.stratio.connector.sparksql.core.connection.ConnectionHandler
-import com.stratio.connector.sparksql.core.providerConfig.sparkSQLContextAlias.SparkSQLContext
 import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.connector.commons.timer
 import org.apache.spark.sql.types.StructType
 import scala.concurrent.duration._
 import akka.actor.{Props, Actor}
 import com.stratio.connector.commons.{Loggable, Metrics}
-import com.stratio.connector.sparksql.SparkSQLConnector
 import com.stratio.crossdata.common.logicalplan.LogicalWorkflow
 import com.stratio.connector.sparksql.CrossdataConverters._
 import org.apache.spark.sql.{Row, DataFrame}
@@ -47,9 +47,9 @@ class QueryExecutor(
   connectionHandler: ConnectionHandler,
   asyncStoppable: Boolean = true) extends Actor
 with Loggable
-with Metrics {
+with Metrics
+with Configuration {
 
-  import SparkSQLConnector._
   import QueryManager._
   import timer._
 
