@@ -26,8 +26,6 @@ import org.apache.spark.sql.cassandra._
 import com.datastax.spark.connector.cql.CassandraConnectorConf
 import com.stratio.connector.sparksql.core.Provider
 
-
-
 case object Cassandra extends Provider with CassandraConstants{
 
   override val dataSource: String = "org.apache.spark.sql.cassandra"
