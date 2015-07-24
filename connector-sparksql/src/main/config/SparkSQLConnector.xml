@@ -3,8 +3,9 @@
     <ConnectorName>SparkSQLConnector</ConnectorName>
     <DataStores>
         <DataStoreName>hdfs</DataStoreName>
-        <DataStoreName>cassandra</DataStoreName>
+        <DataStoreName>Cassandra</DataStoreName>
         <DataStoreName>Mongo</DataStoreName>
+        <DataStoreName>elasticsearch</DataStoreName>
     </DataStores>
     <Version>0.1.0</Version>
     <RequiredProperties>

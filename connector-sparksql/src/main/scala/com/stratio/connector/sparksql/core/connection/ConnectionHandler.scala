@@ -75,7 +75,7 @@ class ConnectionHandler extends Loggable {
     }
   }
 
-  def getConnections(): Map[ConnectionId, Connection] =
+  def getConnections: Map[ConnectionId, Connection] =
     withConnections(connections)
 
   def startJob(connectionId: ConnectionId): Unit = {

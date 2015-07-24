@@ -65,6 +65,7 @@
         <module>parquetProvider</module>
         <module>connector-sparksql</module>
         <module>stratio-connector-sparksql-executor</module>
+        <module>elasticsearchProvider</module>
     </modules>
     <developers>
         <developer>

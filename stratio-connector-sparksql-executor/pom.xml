@@ -2,17 +2,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>executor</artifactId>
+    <description>Stratio SparkSQL connector Executor</description>
+    <url>http://www.stratio.com</url>
+    <name>Stratio SparkSQL connector Executor</name>
+    <packaging>pom</packaging>
     <parent>
         <artifactId>stratio-connector-sparksql</artifactId>
         <groupId>com.stratio.connector</groupId>
         <version>0.2.0-SNAPSHOT</version>
-
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
-    <artifactId>executor</artifactId>
-    <packaging>pom</packaging>
-
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
     <dependencies>
         <dependency>
             <groupId>com.stratio.connector</groupId>
@@ -34,11 +41,12 @@
             <artifactId>stratio-connector-sparksql-cassandraProvider</artifactId>
             <version>0.2.0-SNAPSHOT</version>
         </dependency>
-
-
+        <dependency>
+            <groupId>com.stratio.connector</groupId>
+            <artifactId>stratio-connector-sparksql-elasticsearchProvider</artifactId>
+            <version>0.2.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
-
-
 
     <profiles>
         <profile>
@@ -78,139 +86,139 @@
                             </execution>
                         </executions>
                     </plugin>
-                   <!-- <plugin>
-                        <groupId>com.stratio.mojo.unix</groupId>
-                        <artifactId>unix-maven-plugin</artifactId>
-                        <version>1.1.5</version>
-                        <extensions>true</extensions>
-                        <inherited>false</inherited>
-                        <configuration>
-                            <size>1</size>
-                            <outputFileName>stratio-connector-sparkSQL</outputFileName>
-                            <contact><![CDATA[Stratio <jmgomez@stratio.com>]]></contact>
-                            <contactEmail>jmgomez@stratio.com</contactEmail>
-                            <deb>
-                                <section>devel</section>
-                            </deb>
-                            <rpm>
-                                <group>stratio</group>
-                                <requires>bash</requires>
-                            </rpm>
-                            <name>connector-sparkSQL</name>
-                            <excludeDirectoryAttributes>
-                                <dir>/etc</dir>
-                                <dir>/etc/init.d</dir>
-                                <dir>/etc/default</dir>
-                                <dir>/var</dir>
-                                <dir>/opt</dir>
-                                <dir>/usr</dir>
-                                <dir>/bin</dir>
-                            </excludeDirectoryAttributes>
-                            <assembly>
-                                <copyFile>
-                                    <path>src/main/unix/files_and_dirs/etc/init.d/connector-sparkSQL</path>
-                                    <toFile>/etc/init.d/connector-sparkSQL</toFile>
-                                    <attributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                        <mode>644</mode>
-                                    </attributes>
-                                </copyFile>
-                                <mkdirs>
-                                    <path>/opt/sds/connector-sparkSQL</path>
-                                    <attributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </attributes>
-                                </mkdirs>
-                                <mkdirs>
-                                    <path>/var/run/sds</path>
-                                    <attributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </attributes>
-                                </mkdirs>
-                                <copyDirectory>
-                                    <from>target/stratio-connector-sparkSQL/bin</from>
-                                    <to>/opt/sds/stratio-connector-sparkSQL/bin</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyDirectory>
-                                    <from>target/stratio-connector-sparkSQL/repo</from>
-                                    <to>/opt/sds/stratio-connector-sparkSQL/repo</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyDirectory>
-                                    <from>target/stratio-connector-sparkSQL/conf</from>
-                                    <to>/opt/sds/stratio-connector-sparkSQL/conf</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyDirectory>
-                                    <from>src/main/template</from>
-                                    <to>/opt/sds/stratio-connector-sparkSQL/template</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyDirectory>
-                                    <from>src/main/unix/files_and_dirs/etc/default</from>
-                                    <to>/etc/default</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyFile>
-                                    <path>src/main/include/LICENSE</path>
-                                    <toFile>/opt/sds/stratio-connector-sparkSQL/LICENSE</toFile>
-                                </copyFile>
-                                <copyFile>
-                                    <path>src/main/include/NOTICE</path>
-                                    <toFile>/opt/sds/stratio-connector-sparkSQL/NOTICE</toFile>
-                                </copyFile>
-                            </assembly>
-                            <defaults>
-                                <directoryAttributes>
-                                    <mode>0755</mode>
-                                </directoryAttributes>
-                                <fileAttributes>
-                                    <mode>0644</mode>
-                                </fileAttributes>
-                            </defaults>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>deb</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>package-deb</goal>
-                                </goals>
-                                <configuration>
-                                    <architecture>all</architecture>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>rpm</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>package-rpm</goal>
-                                </goals>
-                                <configuration>
-                                    <architecture>noarch</architecture>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>-->
+                    <!-- <plugin>
+                         <groupId>com.stratio.mojo.unix</groupId>
+                         <artifactId>unix-maven-plugin</artifactId>
+                         <version>1.1.5</version>
+                         <extensions>true</extensions>
+                         <inherited>false</inherited>
+                         <configuration>
+                             <size>1</size>
+                             <outputFileName>stratio-connector-sparkSQL</outputFileName>
+                             <contact><![CDATA[Stratio <jmgomez@stratio.com>]]></contact>
+                             <contactEmail>jmgomez@stratio.com</contactEmail>
+                             <deb>
+                                 <section>devel</section>
+                             </deb>
+                             <rpm>
+                                 <group>stratio</group>
+                                 <requires>bash</requires>
+                             </rpm>
+                             <name>connector-sparkSQL</name>
+                             <excludeDirectoryAttributes>
+                                 <dir>/etc</dir>
+                                 <dir>/etc/init.d</dir>
+                                 <dir>/etc/default</dir>
+                                 <dir>/var</dir>
+                                 <dir>/opt</dir>
+                                 <dir>/usr</dir>
+                                 <dir>/bin</dir>
+                             </excludeDirectoryAttributes>
+                             <assembly>
+                                 <copyFile>
+                                     <path>src/main/unix/files_and_dirs/etc/init.d/connector-sparkSQL</path>
+                                     <toFile>/etc/init.d/connector-sparkSQL</toFile>
+                                     <attributes>
+                                         <user>stratio</user>
+                                         <group>stratio</group>
+                                         <mode>644</mode>
+                                     </attributes>
+                                 </copyFile>
+                                 <mkdirs>
+                                     <path>/opt/sds/connector-sparkSQL</path>
+                                     <attributes>
+                                         <user>stratio</user>
+                                         <group>stratio</group>
+                                     </attributes>
+                                 </mkdirs>
+                                 <mkdirs>
+                                     <path>/var/run/sds</path>
+                                     <attributes>
+                                         <user>stratio</user>
+                                         <group>stratio</group>
+                                     </attributes>
+                                 </mkdirs>
+                                 <copyDirectory>
+                                     <from>target/stratio-connector-sparkSQL/bin</from>
+                                     <to>/opt/sds/stratio-connector-sparkSQL/bin</to>
+                                     <directoryAttributes>
+                                         <user>stratio</user>
+                                         <group>stratio</group>
+                                     </directoryAttributes>
+                                 </copyDirectory>
+                                 <copyDirectory>
+                                     <from>target/stratio-connector-sparkSQL/repo</from>
+                                     <to>/opt/sds/stratio-connector-sparkSQL/repo</to>
+                                     <directoryAttributes>
+                                         <user>stratio</user>
+                                         <group>stratio</group>
+                                     </directoryAttributes>
+                                 </copyDirectory>
+                                 <copyDirectory>
+                                     <from>target/stratio-connector-sparkSQL/conf</from>
+                                     <to>/opt/sds/stratio-connector-sparkSQL/conf</to>
+                                     <directoryAttributes>
+                                         <user>stratio</user>
+                                         <group>stratio</group>
+                                     </directoryAttributes>
+                                 </copyDirectory>
+                                 <copyDirectory>
+                                     <from>src/main/template</from>
+                                     <to>/opt/sds/stratio-connector-sparkSQL/template</to>
+                                     <directoryAttributes>
+                                         <user>stratio</user>
+                                         <group>stratio</group>
+                                     </directoryAttributes>
+                                 </copyDirectory>
+                                 <copyDirectory>
+                                     <from>src/main/unix/files_and_dirs/etc/default</from>
+                                     <to>/etc/default</to>
+                                     <directoryAttributes>
+                                         <user>stratio</user>
+                                         <group>stratio</group>
+                                     </directoryAttributes>
+                                 </copyDirectory>
+                                 <copyFile>
+                                     <path>src/main/include/LICENSE</path>
+                                     <toFile>/opt/sds/stratio-connector-sparkSQL/LICENSE</toFile>
+                                 </copyFile>
+                                 <copyFile>
+                                     <path>src/main/include/NOTICE</path>
+                                     <toFile>/opt/sds/stratio-connector-sparkSQL/NOTICE</toFile>
+                                 </copyFile>
+                             </assembly>
+                             <defaults>
+                                 <directoryAttributes>
+                                     <mode>0755</mode>
+                                 </directoryAttributes>
+                                 <fileAttributes>
+                                     <mode>0644</mode>
+                                 </fileAttributes>
+                             </defaults>
+                         </configuration>
+                         <executions>
+                             <execution>
+                                 <id>deb</id>
+                                 <phase>package</phase>
+                                 <goals>
+                                     <goal>package-deb</goal>
+                                 </goals>
+                                 <configuration>
+                                     <architecture>all</architecture>
+                                 </configuration>
+                             </execution>
+                             <execution>
+                                 <id>rpm</id>
+                                 <phase>package</phase>
+                                 <goals>
+                                     <goal>package-rpm</goal>
+                                 </goals>
+                                 <configuration>
+                                     <architecture>noarch</architecture>
+                                 </configuration>
+                             </execution>
+                         </executions>
+                     </plugin>-->
                 </plugins>
             </build>
         </profile>
