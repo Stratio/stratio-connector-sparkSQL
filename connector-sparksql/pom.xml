@@ -38,11 +38,6 @@
             <version>${version.connector.commons}</version>
         </dependency>
         <dependency>
-            <groupId>com.stratio.crossdata</groupId>
-            <artifactId>crossdata-connector</artifactId>
-            <version>${version.crossdata}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
@@ -330,7 +325,7 @@
                     <plugin>
                         <groupId>com.stratio.mojo.unix</groupId>
                         <artifactId>unix-maven-plugin</artifactId>
-                        <version>1.1.5</version>
+                        <version>1.1.6</version>
                         <extensions>true</extensions>
                         <inherited>false</inherited>
                         <configuration>
