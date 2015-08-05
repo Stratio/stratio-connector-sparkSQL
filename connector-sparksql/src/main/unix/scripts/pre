@@ -10,5 +10,5 @@
 #var/log/sds/crossdata
 #var/sds/crossdata
 #var/sds/crossdata/crossdata-store
-mkdir -p /var/sds/stratio-connector-sparksql/stratio-connector-sparksql-store
-mkdir -p /var/log/sds/stratio-connector-sparksql
+mkdir -p /var/sds/connectors/sparksql/stratio-connector-sparksql-store
+mkdir -p /var/log/sds/connectors/sparksql

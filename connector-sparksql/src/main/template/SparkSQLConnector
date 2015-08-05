@@ -14,7 +14,7 @@ RUNAS=root
 PIDPATH=/var/run/sds/
 PIDNAME=stratio-connector-sparksql.pid
 PIDFILE=$PIDPATH$PIDNAME
-LOGFILE=/var/log/sds/stratio-connector-sparksql/stratio-connector-sparksql.log
+LOGFILE=/var/log/sds/connectors/sparksql/stratio-connector-sparksql.log
 start() {
   if [ ! -d "$PIDPATH" ]; then
     mkdir $PIDPATH
@@ -25,7 +25,7 @@ start() {
     return 1
   fi
   echo 'Starting service…' >&2
-  cd /opt/sds/stratio-connector-sparksql/
+  cd /opt/sds/connectors/sparksql/
 
     nohup bin/stratio-connector-sparksql start > $LOGFILE & echo $! $RUNAS > $PIDFILE
   echo 'Service started'
@@ -39,7 +39,7 @@ stop() {
 #  echo 'Stopping service…' >&2
 #  kill -15 $(cat "$PIDFILE") && rm -f "$PIDFILE"
 #  echo 'Service stopped' >&2
-    cd /opt/sds/stratio-connector-sparksql/
+    cd /opt/sds/connectors/sparksql/
     nohup bin/stratio-connector-sparksql stop > $LOGFILE
     echo 'Service stopped'
 }

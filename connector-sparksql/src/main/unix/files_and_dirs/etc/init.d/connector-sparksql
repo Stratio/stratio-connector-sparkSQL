@@ -1,1 +1,1 @@
-exec /opt/sds/stratio-connector-sparkSQL/bin/stratio-connector-sparkSQL
+exec /opt/sds/connectors/sparkSQL/bin/stratio-connector-sparkSQL
