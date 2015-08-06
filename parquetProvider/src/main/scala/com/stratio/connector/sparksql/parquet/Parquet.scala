@@ -1,6 +1,6 @@
 package com.stratio.connector.sparksql.parquet
 
-import com.stratio.connector.sparksql.core.Provider
+
 
 case object Parquet extends Provider {
 

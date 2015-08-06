@@ -48,11 +48,12 @@
             <artifactId>crossdata-connector</artifactId>
             <version>${version.crossdata}</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-core</artifactId>
             <version>0.2.0-SNAPSHOT</version>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>

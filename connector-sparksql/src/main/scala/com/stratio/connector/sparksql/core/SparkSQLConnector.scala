@@ -33,6 +33,7 @@ import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
 
+
 class SparkSQLConnector(
                          system: ActorRefFactory,
                          connectorApp: Option[ConnectorApp] = None) extends IConnector
@@ -90,8 +91,13 @@ with Metrics {
   override def getConnectorManifestPath(): String =
     getClass().getClassLoader.getResource(ConnectorConfigFile).getPath()
 
-  override def getDatastoreManifestPath(): Array[String] =
-    providers.all.map(_.manifest)
+  override def getDatastoreManifestPath(): Array[String] ={
+    com.stratio.connector.sparksql.core.providers.manifests.map{
+      x => {
+        getClass.getClassLoader.getResource(x).getPath
+      }
+    }.toArray[String]
+  }
 
   override def restart(): Unit = {
     timeFor(s"SparkSQL connector initialized.") {
