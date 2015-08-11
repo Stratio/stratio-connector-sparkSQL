@@ -314,7 +314,7 @@
                                     </platforms>
                                     <programs>
                                         <program>
-                                            <mainClass>com.stratio.connector.sparksql.SparksqlConnector</mainClass>
+                                            <mainClass>com.stratio.connector.sparksql.SparkSQLConnector</mainClass>
                                             <id>stratio-connector-sparksql</id>
                                         </program>
                                     </programs>
