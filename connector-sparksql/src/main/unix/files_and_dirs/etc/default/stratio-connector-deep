@@ -1,3 +1,0 @@
-export SPARKSQL_CONNECTOR_CONF="/etc/sds/stratio-connector-sparksql"
-export SPARKSQL_CONNECTOR_HOME="/opt/sds/stratio-connector-sparksql"
-export SPARKSQL_CONNECTOR_LOGS="/var/logs/sds/stratio-connector-sparksql"

@@ -4,9 +4,9 @@ set -e
 
 GROUP='stratio'
 USER='stratio'
-DIR_INSTALL='/opt/sds/stratio-connector-sparksql'
-DIR_CONF='/etc/sds/stratio-connector-sparksql'
-DIR_LOG='/var/log/sds/stratio-connector-sparksql'
+DIR_INSTALL='/opt/sds/connectors/sparksql'
+DIR_CONF='/etc/sds/connectors/sparksql'
+DIR_LOG='/var/log/sds/connectors/sparksql'
 
 case "$1" in
   configure)
@@ -42,14 +42,14 @@ case "$1" in
 
   ;;
 esac
-cp /opt/sds/stratio-connector-sparksql/bin/stratio-connector-sparksql-* /opt/sds/stratio-connector-sparksql/bin/stratio-connector-sparksql
-cp /opt/sds/stratio-connector-sparksql/template/SparkSQLConnector /etc/init.d/stratio-connector-sparksql
+cp /opt/sds/connectors/sparksql/template/SparkSQLConnector /etc/init.d/stratio-connector-sparksql
 chmod 755 /etc/init.d/stratio-connector-sparksql
-chmod 755 /opt/sds/stratio-connector-sparksql/bin/stratio-connector-sparksql
+chmod 755 /opt/sds/connectors/sparksql/bin/stratio-connector-sparksql
 chmod +x /etc/default/stratio-connector-sparksql
-export SPARKSQL_CONNECTOR_LIB=/opt/sds/stratio-connector-sparksql/
-export SPARKSQL_CONNECTOR_CONF="/etc/sds/stratio-connector-sparksql"
+export SPARKSQL_CONNECTOR_LIB=/opt/sds/connectors/sparksql/
+export SPARKSQL_CONNECTOR_CONF="/etc/sds/connectors/sparksql"
 
+/sbin/chkconfig --add stratio-connector-sparksql
 
 exit 0
 

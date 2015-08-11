@@ -376,7 +376,7 @@
                                 </mkdirs>
                                 <copyDirectory>
                                     <from>target/stratio-connector-sparksql/bin</from>
-                                    <to>/opt/sds/stratio-connector-sparksql/bin</to>
+                                    <to>/opt/sds/connectors/sparksql/bin</to>
                                     <directoryAttributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
@@ -384,7 +384,7 @@
                                 </copyDirectory>
                                 <copyDirectory>
                                     <from>target/stratio-connector-sparksql/repo</from>
-                                    <to>/opt/sds/stratio-connector-sparksql/repo</to>
+                                    <to>/opt/sds/connectors/sparksql/repo</to>
                                     <directoryAttributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
@@ -392,7 +392,7 @@
                                 </copyDirectory>
                                 <copyDirectory>
                                     <from>target/stratio-connector-sparksql/conf</from>
-                                    <to>/opt/sds/stratio-connector-sparksql/conf</to>
+                                    <to>/opt/sds/connectors/sparksql/conf</to>
                                     <directoryAttributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
@@ -400,7 +400,7 @@
                                 </copyDirectory>
                                 <copyDirectory>
                                     <from>src/main/template</from>
-                                    <to>/opt/sds/stratio-connector-sparksql/template</to>
+                                    <to>/opt/sds/connectors/sparksql/template</to>
                                     <directoryAttributes>
                                         <user>stratio</user>
                                         <group>stratio</group>
@@ -416,11 +416,11 @@
                                 </copyDirectory>
                                 <copyFile>
                                     <path>src/main/include/LICENSE</path>
-                                    <toFile>/opt/sds/stratio-connector-sparksql/LICENSE</toFile>
+                                    <toFile>/opt/sds/connectors/sparksql/LICENSE</toFile>
                                 </copyFile>
                                 <copyFile>
                                     <path>src/main/include/NOTICE</path>
-                                    <toFile>/opt/sds/stratio-connector-sparksql/NOTICE</toFile>
+                                    <toFile>/opt/sds/connectors/sparksql/NOTICE</toFile>
                                 </copyFile>
                             </assembly>
                             <defaults>
