@@ -166,7 +166,7 @@ with Metrics {
   //  Helpers
 
   /**
-   * Build a brand new Spark context given some config parameters.
+   * Build a brand new Spark context given some config parameters. 
    * @param config Configuration object.
    * @return A new Spark context
    */
