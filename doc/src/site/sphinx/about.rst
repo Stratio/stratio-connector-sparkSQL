@@ -10,15 +10,19 @@ Requirements
 
 - An existing and deployed `Hive metastore <https://hive.apache.org/>`__.
 
-Compiling Stratio Connector-SparkSQL
+Compiling, building and generating the executable for Stratio Connector-SparkSQL
 --------------------------------------------------------------------------------
-
-First of all in the stratio-connector-sparkSQL/ directory:
+In the stratio-connector-sparkSQL/ directory:
 
 ::
 
-    > mvn clean install 
+    > sh scripts/installconnector.sh
 
+This connector might be used for querying Parquet HDFS files, so it should use HDFSDatastore, defined as well in `Stratio HDFS <https://github.com/Stratio/stratio-connector-hdfs/tree/master/connector-hdfs/src/main/config>`__:
+
+The file called HDFSDataStore.xml contains some properties.
+
+Assuming all HDFS files correspond directly to a Hive table, and we’re using a configured Hive metastore, these parameters should be ignored when HDFS Datastore is being used with SparkSQL Connector.
 
 Preparing the environment to run the Stratio Connector-SparkSQL
 ---------------------------------------------------------------
@@ -35,9 +39,9 @@ In this file you need to set:
 
    Jars needed for the Stratio Connector-SparkSQL:
 
-       - stratio-connector-sparksql-0.2.0.jar
-       - crossdata-common-0.4.0.jar
-       - stratio-connector-commons-0.6.0.jar
+       - stratio-connector-sparksql-[connector_version].jar
+       - crossdata-common-[crossdata_version].jar
+       - stratio-connector-commons-[connector_commons_version].jar
        - spark-hive_2.10-1.3.1.jar
        - guava-14.0.1.jar
 
@@ -46,7 +50,7 @@ In this file you need to set:
        - cassandra-driver-core-2.1.5.jar
        - cassandra-thrift-2.1.3.jar
        - mysql-connector-java-5.1.34.jar
-       - spark-cassandra-connector_2.10-1.4.0-M1-SNAPSHOT.jar
+       - spark-cassandra-connector[spark-cassandra_provider_version].jar
 
 3) Memory dedicated to the driver and the executor as well as the number of cores required. In the variables "spark.driver.memory","spark.executor.memory" and "spark.cores.max" you can set these properties.
 
@@ -66,22 +70,45 @@ In the cluster the following services must be installed and running:
 
 4) Cassandra (version 2.0.0 or higher)
 
+
 Running the Stratio Connector-SparkSQL
 --------------------------------------
 
-To run Stratio Connector-SparkSQL, execute in the main directory stratio-connector-sparkSQL/ :
+To run Stratio Connector-SparkSQL, in the directory
 
 ::
 
-       > ./connector-sparksql/target/stratio-connector-sparksql/bin/stratio-connector-sparksql
+       > stratio-connector-sparkSQL/connector-sparkSQL/
+
+Edit the file target/stratio-connector-hdfs-[version]/bin/stratio-connector-hdfs-[version] and write your user in the variables:
+
+::
+
+  > serviceUser="root"
+
+::
+
+  > serviceGroup="root"
+
+After that, execute
+
+::
+
+    > target/stratio-connector-hdfs-[version]/bin/stratio-connector-hdfs-[version] start
 
 
 Build a redistributable package
 -------------------------------
 
-It is possible too, to create a RPM or DEB package, as :
+It is possible too, to create a RPM or DEB redistributable package.
 
-    > mvn package -Ppackage
+RPM Package:
+
+    > mvn unix:package-rpm -N
+
+DEB Package:
+
+    > mvn unix:package-deb -N
 
 Once the package it’s created, execute this commands to install:
 
