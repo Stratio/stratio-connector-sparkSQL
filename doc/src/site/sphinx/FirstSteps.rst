@@ -36,20 +36,7 @@ Prerequisites
 Configuration
 -------------
 
-In the Stratio Crossdata Shell we need to add the Datastore Manifest.
-
-::
-
-       > add datastore "<path_to_manifest_folder>/HDFSDataStore.xml";
-
-Now we need to add the ConnectorManifest.
-
-::
-
-       > add connector "<path_to_manifest_folder>/SparkSQLConnector.xml";
-
-At this point we have reported to Stratio Crossdata the connector options and
-operations. Now we configure the datastore cluster.
+In the Stratio Crossdata Shell we need configure the datastore cluster.
 
 ::
 
