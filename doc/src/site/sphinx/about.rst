@@ -64,8 +64,6 @@ In the cluster the following services must be installed and running:
 
 3) Spark (version 1.3.0 or higher)
 
-4) Cassandra (version 2.0.0 or higher)
-
 Running the Stratio Connector-SparkSQL
 --------------------------------------
 
