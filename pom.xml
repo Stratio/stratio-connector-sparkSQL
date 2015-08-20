@@ -28,7 +28,7 @@
         <version>0.4.0</version>
     </parent>
     <properties>
-        <version.connector.commons>0.6.0-RC1</version.connector.commons>
+        <version.connector.commons>0.6.0</version.connector.commons>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.7.0</java.version>
         <akka.version>2.3.11</akka.version>
@@ -100,4 +100,18 @@
             </roles>
         </developer>
     </developers>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <skip>true</skip>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
