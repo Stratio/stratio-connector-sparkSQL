@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 (August 2015)
+## 0.2.0 (August 2015)
 
 * ElasticSearch datasource supported
 * Bugs fixed
