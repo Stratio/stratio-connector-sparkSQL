@@ -4,5 +4,6 @@ Contents:
     :maxdepth: 4
     :numbered:
     
+    about.rst
     FirstSteps.rst
-    ConfHive.rst
+    ConfMetastore.rst

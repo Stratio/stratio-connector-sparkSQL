@@ -29,9 +29,9 @@ Prerequisites
 
 - `Stratio Crossdata <https://github.com/Stratio/crossdata>`__ is needed in order to interact with this connector.
 
-- An existing and deployed `Hive metastore <ConfMetastore.rst/>`__.
+- An existing and deployed `Hive metastore <ConfMetastore.html/>`__.
 
-- Build a SparkSQLConnector executable and run it following this `guide <about.rst>`__.
+- Build a SparkSQLConnector executable and run it following this `guide <about.html>`__.
 
 Configuration
 -------------
