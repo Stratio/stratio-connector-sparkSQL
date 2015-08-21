@@ -329,21 +329,39 @@
                     </execution>
                 </executions>
             </plugin>
-
-
-            <!--<plugin>-->
-                <!--<artifactId>maven-assembly-plugin</artifactId>-->
-                <!--<configuration>-->
-                    <!--<archive>-->
-                        <!--<manifest>-->
-                            <!--<mainClass>com.stratio.connector.sparksql.SparksqlConnector</mainClass>-->
-                        <!--</manifest>-->
-                    <!--</archive>-->
-                    <!--<descriptorRefs>-->
-                        <!--<descriptorRef>jar-with-dependencies</descriptorRef>-->
-                    <!--</descriptorRefs>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.10</version>
+                <executions>
+                    <execution>
+                        <id>appassembler</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                        <configuration>
+                            <configurationSourceDirectory>src/main/config</configurationSourceDirectory>
+                            <configurationDirectory>conf</configurationDirectory>
+                            <copyConfigurationDirectory>true</copyConfigurationDirectory>
+                            <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
+                            <assembleDirectory>${project.build.directory}/stratio-connector-sparksql</assembleDirectory>
+                            <extraJvmArguments>$CONNECTOR_SPARKsql_OPTS -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${jmx.port} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -DXmx3072m -XX:MaxPermSize=512m</extraJvmArguments>
+                            <filterConfigurationDirectory>true</filterConfigurationDirectory>
+                            <platforms>
+                                <platform>windows</platform>
+                                <platform>unix</platform>
+                            </platforms>
+                            <programs>
+                                <program>
+                                    <mainClass>com.stratio.connector.sparksql.SparkSQLConnector</mainClass>
+                                    <id>stratio-connector-sparksql</id>
+                                </program>
+                            </programs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -351,39 +369,7 @@
             <id>package</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>appassembler-maven-plugin</artifactId>
-                        <version>1.10</version>
-                        <executions>
-                            <execution>
-                                <id>appassembler</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>assemble</goal>
-                                </goals>
-                                <configuration>
-                                    <configurationSourceDirectory>src/main/config</configurationSourceDirectory>
-                                    <configurationDirectory>conf</configurationDirectory>
-                                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
-                                    <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
-                                    <assembleDirectory>${project.build.directory}/stratio-connector-sparksql</assembleDirectory>
-                                    <extraJvmArguments>$CONNECTOR_SPARKsql_OPTS -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${jmx.port} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -DXmx3072m -XX:MaxPermSize=512m</extraJvmArguments>
-                                    <filterConfigurationDirectory>true</filterConfigurationDirectory>
-                                    <platforms>
-                                        <platform>windows</platform>
-                                        <platform>unix</platform>
-                                    </platforms>
-                                    <programs>
-                                        <program>
-                                            <mainClass>com.stratio.connector.sparksql.SparkSQLConnector</mainClass>
-                                            <id>stratio-connector-sparksql</id>
-                                        </program>
-                                    </programs>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+
                     <plugin>
                         <groupId>com.stratio.mojo.unix</groupId>
                         <artifactId>unix-maven-plugin</artifactId>

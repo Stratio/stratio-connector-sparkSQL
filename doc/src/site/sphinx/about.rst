@@ -94,12 +94,13 @@ DEB Package:
 Now to start/stop the connector:
 
     > service stratio-connector-sparksql start
+
     > service stratio-connector-sparksql stop
 
 How to use the Stratio Connector-SparkSQL
 -----------------------------------------
 
-A complete tutorial is available `here <https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/First_Steps.rst>`__. The basic commands are described below.
+A complete tutorial is available `here <First_Steps.rst>`__. The basic commands are described below.
 
 1.  Start `Stratio Crossdata Server and then Stratio Crossdata Shell <https://github.com/Stratio/crossdata>`__.
 
