@@ -49,6 +49,7 @@ chmod +x /etc/default/stratio-connector-sparksql
 export SPARKSQL_CONNECTOR_LIB=/opt/sds/connectors/sparksql/
 export SPARKSQL_CONNECTOR_CONF="/etc/sds/connectors/sparksql"
 
+/sbin/chkconfig --add stratio-connector-sparksql
 
 exit 0
 

@@ -6,3 +6,5 @@
 mkdir -p /var/sds/connectors/sparksql/stratio-connector-sparksql-store
 mkdir -p /var/log/sds/connectors/sparksql
 mkdir -p /opt/sds/connectors/sparksql
+mkdir -p /etc/sds/connectors/sparksql
+
