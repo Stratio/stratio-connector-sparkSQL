@@ -30,11 +30,12 @@ case object Cassandra extends Provider with CassandraConstants{
 
   override val dataSource: String = "org.apache.spark.sql.cassandra"
 
-  override val manifest: String = "CassandraDatastore.xml"
+  override val manifest: String = "CassandraDataStore.xml"
 
   override val name: String = "Cassandra"
 
   val DefaultNativePort = "9042"
+
 
   val DefaultRPCPort = "9160"
 

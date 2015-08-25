@@ -91,7 +91,9 @@ with Metrics {
     getClass().getClassLoader.getResource(ConnectorConfigFile).getPath()
 
   override def getDatastoreManifestPath(): Array[String] =
-    providers.all.map(_.manifest)
+    providers.all.map(x=> {
+      getClass().getClassLoader.getResource(x.manifest).getPath()
+    })
 
   override def restart(): Unit = {
     timeFor(s"SparkSQL connector initialized.") {
