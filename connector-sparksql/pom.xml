@@ -37,11 +37,6 @@
             <version>${version.connector.commons}</version>
         </dependency>
         <dependency>
-            <groupId>com.stratio.crossdata</groupId>
-            <artifactId>crossdata-connector</artifactId>
-            <version>${version.crossdata}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
@@ -57,6 +52,17 @@
             <version>${spark.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-hbase_2.10</artifactId>
+            <version>1.3.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-impl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.34</version>
@@ -67,21 +73,9 @@
             <version>${akka.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-testkit_${scala.binary.version}</artifactId>
-            <version>${akka.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -92,6 +86,17 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalacheck</groupId>
+            <artifactId>scalacheck_2.10</artifactId>
+            <version>1.12.2</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
@@ -112,35 +117,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.datastax.spark</groupId>
-            <artifactId>spark-cassandra-connector_${scala.binary.version}</artifactId>
-            <version>1.4.0-M1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-hbase_2.10</artifactId>
-            <version>1.3.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.sun.xml.bind</groupId>
-                    <artifactId>jaxb-impl</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.stratio</groupId>
-            <artifactId>spark-mongodb</artifactId>
-            <version>0.8.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch-spark_2.10</artifactId>
-            <version>2.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalacheck</groupId>
-            <artifactId>scalacheck_2.10</artifactId>
-            <version>1.12.2</version>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-testkit_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
@@ -157,90 +137,6 @@
                     </filesets>
                 </configuration>
             </plugin>
-          <!--  <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>scala-compile-first</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <scalaVersion>${scala.version}</scalaVersion>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>scala-test-compile</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                        <configuration>
-                            <scalaVersion>${scala.version}</scalaVersion>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <archive>
-                        <index>true</index>
-                        <manifestEntries>
-                            <ProjectVersion>${project.version}</ProjectVersion>
-                            <ProjectName>${project.name}</ProjectName>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin> -->
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -249,208 +145,6 @@
                     <skipTests>true</skipTests>
                 </configuration>
             </plugin>
-          <!--
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>scala-compile-first</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>scala-test-compile</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin> -->
         </plugins>
     </build>
-    <!--
-    <profiles>
-        <profile>
-            <id>package</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>appassembler-maven-plugin</artifactId>
-                        <version>1.10</version>
-                        <executions>
-                            <execution>
-                                <id>appassembler</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>assemble</goal>
-                                </goals>
-                                <configuration>
-                                    <configurationSourceDirectory>src/main/config</configurationSourceDirectory>
-                                    <configurationDirectory>conf</configurationDirectory>
-                                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
-                                    <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
-                                    <assembleDirectory>${project.build.directory}/stratio-connector-sparksql</assembleDirectory>
-                                    <extraJvmArguments>$CONNECTOR_SPARKsql_OPTS -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${jmx.port} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -DXmx3072m -XX:MaxPermSize=512m</extraJvmArguments>
-                                    <filterConfigurationDirectory>true</filterConfigurationDirectory>
-                                    <platforms>
-                                        <platform>windows</platform>
-                                        <platform>unix</platform>
-                                    </platforms>
-                                    <programs>
-                                        <program>
-                                            <mainClass>com.stratio.connector.sparksql.core.SparkSQLConnector</mainClass>
-                                            <id>stratio-connector-sparksql</id>
-                                        </program>
-                                    </programs>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>com.stratio.mojo.unix</groupId>
-                        <artifactId>unix-maven-plugin</artifactId>
-                        <version>1.1.5</version>
-                        <extensions>true</extensions>
-                        <inherited>false</inherited>
-                        <configuration>
-                            <size>1</size>
-                            <outputFileName>stratio-connector-sparksql</outputFileName>
-                            <contact><![CDATA[Stratio <jmgomez@stratio.com>]]></contact>
-                            <contactEmail>jmgomez@stratio.com</contactEmail>
-                            <deb>
-                                <section>devel</section>
-                            </deb>
-                            <rpm>
-                                <group>stratio</group>
-                                <requires>bash</requires>
-                            </rpm>
-                            <name>connector-sparksql</name>
-                            <excludeDirectoryAttributes>
-                                <dir>/etc</dir>
-                                <dir>/etc/init.d</dir>
-                                <dir>/etc/default</dir>
-                                <dir>/var</dir>
-                                <dir>/opt</dir>
-                                <dir>/usr</dir>
-                                <dir>/bin</dir>
-                            </excludeDirectoryAttributes>
-                            <assembly>
-                                <copyFile>
-                                    <path>src/main/unix/files_and_dirs/etc/init.d/connector-sparksql</path>
-                                    <toFile>/etc/init.d/connector-sparksql</toFile>
-                                    <attributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                        <mode>644</mode>
-                                    </attributes>
-                                </copyFile>
-                                <mkdirs>
-                                    <path>/opt/sds/connector-sparksql</path>
-                                    <attributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </attributes>
-                                </mkdirs>
-                                <mkdirs>
-                                    <path>/var/run/sds</path>
-                                    <attributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </attributes>
-                                </mkdirs>
-                                <copyDirectory>
-                                    <from>target/stratio-connector-sparksql/bin</from>
-                                    <to>/opt/sds/connectors/sparksql/bin</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyDirectory>
-                                    <from>target/stratio-connector-sparksql/repo</from>
-                                    <to>/opt/sds/connectors/sparksql/repo</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyDirectory>
-                                    <from>target/stratio-connector-sparksql/conf</from>
-                                    <to>/opt/sds/connectors/sparksql/conf</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyDirectory>
-                                    <from>src/main/template</from>
-                                    <to>/opt/sds/connectors/sparksql/template</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyDirectory>
-                                    <from>src/main/unix/files_and_dirs/etc/default</from>
-                                    <to>/etc/default</to>
-                                    <directoryAttributes>
-                                        <user>stratio</user>
-                                        <group>stratio</group>
-                                    </directoryAttributes>
-                                </copyDirectory>
-                                <copyFile>
-                                    <path>src/main/include/LICENSE</path>
-                                    <toFile>/opt/sds/connectors/sparksql/LICENSE</toFile>
-                                </copyFile>
-                                <copyFile>
-                                    <path>src/main/include/NOTICE</path>
-                                    <toFile>/opt/sds/connectors/sparksql/NOTICE</toFile>
-                                </copyFile>
-                            </assembly>
-                            <defaults>
-                                <directoryAttributes>
-                                    <mode>0755</mode>
-                                </directoryAttributes>
-                                <fileAttributes>
-                                    <mode>0644</mode>
-                                </fileAttributes>
-                            </defaults>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>deb</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>package-deb</goal>
-                                </goals>
-                                <configuration>
-                                    <architecture>all</architecture>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>rpm</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>package-rpm</goal>
-                                </goals>
-                                <configuration>
-                                    <architecture>noarch</architecture>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles> -->
-</project>
+ </project>
