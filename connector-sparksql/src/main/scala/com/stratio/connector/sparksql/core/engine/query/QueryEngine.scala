@@ -420,6 +420,14 @@ object QueryEngine extends Loggable with Metrics {
         map
       }
 
+      case "jdbc" =>
+
+        val map: Map[String, Query] = globalOptions(config) +
+          ("url" -> config.getClusterOptions.get("url").replace("[","").replace("]","")) +
+          ("driver" ->tableMetadata.getName.getCatalogName.getName) +
+          ("dbtable" -> tableMetadata.getName.getName)
+        map
+
     }
   }
 
