@@ -58,13 +58,14 @@
         <url>https://github.com/Stratio/stratio-connector-sparkSQL</url>
     </scm>
     <modules>
-        <module>doc</module>
+        <module>connector-sparksql</module>
         <module>cassandraProvider</module>
         <module>mongodbProvider</module>
         <module>parquetProvider</module>
-        <module>connector-sparksql</module>
-        <module>stratio-connector-sparksql-executor</module>
         <module>elasticsearchProvider</module>
+        <module>jdbcProvider</module>
+        <module>doc</module>
+        <module>stratio-connector-sparksql-executor</module>
     </modules>
     <developers>
         <developer>

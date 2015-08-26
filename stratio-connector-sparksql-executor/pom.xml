@@ -116,8 +116,8 @@
                             </excludeDirectoryAttributes>
                             <assembly>
                                 <copyFile>
-                                    <path>src/main/unix/files_and_dirs/etc/init.d/connector-sparksql</path>
-                                    <toFile>/etc/init.d/connector-sparksql</toFile>
+                                    <path>src/main/unix/files_and_dirs/etc/init.d/connector_sparksql</path>
+                                    <toFile>/etc/init.d/connector_sparksql</toFile>
                                     <attributes>
                                         <user>root</user>
                                         <group>root</group>
