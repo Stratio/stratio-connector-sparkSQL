@@ -1,4 +1,0 @@
-/etc/default/connectors/sparksql
-/etc/sds/connectors/sparksql/connector-application.conf
-/etc/sds/connectors/sparksql/log.properties
-/etc/sds/connectors/sparksql/connector-reference.conf

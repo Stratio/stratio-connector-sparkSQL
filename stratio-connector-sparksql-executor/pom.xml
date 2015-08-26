@@ -70,7 +70,7 @@
                                     <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
                                     <assembleDirectory>${project.build.directory}/stratio-connector-sparksql</assembleDirectory>
                                     <extraJvmArguments>$CONNECTOR_SPARKSQL_OPTS -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${jmx.port} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -DXmx3072m -XX:MaxPermSize=512m</extraJvmArguments>
-                                    <!-- <filterConfigurationDirectory>true</filterConfigurationDirectory> -->
+                                     <filterConfigurationDirectory>true</filterConfigurationDirectory>
                                     <platforms>
                                         <platform>windows</platform>
                                         <platform>unix</platform>
@@ -85,10 +85,124 @@
                             </execution>
                         </executions>
                     </plugin>
+
+                    <plugin>
+                        <groupId>com.stratio.mojo.unix</groupId>
+                        <artifactId>unix-maven-plugin</artifactId>
+                        <version>1.1.6</version>
+                        <extensions>true</extensions>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <size>2048</size>
+                            <outputFileName>stratio-connector-sparksql</outputFileName>
+                            <contact><![CDATA[Stratio <jmgomez@stratio.com>]]></contact>
+                            <contactEmail>jmgomez@stratio.com</contactEmail>
+                            <deb>
+                                <section>devel</section>
+                            </deb>
+                            <rpm>
+                                <group>stratio</group>
+                                <requires>bash</requires>
+                            </rpm>
+                            <name>connector-sparksql</name>
+                            <excludeDirectoryAttributes>
+                                <dir>/etc</dir>
+                                <dir>/etc/init.d</dir>
+                                <dir>/etc/default</dir>
+                                <dir>/var</dir>
+                                <dir>/opt</dir>
+                                <dir>/usr</dir>
+                                <dir>/bin</dir>
+                            </excludeDirectoryAttributes>
+                            <assembly>
+                                <copyFile>
+                                    <path>src/main/unix/files_and_dirs/etc/init.d/connector-sparksql</path>
+                                    <toFile>/etc/init.d/connector-sparksql</toFile>
+                                    <attributes>
+                                        <user>root</user>
+                                        <group>root</group>
+                                        <mode>755</mode>
+                                    </attributes>
+                                </copyFile>
+                                <copyFile>
+                                    <path>src/main/unix/files_and_dirs/etc/default/sparksql_connector</path>
+                                    <toFile>/etc/default/sparksql_connector</toFile>
+                                    <attributes>
+                                        <user>root</user>
+                                        <group>root</group>
+                                        <mode>755</mode>
+                                    </attributes>
+                                </copyFile>
+                                <copyFile>
+                                    <path>target/stratio-connector-sparksql/bin/stratio-connector-sparksql</path>
+                                    <toFile>/opt/sds/connectors/sparksql/bin/stratio-connector-sparksql</toFile>
+                                </copyFile>
+                                <copyDirectory>
+                                    <from>target/stratio-connector-sparksql/conf</from>
+                                    <to>/etc/sds/connectors/sparksql</to>
+                                    <directoryAttributes>
+                                        <user>stratio</user>
+                                        <group>stratio</group>
+                                    </directoryAttributes>
+                                </copyDirectory>
+                                <copyDirectory>
+                                    <from>target/stratio-connector-sparksql/repo</from>
+                                    <to>/opt/sds/connectors/sparksql/repo</to>
+                                    <directoryAttributes>
+                                        <user>stratio</user>
+                                        <group>stratio</group>
+                                    </directoryAttributes>
+                                </copyDirectory>
+                                <copyFile>
+                                    <path>src/main/include/LICENSE</path>
+                                    <toFile>/opt/sds/connectors/sparksql/LICENSE</toFile>
+                                </copyFile>
+                                <copyFile>
+                                    <path>src/main/include/NOTICE</path>
+                                    <toFile>/opt/sds/connectors/sparksql/NOTICE</toFile>
+                                </copyFile>
+                                <mkdirs>
+                                    <path>/var/log/sds/connectors</path>
+                                    <attributes>
+                                        <user>stratio</user>
+                                        <group>stratio</group>
+                                    </attributes>
+                                </mkdirs>
+                            </assembly>
+                            <defaults>
+                                <directoryAttributes>
+                                    <mode>0755</mode>
+                                </directoryAttributes>
+                                <fileAttributes>
+                                    <mode>0644</mode>
+                                </fileAttributes>
+                            </defaults>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>deb</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>package-deb</goal>
+                                </goals>
+                                <configuration>
+                                    <architecture>all</architecture>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>rpm</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>package-rpm</goal>
+                                </goals>
+                                <configuration>
+                                    <architecture>noarch</architecture>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
     </profiles>
-
-
 </project>

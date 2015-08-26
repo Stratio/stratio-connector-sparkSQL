@@ -1,0 +1,4 @@
+/etc/default/connectors/stratio-connector-sparksql
+/etc/sds/connectors/stratio-connector-sparksql/connector-application.conf
+/etc/sds/connectors/stratio-connector-sparksql/log.properties
+/etc/sds/connectors/stratio-connector-sparksql/connector-reference.conf
