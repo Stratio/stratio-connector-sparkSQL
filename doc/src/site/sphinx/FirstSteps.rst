@@ -29,27 +29,14 @@ Prerequisites
 
 - `Stratio Crossdata <https://github.com/Stratio/crossdata>`__ is needed in order to interact with this connector.
 
-- An existing and deployed `Hive metastore <https://hive.apache.org/>`__.
+- An existing and deployed `Hive metastore <ConfMetastore.html/>`__.
 
-- Build a SparkSQLConnector executable and run it following this `guide <https://github.com/Stratio/stratio-connector-sparkSQL/blob/master/doc/src/site/sphinx/about.rst>`__.
+- Build a SparkSQLConnector executable and run it following this `guide <about.html>`__.
 
 Configuration
 -------------
 
-In the Stratio Crossdata Shell we need to add the Datastore Manifest.
-
-::
-
-       > add datastore "<path_to_manifest_folder>/HDFSDataStore.xml";
-
-Now we need to add the ConnectorManifest.
-
-::
-
-       > add connector "<path_to_manifest_folder>/SparkSQLConnector.xml";
-
-At this point we have reported to Stratio Crossdata the connector options and
-operations. Now we configure the datastore cluster.
+In the Stratio Crossdata Shell we need configure the datastore cluster.
 
 ::
 

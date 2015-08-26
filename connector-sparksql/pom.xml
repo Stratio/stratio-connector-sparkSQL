@@ -147,10 +147,7 @@
             </plugin>
         </plugins>
     </build>
-
- 
-
-    <profiles>
+  <profiles>
         <profile>
             <id>package</id>
             <build>

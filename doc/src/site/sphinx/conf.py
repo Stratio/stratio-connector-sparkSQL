@@ -107,10 +107,10 @@ html_theme = 'stratio'
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {    
-    'versions' : ['0.1.0-SNAPSHOT'],
+    'versions' : ['0.2.0'],
     'github' : 'https://github.com/Stratio/stratio-connector-sparkSQL.git',
     'jira' : 'https://github.com/Stratio/stratio-connector-sparkSQL/issues',
-    'module_name' : 'SparkSQL Connector'
+    'module_name' : 'stratio-connector-sparkSQL'
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -198,7 +198,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Deepdoc'
+htmlhelp_basename = 'connector-sparkSQL-doc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
