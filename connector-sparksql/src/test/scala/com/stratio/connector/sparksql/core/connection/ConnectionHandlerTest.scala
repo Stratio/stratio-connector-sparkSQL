@@ -124,7 +124,7 @@ trait ConnectionHandlerSampleValues {
       "cluster-1",
       Map[String, String](),
       Map[String, String]())
-    config.setDataStoreName(new DataStoreName("hdfs"))
+    config.setDataStoreName(new DataStoreName("Test"))
     config
   }
 
