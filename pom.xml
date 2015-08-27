@@ -64,6 +64,7 @@
         <module>parquetProvider</module>
         <module>elasticsearchProvider</module>
         <module>jdbcProvider</module>
+        <module>jsonProvider</module>
         <module>doc</module>
         <module>stratio-connector-sparksql-executor</module>
     </modules>

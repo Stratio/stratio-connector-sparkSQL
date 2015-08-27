@@ -403,6 +403,12 @@ object QueryEngine extends Loggable with Metrics {
           ("path" -> tablePath)
         map
       }
+      case "json" => {
+        val tablePath = s"""${config.getClusterOptions.get("path")}/${tableMetadata.getName.getCatalogName.getName}/${tableMetadata.getName.getName}"""
+        val map =globalOptions(config) +
+          ("path" -> tablePath)
+        map
+      }
       case "elasticsearch" => {
         val nodes: String = config.getClusterOptions.get("nodes").replace("[","").replace("]","")
         val ports: String = config.getClusterOptions.get("port").replace("[","").replace("]","")

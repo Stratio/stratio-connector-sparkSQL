@@ -7,6 +7,7 @@
         <DataStoreName>Mongo</DataStoreName>
         <DataStoreName>elasticsearch</DataStoreName>
         <DataStoreName>jdbc</DataStoreName>
+        <DataStoreName>json</DataStoreName>
     </DataStores>
     <Version>0.1.0</Version>
     <RequiredProperties>
