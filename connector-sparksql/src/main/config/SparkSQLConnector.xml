@@ -6,6 +6,7 @@
         <DataStoreName>Cassandra</DataStoreName>
         <DataStoreName>Mongo</DataStoreName>
         <DataStoreName>elasticsearch</DataStoreName>
+        <DataStoreName>jdbc</DataStoreName>
     </DataStores>
     <Version>0.1.0</Version>
     <RequiredProperties>

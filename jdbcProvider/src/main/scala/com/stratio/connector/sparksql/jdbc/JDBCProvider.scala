@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package main.scala.com.stratio.connector.sparksql.jdbc
+package com.stratio.connector.sparksql.jdbc
 import com.stratio.connector.sparksql.core.Provider
 
 case object JDBCProvider extends Provider with JDBCConstants{

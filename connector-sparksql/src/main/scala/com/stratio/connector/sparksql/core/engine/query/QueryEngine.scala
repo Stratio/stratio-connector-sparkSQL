@@ -424,7 +424,7 @@ object QueryEngine extends Loggable with Metrics {
 
         val map: Map[String, Query] = globalOptions(config) +
           ("url" -> config.getClusterOptions.get("url").replace("[","").replace("]","")) +
-          ("driver" ->tableMetadata.getName.getCatalogName.getName) +
+          ("driver" ->config.getClusterOptions.get("driver")) +
           ("dbtable" -> tableMetadata.getName.getName)
         map
 
