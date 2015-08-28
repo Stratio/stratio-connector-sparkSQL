@@ -44,6 +44,7 @@ object `package` {
     "year" ->  new ColumnType(DataType.VARCHAR),
     "month" ->  new ColumnType(DataType.VARCHAR),
     "day" ->  new ColumnType(DataType.VARCHAR),
+    "hour" ->  new ColumnType(DataType.VARCHAR),
     "date_add" ->  {
       val columnName = new ColumnType(DataType.NATIVE)
       columnName.setODBCType(SQLDate)
