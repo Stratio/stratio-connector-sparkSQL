@@ -173,7 +173,12 @@
             <FunctionType>simple</FunctionType>
             <Description>Returns the day of the date</Description>
         </Function>
-
+        <Function>
+            <FunctionName>hour</FunctionName>
+            <Signature>hour(Tuple[Any]):Tuple[Any]</Signature>
+            <FunctionType>simple</FunctionType>
+            <Description>Returns the hour of the date</Description>
+        </Function>
         <Function>
             <FunctionName>date_add</FunctionName>
             <Signature>date_add(Tuple[Any,Int]):Tuple[Any]</Signature>
