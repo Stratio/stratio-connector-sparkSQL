@@ -25,7 +25,7 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import com.stratio.crossdata.common.connector.{ConnectorClusterConfig, IQueryEngine, IResultHandler}
 import com.stratio.crossdata.common.data.TableName
-import com.stratio.crossdata.common.logicalplan.{LogicalWorkflow, Project, Select}
+import com.stratio.crossdata.common.logicalplan.{PartialResults, LogicalWorkflow, Project, Select}
 import com.stratio.crossdata.common.metadata.{ColumnMetadata, TableMetadata}
 import com.stratio.crossdata.common.result.QueryResult
 import com.stratio.crossdata.common.statements.structures.{FunctionSelector, Selector}
@@ -158,7 +158,7 @@ object QueryEngine extends Loggable with Metrics {
       }
       logger.info(s"Query after general format: [$formattedQuery]")
       logger.info("Find for partialResults")
-      val partialsResults = PartialResultProcessor().recoveredPartialResult(workflow)
+      val partialsResults: Iterable[PartialResults] = PartialResultProcessor().recoveredPartialResult(workflow)
 
       val catalogsPartialResult = partialsResults.map {
         case (pr) => {

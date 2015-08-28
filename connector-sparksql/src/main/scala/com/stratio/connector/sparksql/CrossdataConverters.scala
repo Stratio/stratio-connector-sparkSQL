@@ -143,12 +143,30 @@ object CrossdataConverters extends Loggable {
       }
     }
     val rowRdd = sparkSQLContext.sparkContext.parallelize(rows.map(_._1).toSeq)
-    val schema = rows.head._2
+    val schema = metadataToSchema(metadata)//rows.head._2
     logger.info(s"Schema deduced from resultset: $schema")
     val count = rowRdd.count()
     logger.info(s"Number of rows in dataframe: ${rowRdd.count}")
     val df = sparkSQLContext.createDataFrame(rowRdd, schema)
     df
+  }
+
+  def metadataToSchema(metadata: List[ColumnMetadata]): StructType = {
+    import com.stratio.crossdata.common.metadata.DataType._
+    new StructType(metadata.map{
+      case cm if cm.getColumnType.getDataType == INT =>
+        StructField(cm.getName.getName, IntegerType, nullable=true)
+      case cm if cm.getColumnType.getDataType == DOUBLE =>
+        StructField(cm.getName.getName, DoubleType, nullable=true)
+      case cm if cm.getColumnType.getDataType == TEXT =>
+        StructField(cm.getName.getName, StringType, nullable=true)
+      case cm if cm.getColumnType.getDataType ==  VARCHAR =>
+        StructField(cm.getName.getName, StringType, nullable=true)
+      case cm if cm.getColumnType.getDataType ==  BOOLEAN =>
+        StructField(cm.getName.getName, BooleanType, nullable=true)
+      case cm if cm.getColumnType.getDataType ==  BIGINT =>
+        StructField(cm.getName.getName, IntegerType, nullable=true)
+    }.toArray)
   }
 
   def deduceFieldsType (row: XDRow, metadata: List[ColumnMetadata]) :
