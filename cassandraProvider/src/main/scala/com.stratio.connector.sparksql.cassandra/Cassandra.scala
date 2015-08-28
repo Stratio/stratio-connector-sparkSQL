@@ -17,14 +17,13 @@
  */
 package com.stratio.connector.sparksql.cassandra
 
+import com.stratio.connector.sparksql.core.Provider
 import com.stratio.connector.sparksql.core.connection.Connection
 import com.stratio.crossdata.common.connector.ConnectorClusterConfig
 import com.stratio.crossdata.common.security.ICredentials
 import org.apache.spark.sql.SQLContext
+
 import scala.collection.JavaConversions._
-import org.apache.spark.sql.cassandra._
-import com.datastax.spark.connector.cql.CassandraConnectorConf
-import com.stratio.connector.sparksql.core.Provider
 
 case object Cassandra extends Provider with CassandraConstants{
 
@@ -40,11 +39,10 @@ case object Cassandra extends Provider with CassandraConstants{
   val DefaultRPCPort = "9160"
 
   override def createConnection(
-    config: ConnectorClusterConfig,
-    sqlContext: SQLContext,
-    credentials: Option[ICredentials]): Connection = {
+                                 config: ConnectorClusterConfig,
+                                 sqlContext: SQLContext,
+                                 credentials: Option[ICredentials]): Connection = {
 
-    val conf= sqlContext.sparkContext.getConf
     val clusterOptions = config.getClusterOptions.toMap
     val clusterName = clusterOptions("cluster")
     val cassConfig = Map(
@@ -53,14 +51,11 @@ case object Cassandra extends Provider with CassandraConstants{
         clusterOptions.getOrElse("Port", DefaultNativePort),
       CassandraConnectionRpcPortProperty ->
         clusterOptions.getOrElse("rpcPort", DefaultRPCPort))
-
-
-    sqlContext.addCassandraConnConf(
-      clusterName,
-      CassandraConnectorConf(conf.setAll(cassConfig)))
+    cassConfig.map{
+      prop => sqlContext.setConf(prop._1, prop._2)
+    }
     logger.debug(s"The cache for [$clusterName] has been registering.")
-
     super.createConnection(config,sqlContext,credentials)
-
   }
+
 }
