@@ -156,6 +156,14 @@
                                     </directoryAttributes>
                                 </copyDirectory>
                                 <copyDirectory>
+                                    <from>target/stratio-connector-sparksql/bin</from>
+                                    <to>/opt/sds/connectors/sparksql/bin</to>
+                                    <directoryAttributes>
+                                        <user>stratio</user>
+                                        <group>stratio</group>
+                                    </directoryAttributes>
+                                </copyDirectory>
+                                <copyDirectory>
                                     <from>target/stratio-connector-sparksql/repo</from>
                                     <to>/opt/sds/connectors/sparksql/repo</to>
                                     <directoryAttributes>
@@ -181,10 +189,10 @@
                             </assembly>
                             <defaults>
                                 <directoryAttributes>
-                                    <mode>0755</mode>
+                                    <mode>0775</mode>
                                 </directoryAttributes>
                                 <fileAttributes>
-                                    <mode>0644</mode>
+                                    <mode>0664</mode>
                                 </fileAttributes>
                             </defaults>
                         </configuration>
