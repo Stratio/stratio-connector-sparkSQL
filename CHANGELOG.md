@@ -1,7 +1,7 @@
 # Changelog
 
 
-## 0.3.0 (August 2015)
+## 0.3.0 (September 2015)
 * Improve architecture
 * Bugs fixed
 * HDFS-JSON datasource supported
