@@ -410,19 +410,22 @@ object QueryEngine extends Loggable with Metrics {
         map
       }
       case "elasticsearch" => {
-        val nodes: String = config.getClusterOptions.get("nodes").replace("[","").replace("]","")
-        val ports: String = config.getClusterOptions.get("port").replace("[","").replace("]","")
+        val nodes: String = config.getClusterOptions.get("Hosts").replace("[","").replace("]","")
+        val ports: String = config.getClusterOptions.get("Native Ports").replace("[","").replace("]","")
         var portKey = "port"
         if(ports.split(",").length > 1){
           portKey = "ports"
 
         }
         val resources: String = s"${tableMetadata.getName.getCatalogName.getName}/${tableMetadata.getName.getName}"
-        val map: Map[String, Query] = globalOptions(config) -
-          ("port") +
+        val map: Map[String, Query] = globalOptions(config) +
           ("nodes" -> nodes) +
           (portKey ->ports)+
-          ("resource"->resources)
+          ("resource"->resources) -
+          ("Hosts")-
+          ("Cluster Name") -
+          ("Restful Ports") -
+          ("Native Ports")
         map
       }
 

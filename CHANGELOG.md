@@ -2,7 +2,7 @@
 
 
 ## 0.3.0 (August 2015)
-* improve architecture
+* Improve architecture
 * Bugs fixed
 * HDFS-JSON datasource supported
 * JDBC datasource supported

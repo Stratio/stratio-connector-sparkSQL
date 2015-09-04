@@ -24,15 +24,19 @@
     <Version>0.4.0</Version>
     <RequiredProperties>
         <Property>
-            <PropertyName>nodes</PropertyName>
+            <PropertyName>Hosts</PropertyName>
             <Description>The list of hosts ips</Description>
         </Property>
         <Property>
-            <PropertyName>port</PropertyName>
+            <PropertyName>Native Ports</PropertyName>
             <Description>The list of hosts native ports</Description>
         </Property>
         <Property>
-            <PropertyName>clustername</PropertyName>
+            <PropertyName>Restful Ports</PropertyName>
+            <Description>The list of hosts restful ports</Description>
+        </Property>
+        <Property>
+            <PropertyName>Cluster Name</PropertyName>
             <Description>The name of the ElasticSearch Cluster</Description>
         </Property>
     </RequiredProperties>
