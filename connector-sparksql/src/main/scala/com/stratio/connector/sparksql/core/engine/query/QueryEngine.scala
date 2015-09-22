@@ -411,7 +411,7 @@ object QueryEngine extends Loggable with Metrics {
       }
       case "elasticsearch" => {
         val nodes: String = config.getClusterOptions.get("Hosts").replace("[","").replace("]","")
-        val ports: String = config.getClusterOptions.get("Native Ports").replace("[","").replace("]","")
+        val ports: String = config.getClusterOptions.get("Restful Ports").replace("[","").replace("]","")
         var portKey = "port"
         if(ports.split(",").length > 1){
           portKey = "ports"
