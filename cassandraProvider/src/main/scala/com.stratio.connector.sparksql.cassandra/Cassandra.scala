@@ -45,12 +45,15 @@ case object Cassandra extends Provider with CassandraConstants{
 
     val clusterOptions = config.getClusterOptions.toMap
     val clusterName = clusterOptions("cluster")
+
+    // TODO Check if is mandatory to pass properties to sqlContext
     val cassConfig = Map(
       CassandraConnectionHostProperty -> clusterOptions("Hosts").replaceAll("\\[","").replaceAll("\\]",""),
       CassandraConnectionNativePortProperty ->
         clusterOptions.getOrElse("Port", DefaultNativePort),
       CassandraConnectionRpcPortProperty ->
         clusterOptions.getOrElse("rpcPort", DefaultRPCPort))
+
     cassConfig.map{
       prop => sqlContext.setConf(prop._1, prop._2)
     }
