@@ -17,7 +17,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.stratio.connector</groupId>
     <artifactId>stratio-connector-sparksql</artifactId>
-    <version>0.3.3</version>
+    <version>0.3.4-RC1-SNAPSHOT</version>
     <description>Stratio SparkSQL Crossdata connector</description>
     <url>http://www.stratio.com</url>
     <name>Stratio SparkSQL connector</name>
@@ -28,7 +28,7 @@
         <version>0.4.0</version>
     </parent>
     <properties>
-        <version.connector.commons>0.6.2</version.connector.commons>
+        <version.connector.commons>0.6.3-SNAPSHOT</version.connector.commons>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.7.0</java.version>
         <akka.version>2.3.4</akka.version>
