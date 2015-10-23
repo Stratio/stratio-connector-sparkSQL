@@ -35,9 +35,9 @@ In this file you need to set:
 
    Jars needed for the Stratio Connector-SparkSQL:
 
-       - stratio-connector-sparksql-0.2.0.jar
-       - crossdata-common-0.4.0.jar
-       - stratio-connector-commons-0.6.0.jar
+       - stratio-connector-sparksql-0.2.3.jar
+       - crossdata-common-0.5.0.jar
+       - stratio-connector-commons-0.6.3.jar
        - spark-hive_2.10-1.3.1.jar
        - guava-14.0.1.jar
 
@@ -46,7 +46,7 @@ In this file you need to set:
        - cassandra-driver-core-2.1.5.jar
        - cassandra-thrift-2.1.3.jar
        - mysql-connector-java-5.1.34.jar
-       - spark-cassandra-connector_2.10-1.4.0-M1-SNAPSHOT.jar
+       - spark-cassandra-connector_2.10-1.4.0.jar
 
 3) Memory dedicated to the driver and the executor as well as the number of cores required. In the variables "spark.driver.memory","spark.executor.memory" and "spark.cores.max" you can set these properties.
 

@@ -13,24 +13,24 @@
 
     <property>
         <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:mysql://conectores05/testmetastore?createDatabaseIfNotExist=true</value>
+        <value>[jdbc_url]?createDatabaseIfNotExist=true</value>
         <description>JDBC connect string for a JDBC metastore</description>
     </property>
 
     <property>
         <name>javax.jdo.option.ConnectionDriverName</name>
-        <value>com.mysql.jdbc.Driver</value>
+        <value>[Driver_Class]</value>
         <description>Driver class name for a JDBC metastore</description>
     </property>
 
     <property>
         <name>javax.jdo.option.ConnectionUserName</name>
-        <value>stratio</value>
+        <value>[user]</value>
     </property>
 
     <property>
         <name>javax.jdo.option.ConnectionPassword</name>
-        <value>stratio</value>
+        <value>[password]</value>
     </property>
 
     <property>

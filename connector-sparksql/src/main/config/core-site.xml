@@ -19,6 +19,6 @@
 <configuration>
 <property>
 <name>fs.defaultFS</name>
-<value>hdfs://conectores02:8020</value>
+<value>hdfs://[IP:Port]</value>
 </property>
 </configuration>
