@@ -24,37 +24,37 @@
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-core</artifactId>
-            <version>0.3.4</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-mongodbProvider</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-parquetProvider</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-cassandraProvider</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-elasticsearchProvider</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-jdbcProvider</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-jsonProvider</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
 
@@ -74,8 +74,6 @@
             </plugins>
         </pluginManagement>
         <plugins>
-
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
@@ -109,13 +107,7 @@
                     </execution>
                 </executions>
             </plugin>
-
-
-
         </plugins>
-
-
-
     </build>
 
     <profiles>
@@ -123,8 +115,6 @@
             <id>package</id>
             <build>
                 <plugins>
-
-
                     <plugin>
                         <groupId>com.stratio.mojo.unix</groupId>
                         <artifactId>unix-maven-plugin</artifactId>

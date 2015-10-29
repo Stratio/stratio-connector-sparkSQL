@@ -37,17 +37,20 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    <properties>
+        <es-spark.version>2.1.0</es-spark.version>
+    </properties>
     <dependencies>
           <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-core</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch-spark_2.10</artifactId>
-            <version>2.1.0</version>
+            <version>${es-spark.version}</version>
         </dependency>
     </dependencies>
 </project>

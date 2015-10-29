@@ -45,7 +45,7 @@ In this file you need to set:
 
        - cassandra-driver-core-2.1.5.jar
        - cassandra-thrift-2.1.3.jar
-       - mysql-connector-java-5.1.34.jar
+       - mariadb-java-client-1.2.3.jar
        - spark-cassandra-connector_2.10-1.4.0.jar
 
 3) Memory dedicated to the driver and the executor as well as the number of cores required. In the variables "spark.driver.memory","spark.executor.memory" and "spark.cores.max" you can set these properties.

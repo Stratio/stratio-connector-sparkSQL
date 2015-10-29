@@ -82,7 +82,7 @@ hive-site.xml
 
         <property>
            <name>javax.jdo.option.ConnectionDriverName</name>
-           <value>com.mysql.jdbc.Driver</value>
+           <value>org.mariadb.jdbc.Driver</value>
            <description>Driver class name for a JDBC metastore</description>
         </property>
 

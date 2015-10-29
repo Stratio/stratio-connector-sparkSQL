@@ -30,6 +30,13 @@
         <artifactId>stratio-connector-sparksql</artifactId>
         <version>0.3.4</version>
     </parent>
+    <properties>
+        <log4j.version>1.2.17</log4j.version>
+        <slf4j.version>1.7.7</slf4j.version>
+        <scalacheck.version>1.12.2</scalacheck.version>
+        <junit.version>4.11</junit.version>
+        <powermock.version>1.5.5</powermock.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.stratio.connector</groupId>
@@ -58,9 +65,9 @@
             <version>${spark.version}</version>
         </dependency>
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.34</version>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>${mariadb.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
@@ -70,12 +77,12 @@
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <version>${log4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.7</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -85,12 +92,12 @@
         <dependency>
             <groupId>org.scalacheck</groupId>
             <artifactId>scalacheck_2.10</artifactId>
-            <version>1.12.2</version>
+            <version>${scalacheck.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -102,13 +109,13 @@
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
-            <version>1.5.5</version>
+            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4</artifactId>
-            <version>1.5.5</version>
+            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

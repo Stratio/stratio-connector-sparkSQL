@@ -37,17 +37,20 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    <properties>
+        <spark-mongo.version>0.8.7</spark-mongo.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-core</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.stratio</groupId>
             <artifactId>spark-mongodb-core</artifactId>
-            <version>0.8.7</version>
+            <version>${spark-mongo.version}</version>
         </dependency>
     </dependencies>
 </project>

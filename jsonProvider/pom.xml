@@ -41,7 +41,7 @@
          <dependency>
             <groupId>com.stratio.connector</groupId>
             <artifactId>stratio-connector-sparksql-core</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
 
 
