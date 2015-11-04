@@ -55,7 +55,7 @@ The last step is to attach the connector to the cluster created before.
 
 ::
 
-      >  ATTACH CONNECTOR hdfsconnector TO hdfsCluster  WITH OPTIONS {'DefaultLimit' : <limitSize>};
+      >  ATTACH CONNECTOR SparkSQLConnector TO hdfsCluster  WITH OPTIONS {'DefaultLimit' : <limitSize>};
 
 The output must be:
 
