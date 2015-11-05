@@ -4,11 +4,15 @@ The Stratio Connector-SparkSQL allows `Stratio Crossdata <https://github.com/Str
 
 Requirements
 ------------
-- You need to install sbt and maven.
+- You need to install maven.
 
 - `Stratio Crossdata <https://github.com/Stratio/crossdata>`__ is needed in order to interact with this connector.
 
 - An existing and deployed `Hive metastore <ConfMetastore.html>`__.
+
+- An Apache Spark installation:
+    -   `Standalone <http://spark.apache.org/docs/latest/spark-standalone.html>`__
+    -   `Mesos <http://spark.apache.org/docs/latest/running-on-mesos.html>`__ (Stratio platform provides this installation) 
 
 Compiling Stratio Connector-SparkSQL
 --------------------------------------------------------------------------------
@@ -29,7 +33,10 @@ In the directory stratio-connector-sparkSQL/connector-sparkSQL/src/main/config/ 
 
 In this file you need to set:
 
-1) The Spark Master. In the variable "spark.master" you can choose if you want to run Spark in your local (e.g. spark.master = local[4]) or in a cluster (e.g. spark.master = "spark://...").
+1) The Spark Master. In the variable "spark.master" you can choose if you want to run Spark in your local (e.g. spark.master = local[4]) or in a cluster: (e.g. spark.master = "spark://...").
+    - Standalone: spark.master = "spark://HOST:PORT"
+    - Mesos with single-master: spark.master = "mesos://HOST:5050"
+    - Mesos cluster: spark.master = "mesos://zk://HOST:2181"
 
 2) The dependencies. In the variable "spark.jars" you must write the path to some jars located in your local after compiling the connector. These jars are:
 
