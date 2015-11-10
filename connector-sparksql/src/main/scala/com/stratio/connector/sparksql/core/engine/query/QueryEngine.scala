@@ -395,7 +395,9 @@ object QueryEngine extends Loggable with Metrics {
         val map: Map[String, Query] = globalOptions(config) +
           ("table" -> tableMetadata.getName.getName) +
           ("keyspace" ->tableMetadata.getName.getCatalogName.getName) +
-          ("spark_cassandra_connection_host" -> config.getClusterOptions.get("Hosts"))
+          ("spark_cassandra_connection_host" -> config.getClusterOptions.get("Hosts").replace("[", "").replace("]",""))-
+          ("Hosts")
+
         map
       }
       case "hdfs" => {
