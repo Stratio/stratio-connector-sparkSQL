@@ -38,7 +38,7 @@
         </license>
     </licenses>
     <properties>
-        <spark-mongo.version>0.8.7</spark-mongo.version>
+        <spark-mongo.version>0.9.1</spark-mongo.version>
     </properties>
     <dependencies>
         <dependency>
@@ -48,8 +48,8 @@
         </dependency>
 
         <dependency>
-            <groupId>com.stratio</groupId>
-            <artifactId>spark-mongodb-core</artifactId>
+            <groupId>com.stratio.datasource</groupId>
+            <artifactId>spark-mongodb_2.10</artifactId>
             <version>${spark-mongo.version}</version>
         </dependency>
     </dependencies>
