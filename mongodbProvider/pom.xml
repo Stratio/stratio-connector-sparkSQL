@@ -38,7 +38,7 @@
         </license>
     </licenses>
     <properties>
-        <spark-mongo.version>0.9.1</spark-mongo.version>
+        <spark-mongo.version>0.9.2</spark-mongo.version>
     </properties>
     <dependencies>
         <dependency>
