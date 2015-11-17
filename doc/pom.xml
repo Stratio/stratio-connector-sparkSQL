@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.stratio.connector</groupId>
         <artifactId>stratio-connector-sparksql</artifactId>
-        <version>0.3.5</version>
+        <version>0.3.6-RC1-SNAPSHOT</version>
     </parent>
     <build>
         <plugins>
