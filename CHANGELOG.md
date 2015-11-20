@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.6 (November 2015)
+
+* Bug with Mongo datasource fixed
+
 ## 0.3.5 (November 2015)
 
 * Adapted to Stratio Crossdata 0.5.1

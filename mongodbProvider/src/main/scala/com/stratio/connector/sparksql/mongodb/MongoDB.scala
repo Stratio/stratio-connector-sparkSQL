@@ -25,6 +25,6 @@ object MongoDB extends Provider {
 
   override val name: String = "Mongo"
 
-  override val dataSource: String = "com.stratio.provider.mongodb.DefaultSource"
+  override val dataSource: String = "com.stratio.datasource.mongodb.DefaultSource"
 
 }
