@@ -52,7 +52,7 @@ case class QueryEngine(
   sqlContext: SparkSQLContext,
   queryManager: ActorRef,
   connectionHandler: ConnectionHandler)(
-  implicit timeout: akka.util.Timeout = 3.seconds) extends IQueryEngine
+  implicit timeout: akka.util.Timeout = 120.seconds) extends IQueryEngine
 with Loggable
 with Metrics {
 

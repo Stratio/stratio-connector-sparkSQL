@@ -124,21 +124,6 @@ with Configuration {
       //  Update current schema
       currentSchema = Option(dataFrame.schema)
       if (asyncStoppable) {
-        logger.debug(s"$me Processing ${job.queryId} as stoppable...")
-        //  Split RDD into chunks of approx. 'defaultChunkSize' size
-        dataFrame.rdd.countApprox(timeoutCountApprox.toMillis).onComplete { amount =>
-          timeFor(s"$me Defined chunks (RDD size ~ $amount elements)...") {
-            val repartitioned = dataFrame
-              .repartition((amount.high / pageSize).toInt + {
-              if (amount.high % pageSize == 0) 0 else 1
-            }).rdd
-            logger.debug(s"DataFrame split into ${repartitioned.partitions.length} partitions")
-            rddChunks = repartitioned
-              .toLocalIterator
-              .grouped(pageSize)
-              .map(_.iterator)
-              .zipWithIndex
-            if (repartitioned.partitions.length==0){
               val result = QueryResult.createQueryResult(
                 toResultSet(List().toIterator, dataFrame.schema, toColumnMetadata(job.workflow)),
                 0,
@@ -146,9 +131,7 @@ with Configuration {
               result.setQueryId(job.queryId)
               job.resultHandler.processResult(result)
             }
-          }
-        }
-      } else {
+       else {
         timeFor(s"$me Processed ${job.queryId} as unstoppable...") {
           //  Prepare query as an only chunk, omitting stop messages
           rddChunks = List(dataFrame.rdd.toLocalIterator -> 0).iterator
