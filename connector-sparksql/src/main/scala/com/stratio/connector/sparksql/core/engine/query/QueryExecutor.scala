@@ -33,19 +33,19 @@ import QueryEngine.toColumnMetadata
 import QueryExecutor._
 
 /**
- * Minimum query execution unit.
- *
- * @param sqlContext The SQLContext
- * @param defaultChunkSize Max row size in a chunk
- * @param provider SparkSQL Data source provider
- * @param asyncStoppable Whether its tasks can be stopped or not
- */
+  * Minimum query execution unit.
+  *
+  * @param sqlContext The SQLContext
+  * @param defaultChunkSize Max row size in a chunk
+  * @param provider SparkSQL Data source provider
+  * @param asyncStoppable Whether its tasks can be stopped or not
+  */
 class QueryExecutor(
-  sqlContext: SparkSQLContext,
-  defaultChunkSize: Int,
-  provider: DataFrameProvider,
-  connectionHandler: ConnectionHandler,
-  asyncStoppable: Boolean = true) extends Actor
+                     sqlContext: SparkSQLContext,
+                     defaultChunkSize: Int,
+                     provider: DataFrameProvider,
+                     connectionHandler: ConnectionHandler,
+                     asyncStoppable: Boolean = true) extends Actor
 with Loggable
 with Metrics
 with Configuration {
@@ -108,13 +108,13 @@ with Configuration {
   def me: String = s"[QueryExecutor#${context.self}}]"
 
   /**
-   * Start a new async query job. This will execute the given query
-   * on SparkSQL and the repartition results for handling them in
-   * smaller pieces called chunks. Chunk size should be small enough
-   * in order to fit in driver memory.
-   *
-   * @param job Query to be asynchronously executed.
-   */
+    * Start a new async query job. This will execute the given query
+    * on SparkSQL and the repartition results for handling them in
+    * smaller pieces called chunks. Chunk size should be small enough
+    * in order to fit in driver memory.
+    *
+    * @param job Query to be asynchronously executed.
+    */
   def startNewJob(job: AsyncJob, pageSize: Int = defaultChunkSize): Unit =
     timeFor(s"$me Job ${job.queryId} is started") {
       //  Update current job
@@ -124,14 +124,22 @@ with Configuration {
       //  Update current schema
       currentSchema = Option(dataFrame.schema)
       if (asyncStoppable) {
-              val result = QueryResult.createQueryResult(
-                toResultSet(List().toIterator, dataFrame.schema, toColumnMetadata(job.workflow)),
-                0,
-                true)
-              result.setQueryId(job.queryId)
-              job.resultHandler.processResult(result)
-            }
-       else {
+        val repartitioned = dataFrame.rdd
+        rddChunks = repartitioned
+          .toLocalIterator
+          .grouped(pageSize)
+          .map(_.iterator)
+          .zipWithIndex
+        if (repartitioned.partitions.length == 0) {
+          val result = QueryResult.createQueryResult(
+            toResultSet(List().toIterator, dataFrame.schema, toColumnMetadata(job.workflow)),
+            0,
+            true)
+          result.setQueryId(job.queryId)
+          job.resultHandler.processResult(result)
+        }
+      }
+      else {
         timeFor(s"$me Processed ${job.queryId} as unstoppable...") {
           //  Prepare query as an only chunk, omitting stop messages
           rddChunks = List(dataFrame.rdd.toLocalIterator -> 0).iterator
@@ -143,8 +151,8 @@ with Configuration {
     }
 
   /**
-   * Process or set as finished current job if there are no chunks left.
-   */
+    * Process or set as finished current job if there are no chunks left.
+    */
   def keepProcessingJob(): Unit =
     for {
       job <- currentJob
@@ -166,15 +174,15 @@ with Configuration {
     }
 
   /**
-   * Process the given chunk as query result set.
-   *
-   * @param chunk The chunk to be processed
-   * @param isLast Indicate the way to find out if given chunk is the last.
-   */
+    * Process the given chunk as query result set.
+    *
+    * @param chunk The chunk to be processed
+    * @param isLast Indicate the way to find out if given chunk is the last.
+    */
   def processChunk(
-    chunk: => Chunk,
-    isLast: => Boolean,
-    schema: StructType): Unit = {
+                    chunk: => Chunk,
+                    isLast: => Boolean,
+                    schema: StructType): Unit = {
     val (rows, idx) = chunk
     currentJob.foreach { job =>
       job.resultHandler.processResult {
@@ -193,8 +201,8 @@ with Configuration {
   }
 
   /**
-   * Stop processing current asynchronous query job.
-   */
+    * Stop processing current asynchronous query job.
+    */
   def stopCurrentJob(): Unit = {
     currentJob = None
     currentSchema = None
@@ -208,11 +216,11 @@ object QueryExecutor {
   type DataFrameProvider = (LogicalWorkflow, ConnectionHandler, SparkSQLContext) => DataFrame
 
   def apply(
-    sqlContext: SparkSQLContext,
-    defaultChunkSize: Int,
-    provider: DataFrameProvider,
-    connectionHandler: ConnectionHandler,
-    asyncStoppable: Boolean = true): Props =
+             sqlContext: SparkSQLContext,
+             defaultChunkSize: Int,
+             provider: DataFrameProvider,
+             connectionHandler: ConnectionHandler,
+             asyncStoppable: Boolean = true): Props =
     Props(new QueryExecutor(
       sqlContext,
       defaultChunkSize,

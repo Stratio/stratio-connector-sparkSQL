@@ -11,6 +11,7 @@
 
     <!-- Hive Execution Parameters -->
 
+    <!--
     <property>
         <name>javax.jdo.option.ConnectionURL</name>
         <value>[jdbc_url]?createDatabaseIfNotExist=true</value>
@@ -32,7 +33,7 @@
         <name>javax.jdo.option.ConnectionPassword</name>
         <value>[password]</value>
     </property>
-
+-->
     <property>
         <name>hive.metastore.warehouse.dir</name>
         <value>/tmp</value>

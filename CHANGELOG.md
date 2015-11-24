@@ -1,5 +1,10 @@
 # Changelog
 
+
+## 0.3.8 (November 2015)
+
+Fixed bug with Async queries
+
 ## 0.3.6 (November 2015)
 
 * Bug with Mongo datasource fixed
