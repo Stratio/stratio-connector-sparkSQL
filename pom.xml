@@ -17,7 +17,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.stratio.connector</groupId>
     <artifactId>stratio-connector-sparksql</artifactId>
-    <version>0.3.8</version>
+    <version>0.3.9-RC1-SNAPSHOT</version>
     <description>Stratio SparkSQL Crossdata connector</description>
     <url>http://www.stratio.com</url>
     <name>Stratio SparkSQL connector</name>
