@@ -154,7 +154,8 @@ object QueryEngine extends Loggable with Metrics {
       logger.info(s"SparkSQL query after providers format: [$providersFormatted]")
       //  Format query for avoiding conflicts such as 'catalog.table' issue
       val formattedQuery = timeFor("Query formatted to SparkSQL format") {
-        sparkSQLFormat(providersFormatted, catalogsFromWorkflow(workflow))
+        val columnList = projects.flatMap(table => table.getColumnList).map(column => column.getName).toList
+        sparkSQLFormat(providersFormatted, catalogsFromWorkflow(workflow), columnList)
       }
       logger.info(s"Query after general format: [$formattedQuery]")
       logger.info("Find for partialResults")
@@ -176,7 +177,8 @@ object QueryEngine extends Loggable with Metrics {
 
 
       val partialResultsFormatted = timeFor("SparkSQL query after partial results format:   ") {
-        sparkSQLFormat(formattedQuery, catalogsPartialResult.toList)
+        val columnList = projects.flatMap(table => table.getColumnList).map(column => column.getName).toList
+        sparkSQLFormat(formattedQuery, catalogsPartialResult.toList, columnList)
       }
       logger.info(s"SparkSQL query after result set format: [$partialResultsFormatted]")
 
@@ -249,11 +251,16 @@ object QueryEngine extends Loggable with Metrics {
   def sparkSQLFormat(
     statement: Query,
     catalogs: Iterable[String],
+    columns: List[String],
     conflictChar: String = "."): Query = {
 
-    //  Remove catalog name
+    val withQuotes = (statement /: columns){
+      case (st, column) =>
+        val regex = s"[\\s|\\,|\\.]$column".r
+        regex.replaceAllIn(st, mtch => s"${mtch.toString()(0)}`${mtch.toString().substring(1)}`")
+    }
 
-    val withoutCatalog = (statement /: catalogs) {
+    val withoutCatalog = (withQuotes /: catalogs) {
       case (s, catalog) =>
         val regex = s"[\\s|(]$catalog\\.".r
         regex.replaceAllIn(s, mtch =>
